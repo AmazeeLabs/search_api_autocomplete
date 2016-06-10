@@ -1,0 +1,6 @@
+search_api_autocomplete.autocomplete:
+  path: /search_api_autocomplete/{search_api_autocomplete_search}
+  defaults:
+    _controller: \Drupal\search_api_autocomplete\Controller\AutocompleteController::autocomplete
+  requirements:
+    _custom_access: \Drupal\search_api_autocomplete\Controller\AutocompleteController::access

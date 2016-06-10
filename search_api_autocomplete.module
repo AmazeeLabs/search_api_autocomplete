@@ -58,17 +58,6 @@ function search_api_autocomplete_search_api_autocomplete_suggester_info() {
  * Implements hook_menu().
  */
 function search_api_autocomplete_menu() {
-  // Autocompletion path
-  $items['search_api_autocomplete/%search_api_autocomplete_search'] = array(
-    'title' => 'Search API autocomplete',
-    'page callback' => 'search_api_autocomplete_autocomplete',
-    'page arguments' => array(1),
-    'access callback' => 'search_api_autocomplete_access',
-    'access arguments' => array(1),
-    'type' => MENU_CALLBACK,
-    'file' => 'search_api_autocomplete.pages.inc',
-  );
-
   // Admin UI
   $items['admin/config/search/search_api/index/%search_api_index/autocomplete'] = array(
     'title' => 'Autocomplete',
@@ -132,7 +121,6 @@ function search_api_autocomplete_theme() {
  *   the necessary permission. FALSE otherwise.
  */
 function search_api_autocomplete_access(SearchApiAutocompleteSearch $search, $account = NULL) {
-  return $search->status() && user_access('use search_api_autocomplete for ' . $search->machine_name, $account) && $search->supportsAutocompletion();
 }
 
 /**

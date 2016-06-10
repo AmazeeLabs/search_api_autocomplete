@@ -4,6 +4,7 @@ namespace Drupal\search_api_autocomplete;
 
 use Drupal\search_api\Query\QueryInterface;
 use Drupal\search_api\Backend\BackendInterface;
+use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
 
 
 /**
@@ -40,7 +41,7 @@ interface SearchApiAutocompleteInterface extends BackendInterface {
    *
    * @param \Drupal\search_api\Query\QueryInterface $query
    *   A query representing the completed user input so far.
-   * @param SearchApiAutocompleteSearch $search
+   * @param \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $search
    *   An object containing details about the search the user is on, and
    *   settings for the autocompletion. See the class documentation for details.
    *   Especially $search->options should be checked for settings, like whether

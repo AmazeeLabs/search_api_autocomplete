@@ -4,6 +4,7 @@ namespace Drupal\search_api_autocomplete\Controller;
 
 use Drupal\Component\Utility\Html;
 use Drupal\Core\Cache\CacheableJsonResponse;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\search_api\SearchApiException;
 use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -131,6 +132,21 @@ class AutocompleteController {
     }
 
     return new CacheableJsonResponse($ret);
+  }
+
+  /**
+   * Checks access to the autocompletion route.
+   *
+   * @param \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $search
+   *   The configured autocompletion search.
+   * @param \Drupal\Core\Session\AccountInterface $account
+   *   The account.
+   *
+   * @return \Drupal\Core\Access\AccessResult
+   *   The access result.
+   */
+  public function access(SearchApiAutocompleteSearch $search, AccountInterface $account) {
+    return $search->status() && $account->hasPermission('use search_api_autocomplete for ' . $search->id()) && $search->supportsAutocompletion();
   }
 
 }
