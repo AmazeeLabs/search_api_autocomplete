@@ -1,9 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains SearchApiAutocompleteInterface.
- */
+namespace Drupal\search_api_autocomplete;
+
+use Drupal\search_api\Query\QueryInterface;
+use Drupal\search_api\Backend\BackendInterface;
 
 
 /**
@@ -12,7 +12,7 @@
  * Please note that this interface is purely documentational. You shouldn't, and
  * can't, implement it explicitly (unless the module is depending on this one).
  */
-interface SearchApiAutocompleteInterface extends SearchApiServiceInterface {
+interface SearchApiAutocompleteInterface extends BackendInterface {
 
   /**
    * Retrieves autocompletion suggestions for some user input.
@@ -38,7 +38,7 @@ interface SearchApiAutocompleteInterface extends SearchApiServiceInterface {
    *   );
    * @endcode
    *
-   * @param SearchApiQueryInterface $query
+   * @param \Drupal\search_api\Query\QueryInterface $query
    *   A query representing the completed user input so far.
    * @param SearchApiAutocompleteSearch $search
    *   An object containing details about the search the user is on, and
@@ -57,6 +57,6 @@ interface SearchApiAutocompleteInterface extends SearchApiServiceInterface {
    *   An array of suggestions, as defined by
    *   SearchApiAutocompleteSuggesterInterface::getAutocompleteSuggestions().
    */
-  public function getAutocompleteSuggestions(SearchApiQueryInterface $query, SearchApiAutocompleteSearch $search, $incomplete_key, $user_input);
+  public function getAutocompleteSuggestions(QueryInterface $query, SearchApiAutocompleteSearch $search, $incomplete_key, $user_input);
 
 }

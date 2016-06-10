@@ -1,14 +1,15 @@
 <?php
 
-/**
- * @file
- * Contains SearchApiAutocompleteSearch.
- */
+
+namespace Drupal\search_api_autocomplete\Entity;
+
+use Drupal\Core\Config\Entity\ConfigEntityBase;
+use Drupal\search_api\ServerInterface;
 
 /**
  * Describes the autocomplete settings for a certain search.
  */
-class SearchApiAutocompleteSearch extends Entity {
+class SearchApiAutocompleteSearch extends ConfigEntityBase {
 
   // Entity properties, loaded from the database:
 
@@ -61,19 +62,19 @@ class SearchApiAutocompleteSearch extends Entity {
   // Inferred properties, for caching:
 
   /**
-   * @var SearchApiIndex
+   * @var \Drupal\search_api\IndexInterface
    */
   protected $index;
 
   /**
-   * @var SearchApiServer
+   * @var \Drupal\search_api\ServerInterface
    */
   protected $server;
 
   /**
    * The suggester plugin this search uses.
    *
-   * @var SearchApiAutocompleteSuggesterInterface
+   * @var \Drupal\search_api_autocomplete\SearchApiAutocompleteSuggesterInterface
    */
   protected $suggester;
 
@@ -88,7 +89,7 @@ class SearchApiAutocompleteSearch extends Entity {
   }
 
   /**
-   * @return SearchApiIndex
+   * @return \Drupal\search_api\IndexInterface
    *   The index this search belongs to.
    */
   public function index() {
@@ -104,10 +105,10 @@ class SearchApiAutocompleteSearch extends Entity {
   /**
    * Retrieves the server this search would at the moment be executed on.
    *
-   * @return SearchApiServer
+   * @return \Drupal\search_api\ServerInterface
    *   The server this search would at the moment be executed on.
    *
-   * @throws SearchApiException
+   * @throws \Drupal\search_api\SearchApiException
    *   If a server is set for the index but it doesn't exist.
    */
   public function server() {
@@ -142,7 +143,7 @@ class SearchApiAutocompleteSearch extends Entity {
    *   (optional) If TRUE, clear the internal static cache and reload the
    *   suggester.
    *
-   * @return SearchApiAutocompleteSuggesterInterface|null
+   * @return \Drupal\search_api_autocomplete\SearchApiAutocompleteSuggesterInterface|null
    *   This search's suggester plugin, or NULL if it could not be loaded.
    */
   public function getSuggester($reset = FALSE) {
@@ -153,7 +154,7 @@ class SearchApiAutocompleteSearch extends Entity {
         $variables['@search'] = $this->machine_name;
         $variables['@index'] = $this->index() ? $this->index()->label() : $this->index_id;
         $variables['@suggester_id'] = $this->suggester_id;
-        watchdog('search_api_autocomplete', 'Autocomplete search @search on index @index specifies an invalid suggester plugin @suggester_id.', $variables, WATCHDOG_ERROR);
+        \Drupal::logger('search_api_autocomplete')->error('Autocomplete search @search on index @index specifies an invalid suggester plugin @suggester_id.', $variables);
         $this->suggester = FALSE;
       }
     }

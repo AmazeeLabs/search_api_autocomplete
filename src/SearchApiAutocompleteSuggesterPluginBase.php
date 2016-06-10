@@ -1,9 +1,6 @@
 <?php
 
-/**
- * @file
- * Contains SearchApiAutocompleteSuggesterPluginBase.
- */
+namespace Drupal\search_api_autocomplete;
 
 /**
  * Provides a base class for suggester plugins.

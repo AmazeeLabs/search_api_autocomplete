@@ -1,9 +1,10 @@
 <?php
 
-/**
- * @file
- * Contains SearchApiAutocompleteServerSuggester.
- */
+namespace Drupal\search_api_autocomplete;
+
+use Drupal\search_api\IndexInterface;
+use Drupal\search_api\Query\QueryInterface;
+use Drupal\search_api\SearchApiException;
 
 /**
  * Provides a suggester plugin that retrieves suggestions from the server.
@@ -16,7 +17,7 @@ class SearchApiAutocompleteServerSuggester extends SearchApiAutocompleteSuggeste
   /**
    * {@inheritdoc}
    */
-  public static function supportsIndex(SearchApiIndex $index) {
+  public static function supportsIndex(IndexInterface $index) {
     try {
       return $index->server() && $index->server()->supportsFeature('search_api_autocomplete');
     }
@@ -44,17 +45,17 @@ class SearchApiAutocompleteServerSuggester extends SearchApiAutocompleteSuggeste
     $fulltext_fields = $search->index()->getFulltextFields();
     $options = array();
     foreach ($fulltext_fields as $field) {
-      $options[$field] = check_plain($fields[$field]['name']);
+      $options[$field] = $fields[$field]['name'];
     }
     $form['fields'] = array(
       '#type' => 'checkboxes',
       '#title' => t('Override used fields'),
       '#description' => t('Select the fields which should be searched for matches when looking for autocompletion suggestions. Leave blank to use the same fields as the underlying search.'),
       '#options' => $options,
-      '#default_value' => drupal_map_assoc($this->configuration['fields']),
+      '#default_value' => array_combine($this->configuration['fields'], $this->configuration['fields']),
       '#attributes' => array('class' => array('search-api-checkboxes-list')),
     );
-    $form['#attached']['css'][] = drupal_get_path('module', 'search_api') . '/search_api.admin.css';
+    $form['#attached']['library'][] = 'search_api/drupal.search_api.admin_css';
 
     return $form;
   }
@@ -71,11 +72,12 @@ class SearchApiAutocompleteServerSuggester extends SearchApiAutocompleteSuggeste
   /**
    * {@inheritdoc}
    */
-  public function getAutocompleteSuggestions(SearchApiQueryInterface $query, $incomplete_key, $user_input) {
+  public function getAutocompleteSuggestions(QueryInterface $query, $incomplete_key, $user_input) {
     if ($this->configuration['fields']) {
+      // @fixme
       $query->fields($this->configuration['fields']);
     }
-    return $query->getIndex()->server()->getAutocompleteSuggestions($query, $this->getSearch(), $incomplete_key, $user_input);
+    return $query->getIndex()->getServerInstance()->getAutocompleteSuggestions($query, $this->getSearch(), $incomplete_key, $user_input);
   }
 
 }

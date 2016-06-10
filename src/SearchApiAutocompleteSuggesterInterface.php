@@ -1,9 +1,10 @@
 <?php
 
-/**
- * @file
- * Contains SearchApiAutocompleteSuggesterInterface.
- */
+namespace Drupal\search_api_autocomplete;
+
+use Drupal\search_api\IndexInterface;
+use Drupal\search_api\Query\QueryInterface;
+use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
 
 /**
  * Represents a plugin for creating autocomplete suggestions.
@@ -16,7 +17,7 @@ interface SearchApiAutocompleteSuggesterInterface {
   /**
    * Creates a new instance of this class.
    *
-   * @param SearchApiAutocompleteSearch $search
+   * @param \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $search
    *   The search to which this suggester is attached.
    * @param array $configuration
    *   An associative array containing the suggester's configuration, if any.
@@ -33,13 +34,13 @@ interface SearchApiAutocompleteSuggesterInterface {
   /**
    * Determines whether this plugin class supports the given index.
    *
-   * @param SearchApiIndex $index
+   * @param \Drupal\search_api\IndexInterface $index
    *   The search index in question.
    *
    * @return bool
    *   TRUE if this plugin supports the given search index, FALSE otherwise.
    */
-  public static function supportsIndex(SearchApiIndex $index);
+  public static function supportsIndex(IndexInterface $index);
 
   /**
    * Retrieves the plugin's ID.
@@ -60,7 +61,7 @@ interface SearchApiAutocompleteSuggesterInterface {
   /**
    * Retrieves the search this plugin is configured for.
    *
-   * @return SearchApiAutocompleteSearch
+   * @return \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch
    *   The search this plugin is configured for.
    */
   public function getSearch();
@@ -168,7 +169,7 @@ interface SearchApiAutocompleteSuggesterInterface {
    *   );
    * @endcode
    *
-   * @param SearchApiQueryInterface $query
+   * @param \Drupal\search_api\Query\QueryInterface $query
    *   A query representing the completed user input so far.
    * @param string $incomplete_key
    *   The start of another fulltext keyword for the search, which should be
@@ -202,6 +203,6 @@ interface SearchApiAutocompleteSuggesterInterface {
    *   "keys", "url", "suggestion_prefix", "user_input" or "suggestion_suffix"
    *   has to be present.
    */
-  public function getAutocompleteSuggestions(SearchApiQueryInterface $query, $incomplete_key, $user_input);
+  public function getAutocompleteSuggestions(QueryInterface $query, $incomplete_key, $user_input);
 
 }
