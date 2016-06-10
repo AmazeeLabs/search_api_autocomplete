@@ -420,7 +420,7 @@ function example_form_example_search_form_alter(array &$form, array &$form_state
   // 'list searches' callback.
   $search_id = 'example_' . $form_state['search id'];
   // Look up the corresponding autocompletion configuration, if it exists.
-  $search = search_api_autocomplete_search_load($search_id);
+  $search = \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch::load($search_id);
   // Check whether autocompletion for the search is enabled.
   // (This is also checked automatically later, so could be skipped here.)
   if (!empty($search->enabled)) {

@@ -4,7 +4,6 @@
 namespace Drupal\search_api_autocomplete\Entity;
 
 use Drupal\Core\Config\Entity\ConfigEntityBase;
-use Drupal\search_api\ServerInterface;
 
 /**
  * Describes the autocomplete settings for a certain search.
@@ -14,39 +13,34 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase {
   // Entity properties, loaded from the database:
 
   /**
-   * @var integer
+   * @var string
    */
-  public $id;
+  protected $id;
 
   /**
    * @var string
    */
-  public $machine_name;
-
-  /**
-   * @var string
-   */
-  public $name;
+  protected $label;
 
   /**
    * @var integer
    */
-  public $index_id;
+  protected $index_id;
 
   /**
    * @var string
    */
-  public $suggester_id;
+  protected $suggester_id;
 
   /**
    * @var string
    */
-  public $type;
+  protected $type;
 
   /**
    * @var boolean
    */
-  public $enabled;
+  protected $enabled;
 
   /**
    * An array of options for this search, containing any of the following:

@@ -5,6 +5,12 @@
  * Contains code for integrating with the "Search views" module.
  */
 
+use Drupal\search_api\Entity\Index;
+use Drupal\search_api\IndexInterface;
+use Drupal\search_api\SearchApiException;
+use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
+use Drupal\views\Views;
+
 /**
  * Implements hook_form_FORM_ID_alter().
  *
@@ -17,19 +23,20 @@ function search_api_autocomplete_form_views_exposed_form_alter(array &$form, arr
     return;
   }
   $search_id = 'search_api_views_' . $view->name;
-  $search = search_api_autocomplete_search_load($search_id);
+  $search = SearchApiAutocompleteSearch::load($search_id);
   if (!$search || !search_api_autocomplete_access($search)) {
     return;
   }
   $index_id = substr($view->base_table, 17);
-  $index = search_api_index_load($index_id);
-  if (empty($index->options['fields'])) {
+  
+  $index = Index::load($index_id);
+  if (empty($index->getOption('fields'))) {
     return;
   }
-  $fields = $index->getFulltextFields(TRUE);
+  $fields = $index->getFulltextFields();
   // Add the "Search: Fulltext search" filter as another text field.
   $fields[] = 'search_api_views_fulltext';
-  drupal_alter('search_api_autocomplete_views_fulltext_fields', $fields, $search, $view);
+  \Drupal::moduleHandler()->alter('search_api_autocomplete_views_fulltext_fields', $fields, $search, $view);
   foreach ($view->filter as $filter_name => $filter) {
     if (in_array($filter->real_field, $fields)) {
       if (!empty($filter->options['expose']['identifier'])) {
@@ -51,7 +58,7 @@ function search_api_autocomplete_form_views_exposed_form_alter(array &$form, arr
 /**
  * Returns a list of search views for the given index.
  *
- * @param SearchApiIndex $index
+ * @param \Drupal\search_api\IndexInterface $index
  *   The index whose searches should be returned.
  *
  * @return array
@@ -62,14 +69,14 @@ function search_api_autocomplete_form_views_exposed_form_alter(array &$form, arr
  *     Type-specific options should go into the "custom" nested key in these
  *     options.
  */
-function search_api_autocomplete_views_searches(SearchApiIndex $index) {
+function search_api_autocomplete_views_searches(IndexInterface $index) {
   $ret = array();
-  $base_table = 'search_api_index_' . $index->machine_name;
-  foreach (views_get_all_views() as $name => $view) {
-    if ($view->base_table === $base_table) {
+  $base_table = 'search_api_index_' . $index->id();
+  foreach (\Drupal\views\Views::getAllViews() as $name => $view) {
+    if ($view->get('base_table') === $base_table) {
       // @todo Check whether there is an exposed fulltext filter
       $ret['search_api_views_' . $name] = array(
-        'name' => !empty($view->human_name) ? $view->human_name : $name,
+        'name' => !empty($view->human_name) ? $view->label() : $name,
       );
     }
   }
@@ -86,24 +93,24 @@ function search_api_autocomplete_views_searches(SearchApiIndex $index) {
  * @param $incomplete
  *   A string containing the incomplete last search key.
  *
- * @return SearchApiQueryInterface
+ * @return modules/search_api_autocomplete/search_api_autocomplete.search_api_views.inc:94
  *   The query that would normally be executed when only $complete was entered
  *   as the search keys for the given search.
  *
- * @throws SearchApiException
+ * @throws \Drupal\search_api\SearchApiException
  *   If the query couldn't be created.
  */
 function search_api_autocomplete_views_query(SearchApiAutocompleteSearch $search, $complete, $incomplete) {
   $views_id = substr($search->machine_name, 17);
-  $view = views_get_view($views_id);
+  $view = Views::getView($views_id);
   if (!$view) {
     $vars['@view'] = $views_id;
     throw new SearchApiException(t('Could not load view @view.', $vars));
   }
-  $view->set_display(isset($search->options['custom']['display']) ? $search->options['custom']['display'] : NULL);
-  $view->pre_execute();
+  $view->setDisplay(isset($search->options['custom']['display']) ? $search->options['custom']['display'] : NULL);
+  $view->preExecute();
   $view->build();
-  $query = $view->query->getSearchApiQuery();
+  $query = $view->getQuery()->getSearchApiQuery();
   if (!$query) {
     $vars['@view'] = !empty($view->human_name) ? $view->human_name : $views_id;
     throw new SearchApiException(t('Could not create query for view @view.', $vars));
@@ -123,9 +130,9 @@ function search_api_autocomplete_views_query(SearchApiAutocompleteSearch $search
  */
 function search_api_autocomplete_views_config_form(array $form, array &$form_state, SearchApiAutocompleteSearch $search) {
   $views_id = substr($search->machine_name, 17);
-  $view = views_get_view($views_id);
+  $view = Views::getView($views_id);
   $options = array();
-  foreach ($view->display as $id => $display) {
+  foreach ($view->getDisplay() as $id => $display) {
     $options[$id] = $display->display_title;
   }
   $form['display'] = array(
@@ -149,9 +156,9 @@ function search_api_autocomplete_views_config_form(array $form, array &$form_sta
  */
 function search_api_autocomplete_views_config_form_submit(array $form, array &$form_state, array &$values) {
   $views_id = substr($form_state['search']->machine_name, 17);
-  $view = views_get_view($views_id);
-  $view->set_display($values['display']);
-  $view->pre_execute();
+  $view = Views::getView($views_id);
+  $view->setDisplay($values['display']);
+  $view->preExecute();
   if ($view->argument) {
     drupal_set_message(t('You have selected a display with contextual filters. This can lead to various problems. Please see the <a href="@readme_url">README.txt</a> file for details.',
         array('@readme_url' => url(drupal_get_path('module', 'search_api_autocomplete') . '/README.txt'))), 'warning');

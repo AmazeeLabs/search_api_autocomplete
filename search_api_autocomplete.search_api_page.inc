@@ -5,6 +5,8 @@
  * Contains code for integrating with the "Search pages" module.
  */
 
+use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
+
 /**
  * Implements hook_form_FORM_ID_alter().
  *
@@ -16,7 +18,7 @@ function search_api_autocomplete_form_search_api_page_search_form_alter(array &$
     $form = &$form['form'];
   }
   $id = 'search_api_page_' . $form_state['build_info']['args'][0]->machine_name;
-  $search = search_api_autocomplete_search_load($id);
+  $search = SearchApiAutocompleteSearch::load($id);
   if ($search && $search->enabled) {
     $search->alterElement($form['keys_' . $form['id']['#value']]);
   }
