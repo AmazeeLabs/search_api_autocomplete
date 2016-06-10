@@ -345,6 +345,13 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase {
     $this->options = $options;
   }
 
-
+  /**
+   * @param $key
+   *
+   * @return mixed|null
+   */
+  public function getOption($key) {
+    return isset($this->options[$key]) ? $this->options[$key] : NULL;
+  }
 
 }
