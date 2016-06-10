@@ -2,6 +2,7 @@
 
 namespace Drupal\search_api_autocomplete\Entity;
 
+use Drupal\Component\Plugin\PluginInspectionInterface;
 use Drupal\Core\Config\Entity\ConfigEntityBase;
 use Drupal\search_api\Entity\Index;
 
@@ -352,6 +353,16 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase {
    */
   public function getOption($key) {
     return isset($this->options[$key]) ? $this->options[$key] : NULL;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function calculateDependencies() {
+    $deps = parent::calculateDependencies();
+
+    $deps += $this->index()->calculateDependencies();
+    return $deps;
   }
 
 }

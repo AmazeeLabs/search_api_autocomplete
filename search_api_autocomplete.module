@@ -136,19 +136,6 @@ function search_api_autocomplete_access(SearchApiAutocompleteSearch $search, $ac
 }
 
 /**
- * Implements hook_search_api_index_delete().
- */
-function search_api_autocomplete_search_api_index_delete(SearchApiIndex $index) {
-  if (!$index->hasStatus(ENTITY_IN_CODE)) {
-    $ids = db_query('SELECT id FROM {search_api_autocomplete_search} WHERE index_id = :id',
-        array(':id' => $index->machine_name))->fetchCol();
-    if ($ids) {
-      entity_delete_multiple('search_api_autocomplete_search', $ids);
-    }
-  }
-}
-
-/**
  * Retrieves information about all search types, or a specific one.
  *
  * @param $type
