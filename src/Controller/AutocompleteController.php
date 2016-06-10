@@ -36,12 +36,11 @@ class AutocompleteController {
           $query->range(0, 10);
           $query->setOption('search id', 'search_api_autocomplete:' . $search->id());
           if (!empty($search->getOption('fields'))) {
-            // @fixme.
-            $query->fields($search->getOption('fields'));
+            $query->setFulltextFields($search->getOption('fields'));
           }
           elseif ($fields != '-') {
             $fields = explode(' ', $fields);
-            $query->fields($fields);
+            $query->setFulltextFields($fields);
           }
           $query->preExecute();
           $suggestions = $search->getSuggester()->getAutocompleteSuggestions($query, $incomplete, $keys);
