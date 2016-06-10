@@ -1,0 +1,17 @@
+search_api_autocomplete.search_api_autocomplete.*:
+  type: config_entity
+  label: 'Content type'
+  mapping:
+    id:
+      type: string
+    label:
+      type: string
+    index_id:
+      type: string
+    suggester_id:
+      type: string
+    type:
+      type: string
+    options:
+      # @todo Do we know more about the available options?
+      type: ignore

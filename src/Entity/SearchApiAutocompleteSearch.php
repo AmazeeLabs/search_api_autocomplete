@@ -1,12 +1,39 @@
 <?php
 
-
 namespace Drupal\search_api_autocomplete\Entity;
 
 use Drupal\Core\Config\Entity\ConfigEntityBase;
+use Drupal\search_api\Entity\Index;
 
 /**
  * Describes the autocomplete settings for a certain search.
+ *
+ * @ConfigEntityType(
+ *   id = "search_api_autocomplete_settngs",
+ *   label = @Translation("Autocomplete search"),
+ *   handlers = {
+ *     "form" = {
+ *     },
+ *     "list_builder" = "\Drupal\Core\Entity\EntityListBuilder",
+ *   },
+ *   admin_permission = "administer search_api_autocomplete",
+ *   config_prefix = "search_api_autocomplete",
+ *   entity_keys = {
+ *     "id" = "id",
+ *     "label" = "label"
+ *   },
+ *   links = {
+ *   },
+ *   config_export = {
+ *     "id",
+ *     "label",
+ *     "index_id",
+ *     "suggester_id",
+ *     "status",
+ *     "type",
+ *     "options",
+ *   }
+ * )
  */
 class SearchApiAutocompleteSearch extends ConfigEntityBase {
 
@@ -38,11 +65,6 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase {
   protected $type;
 
   /**
-   * @var boolean
-   */
-  protected $enabled;
-
-  /**
    * An array of options for this search, containing any of the following:
    * - results: Boolean indicating whether to also list the estimated number of
    *   results for each suggestion (if possible).
@@ -51,7 +73,7 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase {
    *
    * @var array
    */
-  public $options = array();
+  protected $options = array();
 
   // Inferred properties, for caching:
 
@@ -73,22 +95,12 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase {
   protected $suggester;
 
   /**
-   * Constructs a SearchApiAutocompleteSearch.
-   *
-   * @param array $values
-   *   The entity properties.
-   */
-  public function __construct(array $values = array()) {
-    parent::__construct($values, 'search_api_autocomplete_search');
-  }
-
-  /**
    * @return \Drupal\search_api\IndexInterface
    *   The index this search belongs to.
    */
   public function index() {
     if (!isset($this->index)) {
-      $this->index = search_api_index_load($this->index_id);
+      $this->index = Index::load($this->index_id);
       if (!$this->index) {
         $this->index = FALSE;
       }
@@ -107,11 +119,11 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase {
    */
   public function server() {
     if (!isset($this->server)) {
-      if (!$this->index() || !$this->index()->server) {
+      if (!$this->index() || !$this->index()->getServerInstance()) {
         $this->server = FALSE;
       }
       else {
-        $this->server = $this->index()->server();
+        $this->server = $this->index()->getServerInstance();
         if (!$this->server) {
           $this->server = FALSE;
         }
@@ -145,7 +157,7 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase {
       $configuration = !empty($this->options['suggester_configuration']) ? $this->options['suggester_configuration'] : array();
       $this->suggester = search_api_autocomplete_suggester_load($this->suggester_id, $this, $configuration);
       if (!$this->suggester) {
-        $variables['@search'] = $this->machine_name;
+        $variables['@search'] = $this->id();
         $variables['@index'] = $this->index() ? $this->index()->label() : $this->index_id;
         $variables['@suggester_id'] = $this->suggester_id;
         \Drupal::logger('search_api_autocomplete')->error('Autocomplete search @search on index @index specifies an invalid suggester plugin @suggester_id.', $variables);
@@ -181,7 +193,7 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase {
       $fields_string = $fields ? implode(' ', $fields) : '-';
 
       $module_path = drupal_get_path('module', 'search_api_autocomplete');
-      $autocomplete_path = 'search_api_autocomplete/' . $this->machine_name . '/' . $fields_string;
+      $autocomplete_path = 'search_api_autocomplete/' . $this->id() . '/' . $fields_string;
 
       $js_settings = array();
       if ($options['submit_button_selector'] != ':submit') {
@@ -215,7 +227,7 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase {
           'type' => 'setting',
           'data' => array(
             'search_api_autocomplete' => array(
-              $this->machine_name => $js_settings,
+              $this->id() => $js_settings,
             ),
           ),
         );
@@ -227,7 +239,7 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase {
       if ($options['autosubmit']) {
         $element['#attributes']['class'][] = 'auto_submit';
       }
-      $element['#attributes']['data-search-api-autocomplete-search'] = $this->machine_name;
+      $element['#attributes']['data-search-api-autocomplete-search'] = $this->id();
       if ($options['min_length'] > 1) {
         $element['#attributes']['data-min-autocomplete-length'] = $options['min_length'];
       }
@@ -265,11 +277,11 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase {
    * @param $incomplete
    *   A string containing the incomplete last search key.
    *
-   * @return SearchApiQueryInterface
+   * @return \Drupal\search_api\Query\QueryInterface
    *   The query that would normally be executed when only $complete was entered
    *   as the search keys for this search.
    *
-   * @throws SearchApiException
+   * @throws \Drupal\search_api\SearchApiException
    *   If the query couldn't be created.
    */
   public function getQuery($complete, $incomplete) {
@@ -283,5 +295,56 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase {
     }
     return $query;
   }
+
+  /**
+   * @param string $label
+   */
+  public function setLabel($label) {
+    $this->label = $label;
+  }
+
+  /**
+   * @return int
+   */
+  public function getIndexId() {
+    return $this->index_id;
+  }
+
+  /**
+   * @param int $index_id
+   */
+  public function setIndexId($index_id) {
+    $this->index_id = $index_id;
+  }
+
+  /**
+   * @return string
+   */
+  public function getType() {
+    return $this->type;
+  }
+
+  /**
+   * @param string $type
+   */
+  public function setType($type) {
+    $this->type = $type;
+  }
+
+  /**
+   * @return array
+   */
+  public function getOptions() {
+    return $this->options;
+  }
+
+  /**
+   * @param array $options
+   */
+  public function setOptions($options) {
+    $this->options = $options;
+  }
+
+
 
 }

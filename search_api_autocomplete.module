@@ -6,6 +6,9 @@
  */
 
 // Include the files with the module-specific implementations.
+use Drupal\search_api\IndexInterface;
+use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
+
 require_once('search_api_autocomplete.search_api_page.inc');
 require_once('search_api_autocomplete.search_api_views.inc');
 
@@ -122,18 +125,6 @@ function search_api_autocomplete_theme() {
  */
 function search_api_autocomplete_entity_info() {
   $info['search_api_autocomplete_search'] = array(
-    'label' => t('Autocomplete search'),
-    'controller class' => 'EntityAPIControllerExportable',
-    'entity class' => 'SearchApiAutocompleteSearch',
-    'base table' => 'search_api_autocomplete_search',
-    'uri callback' => 'search_api_autocomplete_search_url',
-    'module' => 'search_api_autocomplete',
-    'exportable' => TRUE,
-    'entity keys' => array(
-      'id' => 'id',
-      'name' => 'machine_name',
-      'label' => 'name',
-    ),
   );
 
   return $info;
@@ -165,7 +156,7 @@ function search_api_autocomplete_permission() {
  *   the necessary permission. FALSE otherwise.
  */
 function search_api_autocomplete_access(SearchApiAutocompleteSearch $search, $account = NULL) {
-  return $search->enabled && user_access('use search_api_autocomplete for ' . $search->machine_name, $account) && $search->supportsAutocompletion();
+  return $search->status() && user_access('use search_api_autocomplete for ' . $search->machine_name, $account) && $search->supportsAutocompletion();
 }
 
 /**
@@ -241,7 +232,7 @@ function search_api_autocomplete_suggester_info($suggester_id = NULL) {
 /**
  * Retrieves all suggester plugin definitions that support the given index.
  *
- * @param SearchApiIndex $index
+ * @param \Drupal\search_api\IndexInterface $index
  *   The index for which to check.
  *
  * @return array|null
@@ -249,7 +240,7 @@ function search_api_autocomplete_suggester_info($suggester_id = NULL) {
  *   plugin, or NULL if it isn't known. Otherwise, an associative array of all
  *   known suggester plugin definitions, keyed by ID.
  */
-function search_api_autocomplete_suggesters_for_index(SearchApiIndex $index) {
+function search_api_autocomplete_suggesters_for_index(IndexInterface $index) {
   $suggesters = search_api_autocomplete_suggester_info();
 
   foreach ($suggesters as $suggester_id => $definition) {
@@ -271,7 +262,7 @@ function search_api_autocomplete_suggesters_for_index(SearchApiIndex $index) {
  * @param array $configuration
  *   The configuration for the search.
  *
- * @return SearchApiAutocompleteSuggesterInterface|null
+ * @return \Drupal\search_api_autocomplete\SearchApiAutocompleteSuggesterInterface|null
  *   The loaded suggester plugin, or NULL if it could not be loaded.
  */
 function search_api_autocomplete_suggester_load($suggester_id, SearchApiAutocompleteSearch $search, array $configuration) {
