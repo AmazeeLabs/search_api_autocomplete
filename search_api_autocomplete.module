@@ -105,29 +105,18 @@ function search_api_autocomplete_menu() {
  * Implements hook_theme().
  */
 function search_api_autocomplete_theme() {
-  $themes['search_api_autocomplete_suggestion'] = array(
-    'variables' => array(
+  $themes['search_api_autocomplete_suggestion'] = [
+    'variables' => [
       'keys' => NULL,
       'prefix' => NULL,
       'suggestion_prefix' => '',
       'user_input' => '',
       'suggestion_suffix' => '',
       'results' => NULL,
-    ),
-    'file' => 'search_api_autocomplete.pages.inc',
-  );
+    ],
+  ];
 
   return $themes;
-}
-
-/**
- * Implements hook_entity_info().
- */
-function search_api_autocomplete_entity_info() {
-  $info['search_api_autocomplete_search'] = array(
-  );
-
-  return $info;
 }
 
 /**
