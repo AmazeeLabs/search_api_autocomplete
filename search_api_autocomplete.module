@@ -109,21 +109,6 @@ function search_api_autocomplete_theme() {
 }
 
 /**
- * Access callback for search autocompletion.
- *
- * @param SearchApiAutocompleteSearch $search
- *   The autocomplete search which is being accessed.
- * @param object|null $account
- *   (optional) The account to check, if not given use currently logged in user.
- *
- * @return bool
- *   TRUE, if the search is enabled, supports autocompletion and the user has
- *   the necessary permission. FALSE otherwise.
- */
-function search_api_autocomplete_access(SearchApiAutocompleteSearch $search, $account = NULL) {
-}
-
-/**
  * Retrieves information about all search types, or a specific one.
  *
  * @param $type

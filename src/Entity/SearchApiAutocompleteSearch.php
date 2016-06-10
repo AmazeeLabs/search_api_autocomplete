@@ -221,8 +221,7 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase {
         $js_settings['custom_path'] = TRUE;
       }
 
-      $element['#attached']['css'][] = $module_path . '/search_api_autocomplete.css';
-      $element['#attached']['js'][] = $module_path . '/search_api_autocomplete.js';
+      $element['#attached']['library'][] = 'search_api_autocomplete/search_api_autocomplete';
       if ($js_settings) {
         $element['#attached']['js'][] = array(
           'type' => 'setting',
