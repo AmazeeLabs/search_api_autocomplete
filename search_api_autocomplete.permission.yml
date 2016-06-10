@@ -1,0 +1,2 @@
+permission_callbacks:
+  - Drupal\search_api_autocomplete\Permissions::bySearch

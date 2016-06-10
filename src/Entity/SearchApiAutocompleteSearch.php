@@ -9,7 +9,7 @@ use Drupal\search_api\Entity\Index;
  * Describes the autocomplete settings for a certain search.
  *
  * @ConfigEntityType(
- *   id = "search_api_autocomplete_settngs",
+ *   id = "search_api_autocomplete_settings",
  *   label = @Translation("Autocomplete search"),
  *   handlers = {
  *     "form" = {

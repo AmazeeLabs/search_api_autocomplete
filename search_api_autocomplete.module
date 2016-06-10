@@ -120,19 +120,6 @@ function search_api_autocomplete_theme() {
 }
 
 /**
- * Implements hook_permission().
- */
-function search_api_autocomplete_permission() {
-  $perms = array();
-  foreach (search_api_autocomplete_search_load_multiple() as $id => $search) {
-    $perms['use search_api_autocomplete for ' . $id] = array(
-      'title' => t('Use autocomplete for the %search search', array('%search' => $search->name)),
-    );
-  }
-  return $perms;
-}
-
-/**
  * Access callback for search autocompletion.
  *
  * @param SearchApiAutocompleteSearch $search
