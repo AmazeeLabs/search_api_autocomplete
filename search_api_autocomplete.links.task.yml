@@ -1,0 +1,6 @@
+entity.search_api_autocomplete_settings.edit_form:
+  route_name: entity.search_api_autocomplete_settings.edit_form
+  base_route: entity.search_api_index.canonical
+  class: \Drupal\search_api_autocomplete\Plugin\Menu\LocalTask\AutocompleteEditLocalTask
+  title: 'Autocomplete'
+  weight: 20

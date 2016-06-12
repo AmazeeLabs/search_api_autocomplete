@@ -15,8 +15,12 @@ use Drupal\search_api\Entity\Index;
  *   label = @Translation("Autocomplete search"),
  *   handlers = {
  *     "form" = {
+ *       "default" = "\Drupal\Core\Entity\EntityForm",
  *     },
  *     "list_builder" = "\Drupal\Core\Entity\EntityListBuilder",
+ *     "route_provider" = {
+ *       "default" = "\Drupal\search_api_autocomplete\RouteProvider",
+ *     },
  *   },
  *   admin_permission = "administer search_api_autocomplete",
  *   config_prefix = "search_api_autocomplete",
@@ -25,6 +29,7 @@ use Drupal\search_api\Entity\Index;
  *     "label" = "label"
  *   },
  *   links = {
+ *     "edit-form" = "/admin/config/search/search-api/index/{search_api_index}/autocomplete",
  *   },
  *   config_export = {
  *     "id",
