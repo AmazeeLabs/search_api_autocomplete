@@ -8,28 +8,8 @@ use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
 
 /**
  * Represents a plugin for creating autocomplete suggestions.
- *
- * @see SearchApiAutocompleteSuggesterPluginBase
- * @see hook_search_api_autocomplete_suggester_info()
  */
-interface SearchApiAutocompleteSuggesterInterface {
-
-  /**
-   * Creates a new instance of this class.
-   *
-   * @param \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $search
-   *   The search to which this suggester is attached.
-   * @param array $configuration
-   *   An associative array containing the suggester's configuration, if any.
-   * @param string $plugin_id
-   *   The suggester's plugin ID.
-   * @param array $plugin_definition
-   *   The suggester plugin's definition.
-   *
-   * @return static
-   *   A new instance of this class.
-   */
-  public static function create(SearchApiAutocompleteSearch $search, array $configuration, $plugin_id, array $plugin_definition);
+interface AutocompleteSuggesterInterface {
 
   /**
    * Determines whether this plugin class supports the given index.
@@ -81,69 +61,6 @@ interface SearchApiAutocompleteSuggesterInterface {
    *   The plugin's translated description; or NULL if it has none.
    */
   public function getDescription();
-
-  /**
-   * Retrieves the plugin's configuration.
-   *
-   * @return array
-   *   An associative array containing the plugin's configuration.
-   */
-  public function getConfiguration();
-
-  /**
-   * Sets the plugin's configuration.
-   *
-   * @param array $configuration
-   *   An associative array containing the plugin's configuration.
-   *
-   * @return $this
-   */
-  public function setConfiguration(array $configuration);
-
-  /**
-   * Retrieves the default configuration for this plugin.
-   *
-   * @return array
-   *   An associative array containing the plugin's default configuration.
-   */
-  public function defaultConfiguration();
-
-  /**
-   * Constructs the plugin's configuration form.
-   *
-   * @param array $form
-   *   An associative array containing the structure of the form.
-   * @param array $form_state
-   *   The current state of the form.
-   *
-   * @return array
-   *   An associative array containing the structure of the form. An empty array
-   *   if the plugin has no configuration form.
-   */
-  public function buildConfigurationForm(array $form, array &$form_state);
-
-  /**
-   * Validates the plugin's configuration form.
-   *
-   * @param array $form
-   *   An associative array containing the structure of the form.
-   * @param array $form_state
-   *   The current state of the form.
-   */
-  public function validateConfigurationForm(array $form, array &$form_state);
-
-  /**
-   * Submits the plugin's configuration form.
-   *
-   * Should take care of calling setConfiguration() with the new configuration
-   * values as appropriate.
-   *
-   * @param array $form
-   *   An associative array containing the structure of the form.
-   * @param array $form_state
-   *   The current state of the form.
-   */
-  public function submitConfigurationForm(array $form, array &$form_state);
 
   /**
    * Retrieves autocompletion suggestions for some user input.
