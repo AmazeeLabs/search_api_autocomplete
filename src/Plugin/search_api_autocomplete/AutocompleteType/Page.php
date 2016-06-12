@@ -23,6 +23,20 @@ class Page extends PluginBase implements AutocompleteTypeInterface {
   /**
    * {@inheritdoc}
    */
+  public function getLabel() {
+    return $this->pluginDefinition['label'];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getDescription() {
+    return $this->pluginDefinition['description'];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function listSearches(IndexInterface $index) {
     $ret = array();
     $storage = \Drupal::entityTypeManager()->getStorage('search_api_page');

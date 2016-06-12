@@ -4,8 +4,10 @@ namespace Drupal\search_api_autocomplete\Form;
 
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Render\Element;
 use Drupal\search_api\IndexInterface;
 use Drupal\search_api_autocomplete\AutocompleteSuggesterInterface;
+use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
 
 class AutocompleteSearchAdminOverview extends FormBase {
 
@@ -27,6 +29,12 @@ class AutocompleteSearchAdminOverview extends FormBase {
     return $suggesters;
   }
 
+  /**
+   * @param string $index_id
+   *   The index ID.
+   *
+   * @return \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch[]
+   */
   protected function loadAutocompleteSearchByIndex($index_id) {
     return \Drupal::entityTypeManager()->getStorage('search_api_autocomplete_settings')->loadByProperties([
       'index_id' => $index_id,
@@ -78,90 +86,87 @@ class AutocompleteSearchAdminOverview extends FormBase {
     }
 
     $form['#tree'] = TRUE;
-//    $types = search_api_autocomplete_get_types();
-//    $searches = search_api_autocomplete_search_load_multiple(FALSE, array('index_id' => $index_id));
-//    $show_status = FALSE;
-//    foreach ($types as $type => $info) {
-//      if (empty($info['list searches'])) {
-//        continue;
-//      }
-//      $t_searches = $info['list searches']($index);
-//      if (empty($t_searches)) {
-//        $t_searches = array();
-//      }
-//      foreach ($t_searches as $id => $search) {
-//        if (isset($searches[$id])) {
-//          $types[$type]['searches'][$id] = $searches[$id];
-//          $show_status |= $searches[$id]->hasStatus(ENTITY_IN_CODE);
-//          unset($searches[$id]);
-//        }
-//        else {
-//          reset($available_suggesters);
-//          $search += array(
-//            'machine_name' => $id,
-//            'index_id' => $index_id,
-//            'suggester_id' => key($available_suggesters),
-//            'type' => $type,
-//            'enabled' => 0,
-//            'options' => array(),
-//          );
-//          $search['options'] += array(
-//            'results' => TRUE,
-//            'fields' => array(),
-//          );
-//          $types[$type]['searches'][$id] = entity_create('search_api_autocomplete_search', $search);
-//        }
-//      }
-//    }
-//    foreach ($searches as $id => $search) {
-//      $type = isset($types[$search->type]) ? $search->type : '';
-//      $types[$type]['searches'][$id] = $search;
-//      $types[$type]['unavailable'][$id] = TRUE;
-//      $show_status |= $search->hasStatus(ENTITY_IN_CODE);
-//    }
+    /** @var \Drupal\search_api_autocomplete\Plugin\AutocompleteTypeManager $type_manager */
+    $type_manager = \Drupal::service('plugin_manager.search_api_autocomplete_type');
+    $types = array_map(function ($definition) use ($type_manager) {
+      return $type_manager->createInstance($definition['plugin_id']);
+    }, $type_manager->getDefinitions());
+    $searches = $this->loadAutocompleteSearchByIndex($index_id);
+    /** @var \Drupal\search_api_autocomplete\AutocompleteTypeInterface $autocomplete_type */
+    foreach ($types as $type => $autocomplete_type) {
+      $t_searches = $autocomplete_type->listSearches($search_api_index);
+      foreach ($t_searches as $id => $search) {
+        if (isset($searches[$id])) {
+          $types[$type]->searches[$id] = $searches[$id];
+          unset($searches[$id]);
+        }
+        else {
+          reset($available_suggesters);
+          $search += [
+            'machine_name' => $id,
+            'index_id' => $index_id,
+            'suggester_id' => key($available_suggesters),
+            'type' => $type,
+            'enabled' => 0,
+            'options' => [],
+          ];
+          $search['options'] += [
+            'results' => TRUE,
+            'fields' => [],
+          ];
+          // @todo this is ugly!
+          $types[$type]->searches[$id] = SearchApiAutocompleteSearch::create($search);
+        }
+      }
+    }
+    /** @var \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $search */
+    foreach ($searches as $id => $search) {
+      $type = isset($types[$search->getType()]) ? $search->getType() : '';
+      $types[$type]['searches'][$id] = $search;
+      $types[$type]['unavailable'][$id] = TRUE;
+    }
 //    $base_path = 'admin/config/search/search_api/index/' . $index_id . '/autocomplete/';
-//    foreach ($types as $type => $info) {
-//      if (empty($info['searches'])) {
-//        continue;
-//      }
+    /** @var \Drupal\search_api_autocomplete\AutocompleteTypeInterface $autocomplete_type */
+    foreach ($types as $type => $autocomplete_type) {
+
+      if (empty($autocomplete_type->searches)) {
+        continue;
+      }
 //      if (!$type) {
-//        $info += array(
-//          'name' => t('Unavailable search types'),
-//          'description' => t("The modules providing these searches were disabled or uninstalled. If you won't use them anymore, you can delete their settings."),
-//        );
+//        $info = [];
+//        $info += [
+//          'name' => $this->t('Unavailable search types'),
+//          'description' => $this->t("The modules providing these searches were disabled or uninstalled. If you won't use them anymore, you can delete their settings."),
+//        ];
 //      }
 //      elseif (!empty($info['unavailable'])) {
 //        $info['description'] .= '</p><p>' . t("The searches marked with an asterisk (*) are currently not available, possibly because they were deleted. If you won't use them anymore, you can delete their settings.");
 //      }
-//      $form[$type] = array(
-//        '#type' => 'fieldset',
-//        '#title' => $info['name'],
-//      );
-//      if (!empty($info['description'])) {
-//        $form[$type]['#description'] = '<p>' . $info['description'] . '</p>';
-//      }
-//      $form[$type]['searches']['#theme'] = 'tableselect';
-//      $form[$type]['searches']['#header'] = array();
-//      if ($show_status) {
-//        $form[$type]['searches']['#header']['status'] = t('Status');
-//      }
-//      $form[$type]['searches']['#header'] += array(
-//        'name' => t('Name'),
-//        'operations' => t('Operations'),
-//      );
-//      $form[$type]['searches']['#empty'] = '';
-//      $form[$type]['searches']['#js_select'] = TRUE;
-//      foreach ($info['searches'] as $id => $search) {
-//        $form[$type]['searches'][$id] = array(
-//          '#type' => 'checkbox',
-//          '#default_value' => $search->enabled,
-//          '#parents' => array('searches', $id),
-//        );
-//        $unavailable = !empty($info['unavailable'][$id]);
-//        if ($unavailable) {
-//          $form[$type]['searches'][$id]['#default_value'] = FALSE;
-//          $form[$type]['searches'][$id]['#disabled'] = TRUE;
-//        }
+      $form[$type] = [
+        '#type' => 'fieldset',
+        '#title' => $autocomplete_type->getLabel(),
+      ];
+      if ($description = $autocomplete_type->getDescription()) {
+        $form[$type]['#description'] = '<p>' . $description . '</p>';
+      }
+      $form[$type]['searches']['#theme'] = 'tableselect';
+      $form[$type]['searches']['#header'] = [
+        'name' => t('Name'),
+        'operations' => t('Operations'),
+      ];
+      $form[$type]['searches']['#empty'] = '';
+      $form[$type]['searches']['#js_select'] = TRUE;
+      foreach ($autocomplete_type->searches as $id => $search) {
+        $form[$type]['searches'][$id] = [
+          '#type' => 'checkbox',
+          '#default_value' => $search->status(),
+          '#parents' => ['searches', $id],
+        ];
+        $unavailable = !empty($info['unavailable'][$id]);
+        if ($unavailable) {
+          $form[$type]['searches'][$id]['#default_value'] = FALSE;
+          $form[$type]['searches'][$id]['#disabled'] = TRUE;
+        }
 //        $form_state['searches'][$id] = $search;
 //        $options = &$form[$type]['searches']['#options'][$id];
 //        if ($show_status) {
@@ -190,20 +195,20 @@ class AutocompleteSearchAdminOverview extends FormBase {
 //          $options['operations'] = '';
 //        }
 //        unset($options);
-//      }
-//    }
-//
-//    if (!element_children($form)) {
-//      $form['message']['#markup'] = '<p>' . t('There are currently no searches known for this index.') . '</p>';
-//    }
-//    else {
-//      $form['submit'] = array(
-//        '#type' => 'submit',
-//        '#value' => t('Save'),
-//      );
-//    }
-//
-//    return $form;
+      }
+    }
+
+    if (!Element::children($form)) {
+      $form['message']['#markup'] = '<p>' . $this->t('There are currently no searches known for this index.') . '</p>';
+    }
+    else {
+      $form['submit'] = [
+        '#type' => 'submit',
+        '#value' => t('Save'),
+      ];
+    }
+
+    return $form;
   }
 
   public static function suggestAjaxCallback(array $form, FormStateInterface $form_state) {

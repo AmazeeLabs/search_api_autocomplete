@@ -17,6 +17,20 @@ class Views extends PluginBase implements AutocompleteTypeInterface, Configurabl
   /**
    * {@inheritdoc}
    */
+  public function getLabel() {
+    return $this->pluginDefinition['label'];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getDescription() {
+    return $this->pluginDefinition['description'];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function getConfiguration() {
     return $this->configuration;
   }
