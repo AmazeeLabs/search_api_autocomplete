@@ -13,35 +13,6 @@ require_once('search_api_autocomplete.search_api_page.inc');
 require_once('search_api_autocomplete.search_api_views.inc');
 
 /**
- * Implements hook_search_api_autocomplete_types().
- *
- * Adds search types for search pages and views. The actual implementations lie
- * in the above include files.
- */
-function search_api_autocomplete_search_api_autocomplete_types() {
-  $types = array();
-  if (module_exists('search_api_page')) {
-    $types['search_api_page'] = array(
-      'name' => t('Search pages'),
-      'description' => t('Searches provided by the <em>Search pages</em> module.'),
-      'list searches' => 'search_api_autocomplete_pages_searches',
-      'create query' => 'search_api_autocomplete_pages_query',
-    );
-  }
-  if (module_exists('search_api_views')) {
-    $types['search_api_views'] = array(
-      'name' => t('Search views'),
-      'description' => t('Searches provided by the <em>Search views</em> module.'),
-      'list searches' => 'search_api_autocomplete_views_searches',
-      'create query' => 'search_api_autocomplete_views_query',
-      'config form' => 'search_api_autocomplete_views_config_form',
-    );
-  }
-
-  return $types;
-}
-
-/**
  * Implements hook_search_api_autocomplete_suggester_info().
  */
 function search_api_autocomplete_search_api_autocomplete_suggester_info() {
@@ -106,30 +77,6 @@ function search_api_autocomplete_theme() {
   ];
 
   return $themes;
-}
-
-/**
- * Retrieves information about all search types, or a specific one.
- *
- * @param $type
- *   (optional) The name of a type.
- *
- * @return array|null
- *   If $type was not given, an array containing information about all search
- *   types. Otherwise, either information about the specified type, or NULL if
- *   the type is not known.
- *
- * @see hook_search_api_autocomplete_types()
- */
-function search_api_autocomplete_get_types($type = NULL) {
-  $types = &drupal_static(__FUNCTION__);
-  if (!isset($types)) {
-    $types = module_invoke_all('search_api_autocomplete_types');
-  }
-  if (isset($type)) {
-    return isset($types[$type]) ? $types[$type] : NULL;
-  }
-  return $types;
 }
 
 /**

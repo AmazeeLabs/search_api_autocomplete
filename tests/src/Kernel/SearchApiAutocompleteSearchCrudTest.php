@@ -5,6 +5,11 @@ namespace Drupal\Tests\search_api_autocomplete\Kernel;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
 
+/**
+ * Tests saving a search api autocomplete config entity.
+ *
+ * @group search_api_autocomplete
+ */
 class SearchApiAutocompleteSearchCrudTest extends KernelTestBase {
 
   /**

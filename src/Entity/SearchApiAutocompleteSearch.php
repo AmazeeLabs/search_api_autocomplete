@@ -3,6 +3,7 @@
 namespace Drupal\search_api_autocomplete\Entity;
 
 use Drupal\Component\Plugin\PluginInspectionInterface;
+use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Config\Entity\ConfigEntityBase;
 use Drupal\search_api\Entity\Index;
 
@@ -351,7 +352,8 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase {
    * @return mixed|null
    */
   public function getOption($key) {
-    return isset($this->options[$key]) ? $this->options[$key] : NULL;
+    $parts = explode('.', $key);
+    return NestedArray::getValue($this->options, $parts);
   }
 
   /**
