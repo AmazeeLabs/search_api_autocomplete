@@ -4,3 +4,11 @@ search_api_autocomplete.autocomplete:
     _controller: \Drupal\search_api_autocomplete\Controller\AutocompleteController::autocomplete
   requirements:
     _custom_access: \Drupal\search_api_autocomplete\Controller\AutocompleteController::access
+
+search_api_autocomplete.admin_overview:
+  path: /admin/config/search/search-api/index/{search_api_index}/autocomplete
+  defaults:
+    _form: \Drupal\search_api_autocomplete\Form\AutocompleteSearchAdminOverview
+    title: 'Edit the autocompletion settings of a search.'
+  requirements:
+    _entity_access: search_api_index.update

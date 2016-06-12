@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\Suggester;
+namespace Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\AutocompleteSuggester;
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\search_api\IndexInterface;
@@ -8,7 +8,6 @@ use Drupal\search_api\Query\QueryInterface;
 use Drupal\search_api\SearchApiException;
 use Drupal\search_api_autocomplete\AutocompleteSuggesterInterface;
 use Drupal\search_api_autocomplete\SearchApiAutocompleteInterface;
-use Drupal\search_api_autocomplete\SuggesterPluginBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**

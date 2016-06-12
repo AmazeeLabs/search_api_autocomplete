@@ -197,25 +197,6 @@ function search_api_autocomplete_admin_overview_submit(array $form, array &$form
 }
 
 /**
- * Submit callback for search_api_autocomplete_admin_overview(), when all
- * settings for the index should be deleted.
- *
- * @see search_api_autocomplete_admin_overview()
- */
-function search_api_autocomplete_admin_overview_submit_delete(array $form, array &$form_state) {
-  $index = $form_state['index'];
-  $ids = array_keys(search_api_autocomplete_search_load_multiple(FALSE, array('index_id' => $index->machine_name)));
-  if ($ids) {
-    entity_delete_multiple('search_api_autocomplete_search', $ids);
-    drupal_set_message(t('All autocompletion settings stored for this index were deleted.'));
-  }
-  else {
-    drupal_set_message(t('There were no settings to delete.'), 'warning');
-  }
-  $form_state['redirect'] = 'admin/config/search/search_api/index/' . $index->machine_name;
-}
-
-/**
  * Form for editing the autocompletion settings for a search.
  *
  * @param SearchApiAutocompleteSearch $search

@@ -1,5 +1,5 @@
-entity.search_api_autocomplete_settings.edit_form:
-  route_name: entity.search_api_autocomplete_settings.edit_form
+search_api_autocomplete.admin_overview:
+  route_name: search_api_autocomplete.admin_overview
   base_route: entity.search_api_index.canonical
   class: \Drupal\search_api_autocomplete\Plugin\Menu\LocalTask\AutocompleteEditLocalTask
   title: 'Autocomplete'

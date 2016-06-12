@@ -1,11 +1,12 @@
 <?php
 
-namespace Drupal\search_api_autocomplete;
+namespace Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\AutocompleteSuggester;
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\PluginBase;
 use Drupal\search_api\IndexInterface;
 use Drupal\search_api\Plugin\ConfigurablePluginInterface;
+use Drupal\search_api_autocomplete\AutocompleteSuggesterInterface;
 use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
 
 /**

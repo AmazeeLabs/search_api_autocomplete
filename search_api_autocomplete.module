@@ -17,17 +17,6 @@ require_once('search_api_autocomplete.search_api_views.inc');
  */
 function search_api_autocomplete_menu() {
   // Admin UI
-  $items['admin/config/search/search_api/index/%search_api_index/autocomplete'] = array(
-    'title' => 'Autocomplete',
-    'description' => 'Add autocompletion to searches for this index.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('search_api_autocomplete_admin_overview', 5),
-    'access arguments' => array('administer search_api'),
-    'weight' => -1,
-    'type' => MENU_LOCAL_TASK,
-    'context' => MENU_CONTEXT_INLINE | MENU_CONTEXT_PAGE,
-    'file' => 'search_api_autocomplete.admin.inc',
-  );
   $items['admin/config/search/search_api/index/%/autocomplete/%search_api_autocomplete_search/edit'] = array(
     'title' => 'Edit autocompletion settings',
     'description' => 'Edit the autocompletion settings of a search.',
