@@ -16,7 +16,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * The server needs to support the "search_api_autocomplete" feature for this to
  * work.
  *
- * @AutocompletionSuggester(
+ * @AutocompleteSuggester(
  *   id = "server",
  *   label = @Translation("Retrieve from server"),
  *   description = @Translation("For compatible servers, ask the server for autocomplete suggestions."),
@@ -28,7 +28,7 @@ class Server extends SuggesterPluginBase implements AutocompleteSuggesterInterfa
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    $search = $plugin_definition['search'];
+    $search = $configuration['search'];
     return new static(
       $search,
       $configuration,
@@ -53,9 +53,9 @@ class Server extends SuggesterPluginBase implements AutocompleteSuggesterInterfa
    * {@inheritdoc}
    */
   public function defaultConfiguration() {
-    return array(
-      'fields' => array(),
-    );
+    return [
+      'fields' => [],
+    ];
   }
 
   /**
@@ -75,7 +75,7 @@ class Server extends SuggesterPluginBase implements AutocompleteSuggesterInterfa
       '#title' => t('Override used fields'),
       '#description' => t('Select the fields which should be searched for matches when looking for autocompletion suggestions. Leave blank to use the same fields as the underlying search.'),
       '#options' => $options,
-      '#default_value' => array_combine($this->configuration['fields'], $this->configuration['fields']),
+      '#default_value' => array_combine($this->getConfiguration()['fields'], $this->getConfiguration()['fields']),
       '#attributes' => ['class' => ['search-api-checkboxes-list']],
     ];
     $form['#attached']['library'][] = 'search_api/drupal.search_api.admin_css';

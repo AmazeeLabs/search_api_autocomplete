@@ -40,7 +40,7 @@ class Page extends PluginBase implements AutocompleteTypeInterface {
   public function listSearches(IndexInterface $index) {
     $ret = array();
     $storage = \Drupal::entityTypeManager()->getStorage('search_api_page');
-    foreach ($storage->loadByProperties(['index_id' => $index->id()]) as $page) {
+    foreach ($storage->loadByProperties(['index' => $index->id()]) as $page) {
       $id = 'search_api_page_' . $page->id();
       $ret[$id]['name'] = $page->label();
       $ret[$id]['options']['custom']['page_id'] = $page->id();

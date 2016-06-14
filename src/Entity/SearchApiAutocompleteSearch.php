@@ -16,10 +16,12 @@ use Drupal\search_api\Entity\Index;
  *   handlers = {
  *     "form" = {
  *       "default" = "\Drupal\search_api_autocomplete\Form\AutocompleteSearchEditForm",
+ *       "edit" = "\Drupal\search_api_autocomplete\Form\AutocompleteSearchEditForm",
+ *       "delete" = "\Drupal\Core\Entity\EntityDeleteForm",
  *     },
  *     "list_builder" = "\Drupal\Core\Entity\EntityListBuilder",
  *     "route_provider" = {
- *       "default" = "\Drupal\search_api_autocomplete\RouteProvider",
+ *       "default" = "\Drupal\Core\Entity\Routing\DefaultHtmlRouteProvider",
  *     },
  *   },
  *   admin_permission = "administer search_api_autocomplete",
@@ -29,6 +31,8 @@ use Drupal\search_api\Entity\Index;
  *     "label" = "label"
  *   },
  *   links = {
+ *     "edit-form" = "/admin/config/search/search-api/index/autocomplete/{search_api_autocomplete_settings}/edit",
+ *     "delete-form" = "/admin/config/search/search-api/index/autocomplete/{search_api_autocomplete_settings}/delete",
  *   },
  *   config_export = {
  *     "id",
@@ -362,9 +366,9 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase {
    *
    * @return mixed|null
    */
-  public function getOption($key) {
+  public function getOption($key, $default = NULL) {
     $parts = explode('.', $key);
-    return NestedArray::getValue($this->options, $parts);
+    return NestedArray::getValue($this->options, $parts) ?: $default;
   }
 
   /**

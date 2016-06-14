@@ -5,7 +5,7 @@ namespace Drupal\search_api_autocomplete\Plugin;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Plugin\DefaultPluginManager;
-use Drupal\search_api_autocomplete\Annotation\AutocompletionType;
+use Drupal\search_api_autocomplete\Annotation\AutocompleteType;
 use Drupal\search_api_autocomplete\AutocompleteTypeInterface;
 
 class AutocompleteTypeManager extends DefaultPluginManager {
@@ -22,7 +22,7 @@ class AutocompleteTypeManager extends DefaultPluginManager {
    *   The module handler to invoke the alter hook with.
    */
   public function __construct(\Traversable $namespaces, CacheBackendInterface $cache_backend, ModuleHandlerInterface $module_handler) {
-    parent::__construct('Plugin/search_api_autocomplete/AutocompleteType', $namespaces, $module_handler, AutocompleteTypeInterface::class, AutocompletionType::class);
+    parent::__construct('Plugin/search_api_autocomplete/AutocompleteType', $namespaces, $module_handler, AutocompleteTypeInterface::class, AutocompleteType::class);
 
     $this->setCacheBackend($cache_backend, 'search_api_autocomplete_type');
     $this->alterInfo('search_api_autocomplete_type');

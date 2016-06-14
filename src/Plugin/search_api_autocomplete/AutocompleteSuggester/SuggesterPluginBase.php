@@ -33,14 +33,14 @@ abstract class SuggesterPluginBase extends PluginBase implements AutocompleteSug
    *
    * @var array
    */
-  protected $pluginDefinition = array();
+  protected $pluginDefinition = [];
 
   /**
    * The suggester plugin's configuration.
    *
    * @var array
    */
-  protected $configuration = array();
+  protected $configuration = [];
 
   /**
    * {@inheritdoc}

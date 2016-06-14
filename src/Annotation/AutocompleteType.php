@@ -7,7 +7,7 @@ use Drupal\Component\Annotation\Plugin;
 /**
  * @Annotation
  */
-class AutocompletionType extends Plugin {
+class AutocompleteType extends Plugin {
 
   public $label;
 
