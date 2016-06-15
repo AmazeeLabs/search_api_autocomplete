@@ -6,6 +6,7 @@ use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Form\FormState;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\PluginFormInterface;
+use Drupal\search_api\Form\SubFormState;
 use Drupal\search_api\IndexInterface;
 use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
 
@@ -106,7 +107,7 @@ class AutocompleteSearchEditForm extends EntityForm {
       if ($suggester_id != $selected_suggester_id) {
         continue;
       }
-      $suggester_form_state = &$this->getSuggesterFormState($form_state);
+      $suggester_form_state = new SubFormState($form_state, ['options', 'suggester_configuration']);
       $suggester_form = $suggester->buildConfigurationForm([], $suggester_form_state);
       if ($suggester_form) {
         $form['options']['suggester_configuration'] = $suggester_form;
@@ -152,7 +153,8 @@ class AutocompleteSearchEditForm extends EntityForm {
 
     $custom_form = empty($form['options']['custom']) ? [] : $form['options']['custom'];
     if ($type instanceof PluginFormInterface) {
-      $form['options']['custom'] = $type->buildConfigurationForm($custom_form, $form_state, $search);
+      $type_form_state = new SubFormState($form_state, ['options', 'custom']);
+      $form['options']['custom'] = $type->buildConfigurationForm($custom_form, $type_form_state, $search);
     }
 
     $form['advanced'] = [
@@ -177,11 +179,6 @@ class AutocompleteSearchEditForm extends EntityForm {
       '#parents' => ['options', 'autosubmit'],
     ];
 
-    $form['submit'] = [
-      '#type' => 'submit',
-      '#value' => $this->t('Save'),
-    ];
-
     return $form;
   }
 
@@ -198,19 +195,19 @@ class AutocompleteSearchEditForm extends EntityForm {
    * @see search_api_autocomplete_admin_search_edit()
    * @see search_api_autocomplete_admin_search_edit_submit()
    */
-  function search_api_autocomplete_admin_search_edit_validate(array $form, array &$form_state) {
-    $values = &$form_state['values'];
+  public function validateForm(array &$form, FormStateInterface $form_state) {
+    $values = &$form_state->getValues();
     // Call the config form validation method of the selected suggester plugin,
     // but only if it was the same plugin that created the form.
     if ($values['suggester_id'] == $values['old_suggester_id']) {
-      $configuration = array();
+      $configuration = [];
       if (!empty($values['options']['suggester_configuration'])) {
         $configuration = $values['options']['suggester_configuration'];
       }
       $suggester = $this->getSuggesterManager()->createInstance($values['suggester_id'], ['search' => $form_state->get('search')] + $configuration);
       $suggester_form = $form['options']['suggester_configuration'];
       unset($suggester_form['old_suggester_id']);
-      $suggester_form_state = &$this->getSuggesterFormState($form_state);
+      $suggester_form_state = new SubFormState($form_state, ['options', 'suggester_configuration']);
       $suggester->validateConfigurationForm($suggester_form, $suggester_form_state);
     }
 
@@ -218,7 +215,8 @@ class AutocompleteSearchEditForm extends EntityForm {
     $type = $form_state->get('type');
     if ($type instanceof PluginFormInterface) {
       $custom_form = empty($form['options']['custom']) ? [] : $form['options']['custom'];
-      $type->validateConfigurationForm($custom_form, $form_state);
+      $type_form_state = new SubFormState($form_state, ['options', 'custom']);
+      $type->validateConfigurationForm($custom_form, $type_form_state);
     }
   }
 
@@ -228,28 +226,29 @@ class AutocompleteSearchEditForm extends EntityForm {
    * @see search_api_autocomplete_admin_search_edit()
    * @see search_api_autocomplete_admin_search_edit_validate()
    */
-  function search_api_autocomplete_admin_search_edit_submit(array $form, array &$form_state) {
-    $values = &$form_state['values'];
-    if (!empty($form_state['type']['config form'])) {
-      $f = $form_state['type']['config form'] . '_submit';
-      if (function_exists($f)) {
-        $custom_form = empty($form['options']['custom']) ? [] : $form['options']['custom'];
-        $f($custom_form, $form_state, $values['options']['custom']);
-      }
+  public function submitForm(array &$form, FormStateInterface $form_state) {
+    $values = &$form_state->getValues();
+    $type = $form_state->get('type');
+    if ($type instanceof PluginFormInterface) {
+      $custom_form = empty($form['options']['custom']) ? [] : $form['options']['custom'];
+      $type_form_state = new SubFormState($form_state, ['options', 'custom']);
+      $type->submitConfigurationForm($custom_form, $type_form_state);
     }
 
-    $search = $form_state['search'];
-    $search->enabled = $values['enabled'];
-    $search->suggester_id = $values['suggester_id'];
+    /** @var \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $search */
+    $search = $form_state->get('search');
+    $search->setStatus($values['enabled']);
+    $search->setSuggesterId($values['suggester_id']);
 
-    $form_state['redirect'] = 'admin/config/search/search_api/index/' . $search->index_id . '/autocomplete';
+    // @fixme
+//    $form_state['redirect'] = 'admin/config/search/search_api/index/' . $search->index_id . '/autocomplete';
 
     // Take care of custom options that aren't changed in the config form.
-    if (!empty($search->options['custom'])) {
+    if (!empty($search->getOption('custom'))) {
       if (!isset($values['options']['custom'])) {
-        $values['options']['custom'] = array();
+        $values['options']['custom'] = [];
       }
-      $values['options']['custom'] += $search->options['custom'];
+      $values['options']['custom'] += $search->getOption('custom');
     }
 
     // Allow the suggester to decide how to save its configuration. If the user
@@ -258,55 +257,29 @@ class AutocompleteSearchEditForm extends EntityForm {
     // form. In that case, we don't call the form submit method, save empty
     // configuration for the plugin and stay on the page.
     if ($values['suggester_id'] == $values['old_suggester_id']) {
-      $configuration = array();
+      $configuration = [];
       if (!empty($values['options']['suggester_configuration'])) {
         $configuration = $values['options']['suggester_configuration'];
       }
-      $suggester = search_api_autocomplete_suggester_load($values['suggester_id'], $search, $configuration);
+      $suggester = $this->getSuggesterManager()->createInstance($values['suggester_id'], [
+        'search' => $search,
+      ] + $configuration);
       $suggester_form = $form['options']['suggester_configuration'];
       unset($suggester_form['old_suggester_id']);
-      $suggester_form_state = &$this->getSuggesterFormState($form_state);
+      $suggester_form_state = new SubFormState($form_state, ['options', 'suggester_configuration']);
       $suggester->submitConfigurationForm($suggester_form, $suggester_form_state);
       $values['options']['suggester_configuration'] = $suggester->getConfiguration();
     }
     else {
-      $values['options']['suggester_configuration'] = array();
+      $values['options']['suggester_configuration'] = [];
       $form_state['redirect'] = NULL;
       drupal_set_message(t('The used suggester plugin has changed. Please review the configuration for the new plugin.'), 'warning');
     }
 
-    $search->options = $values['options'];
+    $search->setOptions($values['options']);
 
     $search->save();
     drupal_set_message(t('The autocompletion settings for the search have been saved.'));
-  }
-
-  /**
-   * Returns a new form state for the suggester configuration sub-form.
-   *
-   * @param array $form_state
-   *   The original form state.
-   *
-   * @return array
-   *   A form state for the sub-form.
-   */
-  function &getSuggesterFormState(FormStateInterface $form_state) {
-    $sub_form_state = &$form_state->get('suggester_form_state');
-    $sub_form_state = $sub_form_state ?: new FormState();
-
-    foreach ((array) $form_state->getValue(['options', 'suggester_configuration']) as $key => $value) {
-      $sub_form_state->setValue($key, $value);
-    }
-    if (!empty($form_state->getUserInput()['options']['suggester_configuration'])) {
-      foreach ((array) $form_state->getUserInput()['options']['suggester_configuration'] as $key => $value) {
-        $sub_form_state->set($key, $value);
-      }
-    }
-    $sub_form_state->setRebuild($form_state->isRebuilding());;
-    $sub_form_state->setRebuildInfo($form_state->getRebuildInfo());;
-    $sub_form_state->setRedirect($form_state->getRedirect());;
-
-    return $sub_form_state;
   }
 
 }

@@ -152,6 +152,12 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase {
     return $this->suggester_id;
   }
 
+  public function setSuggesterId($suggester_id) {
+    $this->suggester_id = $suggester_id;
+    unset($this->suggester);
+    return $this;
+  }
+
   /**
    * Retrieves the suggester plugin for this search.
    *
@@ -375,10 +381,11 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase {
    * {@inheritdoc}
    */
   public function calculateDependencies() {
-    $deps = parent::calculateDependencies();
+    parent::calculateDependencies();
 
-    $deps += $this->index()->calculateDependencies();
-    return $deps;
+    $this->index()->calculateDependencies();
+    $this->addDependencies($this->index()->getDependencies());
+    return $this;
   }
 
 }
