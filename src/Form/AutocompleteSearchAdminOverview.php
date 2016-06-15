@@ -230,8 +230,8 @@ class AutocompleteSearchAdminOverview extends FormBase {
         if (!empty($search)) {
           $options['query'] = \Drupal::destination()->getAsArray();
           $options['fragment'] = 'module-search_api_autocomplete';
-          $vars['@perm_url'] = Url::fromRoute('user.admin_permissions', [], $options);
-          $messages = t('The settings have been saved. Please remember to set the <a href=";perm_url">permissions</a> for the newly enabled searches.', $vars);
+          $vars[':perm_url'] = Url::fromRoute('user.admin_permissions', [], $options)->toString();
+          $messages = t('The settings have been saved. Please remember to set the <a href=":perm_url">permissions</a> for the newly enabled searches.', $vars);
         }
         $search->setStatus($enabled);
         $search->save();

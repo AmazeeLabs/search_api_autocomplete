@@ -6,6 +6,7 @@ use Drupal\Component\Plugin\PluginInspectionInterface;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Config\Entity\ConfigEntityBase;
 use Drupal\search_api\Entity\Index;
+use Drupal\search_api_autocomplete\Controller\AutocompleteController;
 
 /**
  * Describes the autocomplete settings for a certain search.
@@ -170,8 +171,10 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase {
    */
   public function getSuggester($reset = FALSE) {
     if (!isset($this->suggester) || $reset) {
-      $configuration = !empty($this->options['suggester_configuration']) ? $this->options['suggester_configuration'] : array();
-      $this->suggester = search_api_autocomplete_suggester_load($this->suggester_id, $this, $configuration);
+      $configuration = !empty($this->options['suggester_configuration']) ? $this->options['suggester_configuration'] : [];
+      $this->suggester = $this->getSuggesterManager()->createInstance($this->suggester_id, [
+        'search' => $this,
+      ] + $configuration);
       if (!$this->suggester) {
         $variables['@search'] = $this->id();
         $variables['@index'] = $this->index() ? $this->index()->label() : $this->index_id;
@@ -181,6 +184,13 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase {
       }
     }
     return $this->suggester ? $this->suggester : NULL;
+  }
+
+  /**
+   * @return \Drupal\Component\Plugin\PluginManagerInterface
+   */
+  protected function getSuggesterManager() {
+    return \Drupal::service('plugin_manager.search_api_autocomplete_suggester');
   }
 
   /**
@@ -196,61 +206,66 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase {
 
   /**
    * Helper method for altering a textfield form element to use autocompletion.
+   *
+   * @param array $element
+   * @param array $fields
    */
-  public function alterElement(array &$element, array $fields = array()) {
-    if (search_api_autocomplete_access($this)) {
+  public function alterElement(array &$element, array $fields = []) {
+    // @todo find a cleaner solution.
+    $controller = new AutocompleteController();
+    $config = \Drupal::configFactory()->get('search_api_autocomplete.settings');
+    if ($controller->access($this, \Drupal::currentUser())->isAllowed()) {
       // Add option defaults (in case of updates from earlier versions).
-      $options = $this->options + array(
+      $options = $this->options + [
         'submit_button_selector' => ':submit',
         'autosubmit' => TRUE,
         'min_length' => 1,
-      );
+        ];
 
       $fields_string = $fields ? implode(' ', $fields) : '-';
 
-      $module_path = drupal_get_path('module', 'search_api_autocomplete');
-      $autocomplete_path = 'search_api_autocomplete/' . $this->id() . '/' . $fields_string;
+      $autocomplete_route_name = 'search_api_autocomplete.autocomplete';
+      $autocomplete_route_parameters = ['search_api_autocomplete_settings' => $this->id(), 'fields' => $fields_string];
 
-      $js_settings = array();
+      $js_settings = [];
       if ($options['submit_button_selector'] != ':submit') {
         $js_settings['selector'] = $options['submit_button_selector'];
       }
-      if (($delay = variable_get('search_api_autocomplete_delay')) !== NULL) {
+      if ($delay = $config->get('delay') !== NULL) {
         $js_settings['delay'] = $delay;
       }
 
       // Allow overriding of the default handler with a custom script.
-      $path_overrides = variable_get('search_api_autocomplete_scripts', array());
-      if (!empty($path_overrides[$this->machine_name])) {
-        $autocomplete_path = NULL;
-        $override = $path_overrides[$this->machine_name];
-        if (is_scalar($override)) {
-          $autocomplete_path = url($override, array('absolute' => TRUE, 'query' => array('machine_name' => $this->machine_name)));
-        }
-        elseif (!empty($override['#callback']) && is_callable($override['#callback'])) {
-          $autocomplete_path = call_user_func($override['#callback'], $this, $element, $override);
-        }
-        if (!$autocomplete_path) {
-          return;
-        }
-        $js_settings['custom_path'] = TRUE;
-      }
+      // @todo implement that.
+//      $path_overrides = $config->get('scripts') ?: [];
+//      if (!empty($path_overrides[$this->id()])) {
+//        $autocomplete_path = NULL;
+//        $override = $path_overrides[$this->id()];
+//        if (is_scalar($override)) {
+//          $autocomplete_path = url($override, ['absolute' => TRUE, 'query' => ['machine_name' => $this->id()]]);
+//        }
+//        elseif (!empty($override['#callback']) && is_callable($override['#callback'])) {
+//          $autocomplete_path = call_user_func($override['#callback'], $this, $element, $override);
+//        }
+//        if (!$autocomplete_path) {
+//          return;
+//        }
+//        $js_settings['custom_path'] = TRUE;
+//      }
 
       $element['#attached']['library'][] = 'search_api_autocomplete/search_api_autocomplete';
       if ($js_settings) {
-        $element['#attached']['js'][] = array(
-          'type' => 'setting',
-          'data' => array(
-            'search_api_autocomplete' => array(
-              $this->id() => $js_settings,
-            ),
-          ),
-        );
+        $element['#attached']['drupalSettings'][] = [
+          'search_api_autocomplete' => [
+            $this->id() => $js_settings,
+          ],
+        ];
       }
 
-      $element['#autocomplete_path'] = $autocomplete_path;
-      $element += array('#attributes' => array());
-      $element['#attributes'] += array('class'=> array());
+      $element['#autocomplete_route_name'] = $autocomplete_route_name;
+      $element['#autocomplete_route_parameters'] = $autocomplete_route_parameters;
+      $element += ['#attributes' => []];
+      $element['#attributes'] += ['class'=> []];
       if ($options['autosubmit']) {
         $element['#attributes']['class'][] = 'auto_submit';
       }
@@ -300,15 +315,19 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase {
    *   If the query couldn't be created.
    */
   public function getQuery($complete, $incomplete) {
-    $info = search_api_autocomplete_get_types($this->type);
-    if (empty($info['create query'])) {
-      return NULL;
-    }
-    $query = $info['create query']($this, $complete, $incomplete);
+    $type = $this->getTypeInstance();
+    $query = $type->createQuery($this, $complete, $incomplete);
     if ($complete && !$query->getKeys()) {
       $query->keys($complete);
     }
     return $query;
+  }
+
+  /**
+   * @return \Drupal\search_api_autocomplete\AutocompleteTypeInterface
+   */
+  protected function getTypeInstance() {
+    return \Drupal::service('plugin_manager.search_api_autocomplete_type')->createInstance($this->getType());
   }
 
   /**
@@ -351,6 +370,7 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase {
    */
   public function setType($type) {
     $this->type = $type;
+    return $this;
   }
 
   /**
@@ -365,6 +385,7 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase {
    */
   public function setOptions($options) {
     $this->options = $options;
+    return $this;
   }
 
   /**
@@ -387,5 +408,10 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase {
     $this->addDependencies($this->index()->getDependencies());
     return $this;
   }
+
+  public function save() {
+    return parent::save();
+  }
+
 
 }

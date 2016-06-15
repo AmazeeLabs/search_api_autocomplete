@@ -3,6 +3,7 @@
 namespace Drupal\search_api_autocomplete\Controller;
 
 use Drupal\Component\Utility\Html;
+use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Cache\CacheableJsonResponse;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\search_api\SearchApiException;
@@ -14,7 +15,7 @@ class AutocompleteController {
   /**
    * Page callback for getting autocomplete suggestions.
    *
-   * @param \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $search
+   * @param \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $search_api_autocomplete_settings
    *   The search for which to retrieve autocomplete suggestions.
    * @param string $fields
    *   A comma-separated list of fields on which to do autocompletion. Or "-"
@@ -25,25 +26,25 @@ class AutocompleteController {
    * @return \Drupal\Core\Cache\CacheableJsonResponse
    *   The autocompletion response.
    */
-  public function autocomplete(SearchApiAutocompleteSearch $search, $fields, $keys = '') {
-    $ret = array();
+  public function autocomplete(SearchApiAutocompleteSearch $search_api_autocomplete_settings, $fields, $keys = '') {
+    $ret = [];
     try {
-      if ($search->supportsAutocompletion()) {
-        list($complete, $incomplete) = $search->splitKeys($keys);
-        $query = $search->getQuery($complete, $incomplete);
+      if ($search_api_autocomplete_settings->supportsAutocompletion()) {
+        list($complete, $incomplete) = $search_api_autocomplete_settings->splitKeys($keys);
+        $query = $search_api_autocomplete_settings->getQuery($complete, $incomplete);
         if ($query) {
           // @todo Maybe make range configurable?
           $query->range(0, 10);
-          $query->setOption('search id', 'search_api_autocomplete:' . $search->id());
-          if (!empty($search->getOption('fields'))) {
-            $query->setFulltextFields($search->getOption('fields'));
+          $query->setOption('search id', 'search_api_autocomplete:' . $search_api_autocomplete_settings->id());
+          if (!empty($search_api_autocomplete_settings->getOption('fields'))) {
+            $query->setFulltextFields($search_api_autocomplete_settings->getOption('fields'));
           }
           elseif ($fields != '-') {
             $fields = explode(' ', $fields);
             $query->setFulltextFields($fields);
           }
           $query->preExecute();
-          $suggestions = $search->getSuggester()->getAutocompleteSuggestions($query, $incomplete, $keys);
+          $suggestions = $search_api_autocomplete_settings->getSuggester()->getAutocompleteSuggestions($query, $incomplete, $keys);
           if ($suggestions) {
             foreach ($suggestions as $suggestion) {
               // Convert suggestion strings into an array.
@@ -73,7 +74,7 @@ class AutocompleteController {
                 'suggestion_suffix' => '',
                 'results' => NULL,
               ];
-              if (empty($search->getOption('results'))) {
+              if (empty($search_api_autocomplete_settings->getOption('results'))) {
                 unset($suggestion['results']);
               }
 
@@ -98,7 +99,7 @@ class AutocompleteController {
 
             $alter_params = [
               'query' => $query,
-              'search' => $search,
+              'search' => $search_api_autocomplete_settings,
               'incomplete_key' => $incomplete,
               'user_input' => $keys,
             ];
@@ -136,7 +137,7 @@ class AutocompleteController {
   /**
    * Checks access to the autocompletion route.
    *
-   * @param \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $search
+   * @param \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $search_api_autocomplete_settings
    *   The configured autocompletion search.
    * @param \Drupal\Core\Session\AccountInterface $account
    *   The account.
@@ -144,8 +145,11 @@ class AutocompleteController {
    * @return \Drupal\Core\Access\AccessResult
    *   The access result.
    */
-  public function access(SearchApiAutocompleteSearch $search, AccountInterface $account) {
-    return $search->status() && $account->hasPermission('use search_api_autocomplete for ' . $search->id()) && $search->supportsAutocompletion();
+  public function access(SearchApiAutocompleteSearch $search_api_autocomplete_settings, AccountInterface $account) {
+    $access = AccessResult::allowedIf($search_api_autocomplete_settings->status())
+      ->andIf(AccessResult::allowedIfHasPermission($account, 'use search_api_autocomplete for ' . $search_api_autocomplete_settings->id()))
+      ->andIf(AccessResult::allowedIf($search_api_autocomplete_settings->supportsAutocompletion()));
+    return $access;
   }
 
 }

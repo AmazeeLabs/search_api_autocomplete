@@ -13,6 +13,9 @@ interface AutocompleteTypeInterface {
 
   public function listSearches(IndexInterface $index);
 
+  /**
+   * @return \Drupal\search_api\Query\QueryInterface
+   */
   public function createQuery(SearchApiAutocompleteSearch $search, $complete, $incomplete);
 
 }

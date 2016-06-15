@@ -5,6 +5,7 @@
  * Contains code for integrating with the "Search pages" module.
  */
 
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
 
 /**
@@ -13,13 +14,10 @@ use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
  * Adds autocompletion to the keywords field on search pages, if enabled by the
  * user.
  */
-function search_api_autocomplete_form_search_api_page_search_form_alter(array &$form, array &$form_state) {
-  if (isset($form['form'])) {
-    $form = &$form['form'];
-  }
-  $id = 'search_api_page_' . $form_state['build_info']['args'][0]->id();
+function search_api_autocomplete_form_search_api_page_block_form_alter(array &$form, FormStateInterface $form_state) {
+  $id = 'search_api_page_' . $form_state->getBuildInfo()['args'][0]['search_api_page'];
   $search = SearchApiAutocompleteSearch::load($id);
   if ($search && $search->status()) {
-    $search->alterElement($form['keys_' . $form['id']['#value']]);
+    $search->alterElement($form['keys']);
   }
 }

@@ -12,6 +12,9 @@ use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
 
 class AutocompleteSearchEditForm extends EntityForm {
 
+  /** @var \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch */
+  protected $entity;
+
   /**
    * @return \Drupal\Component\Plugin\PluginManagerInterface
    */
@@ -58,7 +61,6 @@ class AutocompleteSearchEditForm extends EntityForm {
       }
     }
 
-    $form_state->set(['search'], $search);
     /** @var \Drupal\search_api_autocomplete\AutocompleteTypeInterface $type */
     $type = $this->getAutocompleteTypeManager()
       ->createInstance($search->getType());
@@ -235,8 +237,7 @@ class AutocompleteSearchEditForm extends EntityForm {
       $type->submitConfigurationForm($custom_form, $type_form_state);
     }
 
-    /** @var \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $search */
-    $search = $form_state->get('search');
+    $search = $this->entity;
     $search->setStatus($values['enabled']);
     $search->setSuggesterId($values['suggester_id']);
 
@@ -277,8 +278,6 @@ class AutocompleteSearchEditForm extends EntityForm {
     }
 
     $search->setOptions($values['options']);
-
-    $search->save();
     drupal_set_message(t('The autocompletion settings for the search have been saved.'));
   }
 

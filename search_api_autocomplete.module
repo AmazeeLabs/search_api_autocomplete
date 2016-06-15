@@ -13,31 +13,6 @@ require_once('search_api_autocomplete.search_api_page.inc');
 require_once('search_api_autocomplete.search_api_views.inc');
 
 /**
- * Implements hook_menu().
- */
-function search_api_autocomplete_menu() {
-  // Admin UI
-  $items['admin/config/search/search_api/index/%/autocomplete/%search_api_autocomplete_search/edit'] = array(
-    'title' => 'Edit autocompletion settings',
-    'description' => 'Edit the autocompletion settings of a search.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('search_api_autocomplete_admin_search_edit', 7),
-    'access arguments' => array('administer search_api'),
-    'file' => 'search_api_autocomplete.admin.inc',
-  );
-  $items['admin/config/search/search_api/index/%/autocomplete/%search_api_autocomplete_search/delete'] = array(
-    'title' => 'Delete autocompletion settings',
-    'description' => 'Delete the autocompletion settings of a search.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('search_api_autocomplete_admin_search_delete', 7),
-    'access arguments' => array('administer search_api'),
-    'file' => 'search_api_autocomplete.admin.inc',
-  );
-
-  return $items;
-}
-
-/**
  * Implements hook_theme().
  */
 function search_api_autocomplete_theme() {
