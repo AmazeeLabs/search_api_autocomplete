@@ -5,10 +5,9 @@
  * Adds autocomplete capabilities for Search API searches.
  */
 
-// Include the files with the module-specific implementations.
-use Drupal\search_api\IndexInterface;
-use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
+use Drupal\Core\Url;
 
+// Include the files with the module-specific implementations.
 require_once('search_api_autocomplete.search_api_page.inc');
 require_once('search_api_autocomplete.search_api_views.inc');
 
@@ -28,4 +27,21 @@ function search_api_autocomplete_theme() {
   ];
 
   return $themes;
+}
+
+/**
+ * Implements hook_entity_operation().
+ */
+function search_api_autocomplete_entity_operation(\Drupal\Core\Entity\EntityInterface $entity) {
+  if ($entity->getEntityTypeId() != 'search_api_index') {
+    return [];
+  }
+
+  $operations = [];
+  $operations['autocomplete'] = [
+    'title' => t('Autocomplete'),
+    'weight' => 30,
+    'url' => Url::fromRoute('search_api_autocomplete.admin_overview', ['search_api_index' => $entity->id()]),
+  ];
+  return $operations;
 }

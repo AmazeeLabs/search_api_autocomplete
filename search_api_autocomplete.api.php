@@ -240,12 +240,12 @@ function hook_search_api_autocomplete_suggestions_alter(array &$suggestions, arr
  *
  * @param string[] $fields
  *   The machine names of the detected fulltext fields.
- * @param SearchApiAutocompleteSearch $search
+ * @param \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $search
  *   The related search autocomplete object.
  * @param view $view
  *   The view for which fulltext fields should be determined.
  */
-function hook_search_api_autocomplete_views_fulltext_fields_alter(array &$fields, SearchApiAutocompleteSearch $search, view $view) {
+function hook_search_api_autocomplete_views_fulltext_fields_alter(array &$fields, \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $search, view $view) {
   // Add a new field.
   $fields[] = 'extra_search_api_views_fulltext';
 }
@@ -266,7 +266,7 @@ function hook_search_api_autocomplete_views_fulltext_fields_alter(array &$fields
  * Also, name and machine name have to respect the length constraints from
  * search_api_autocomplete_schema().
  *
- * @param SearchApiIndex $index
+ * @param \Drupal\search_api\IndexInterface $index
  *   The index whose searches should be returned.
  *
  * @return array
@@ -277,7 +277,7 @@ function hook_search_api_autocomplete_views_fulltext_fields_alter(array &$fields
  *     Type-specific options should go into the "custom" nested key in these
  *     options.
  */
-function example_list_autocomplete_searches(SearchApiIndex $index) {
+function example_list_autocomplete_searches(\Drupal\search_api\IndexInterface $index) {
   $ret = array();
   $result = db_query('SELECT name, machine_name, extra FROM {example_searches} WHERE index_id = :id', array($index->machine_name));
   foreach ($result as $row) {
@@ -295,21 +295,21 @@ function example_list_autocomplete_searches(SearchApiIndex $index) {
 /**
  * Create the query that would be issued for the given search for the complete keys.
  *
- * @param SearchApiAutocompleteSearch $search
+ * @param \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $search
  *   The search for which to create the query.
  * @param $complete
  *   A string containing the complete search keys.
  * @param $incomplete
  *   A string containing the incomplete last search key.
  *
- * @return SearchApiQueryInterface
+ * @return \Drupal\search_api\Query\QueryInterface
  *   The query that would normally be executed when only $complete was entered
  *   as the search keys for the given search.
  *
- * @throws SearchApiException
+ * @throws \Drupal\search_api\SearchApiException
  *   If the query couldn't be created.
  */
-function example_create_autocomplete_query(SearchApiAutocompleteSearch $search, $complete, $incomplete) {
+function example_create_autocomplete_query(\Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $complete, $incomplete) {
   $query = search_api_query($search->index_id);
   if ($complete) {
     $query->keys($complete);
@@ -340,7 +340,7 @@ function example_create_autocomplete_query(SearchApiAutocompleteSearch $search, 
  * @see example_autocomplete_config_form_validate()
  * @see example_autocomplete_config_form_submit()
  */
-function example_autocomplete_config_form(array $form, array &$form_state, SearchApiAutocompleteSearch $search) {
+function example_autocomplete_config_form(array $form, array &$form_state, \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $search) {
   $form['user_filters'] = array(
     '#type' => 'textarea',
     '#title' => t('Custom filters'),
