@@ -5,9 +5,11 @@
  * Contains code for integrating with the "Search views" module.
  */
 
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\search_api\Entity\Index;
 use Drupal\search_api\IndexInterface;
 use Drupal\search_api\SearchApiException;
+use Drupal\search_api_autocomplete\Controller\AutocompleteController;
 use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
 use Drupal\views\Views;
 
@@ -17,14 +19,15 @@ use Drupal\views\Views;
  * Adds autocompletion to input fields for fulltext keywords on views with
  * exposed filters.
  */
-function search_api_autocomplete_form_views_exposed_form_alter(array &$form, array &$form_state) {
-  $view = $form_state['view'];
-  if (substr($view->base_table, 0, 17) != 'search_api_index_') {
+function search_api_autocomplete_form_views_exposed_form_alter(array &$form, FormStateInterface $form_state) {
+  $view = $form_state->get('view');
+  if (substr($view->storage->get('base_table'), 0, 17) != 'search_api_index_') {
     return;
   }
   $search_id = 'search_api_views_' . $view->name;
   $search = SearchApiAutocompleteSearch::load($search_id);
-  if (!$search || !search_api_autocomplete_access($search)) {
+  $controller = new AutocompleteController();
+  if (!$search || !$controller->access($search, \Drupal::currentUser())->isAllowed()) {
     return;
   }
   $index_id = substr($view->base_table, 17);

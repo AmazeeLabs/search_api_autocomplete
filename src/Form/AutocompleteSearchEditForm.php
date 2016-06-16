@@ -42,9 +42,9 @@ class AutocompleteSearchEditForm extends EntityForm {
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, FormStateInterface $form_state, SearchApiAutocompleteSearch $search_api_autocomplete_settings = NULL) {
-    $search = $search_api_autocomplete_settings;
+  public function buildForm(array $form, FormStateInterface $form_state) {
     $form =  parent::buildForm($form, $form_state);
+    $search = $search_api_autocomplete_settings = $this->entity;
     $form['#title'] = t('Configure autocompletion for %search', ['%search' => $search_api_autocomplete_settings->label()]);
 
     // If this is a re-build (i.e., most likely an AJAX call due to a new
@@ -206,7 +206,7 @@ class AutocompleteSearchEditForm extends EntityForm {
       if (!empty($values['options']['suggester_configuration'])) {
         $configuration = $values['options']['suggester_configuration'];
       }
-      $suggester = $this->getSuggesterManager()->createInstance($values['suggester_id'], ['search' => $form_state->get('search')] + $configuration);
+      $suggester = $this->getSuggesterManager()->createInstance($values['suggester_id'], ['search' => $this->entity] + $configuration);
       $suggester_form = $form['options']['suggester_configuration'];
       unset($suggester_form['old_suggester_id']);
       $suggester_form_state = new SubFormState($form_state, ['options', 'suggester_configuration']);
@@ -221,6 +221,27 @@ class AutocompleteSearchEditForm extends EntityForm {
       $type->validateConfigurationForm($custom_form, $type_form_state);
     }
   }
+
+  public function buildEntity(array $form, FormStateInterface $form_state) {
+    /** @var \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $entity */
+    $search = $this->entity;
+
+    $values = &$form_state->getValues();
+    // Take care of custom options that aren't changed in the config form.
+    if (!empty($search->getOption('custom'))) {
+      if (!isset($values['options']['custom'])) {
+        $values['options']['custom'] = [];
+      }
+      $values['options']['custom'] += $search->getOption('custom');
+    }
+
+    $search->setStatus($values['enabled']);
+    $search->setSuggesterId($values['suggester_id']);
+    $search->setOptions($values['options']);
+
+    return $search;
+  }
+
 
   /**
    * Submit callback for search_api_autocomplete_admin_search_edit().
@@ -238,19 +259,9 @@ class AutocompleteSearchEditForm extends EntityForm {
     }
 
     $search = $this->entity;
-    $search->setStatus($values['enabled']);
-    $search->setSuggesterId($values['suggester_id']);
 
     // @fixme
 //    $form_state['redirect'] = 'admin/config/search/search_api/index/' . $search->index_id . '/autocomplete';
-
-    // Take care of custom options that aren't changed in the config form.
-    if (!empty($search->getOption('custom'))) {
-      if (!isset($values['options']['custom'])) {
-        $values['options']['custom'] = [];
-      }
-      $values['options']['custom'] += $search->getOption('custom');
-    }
 
     // Allow the suggester to decide how to save its configuration. If the user
     // has disabled JS in the browser, or AJAX didn't work for some other reason,
@@ -277,7 +288,6 @@ class AutocompleteSearchEditForm extends EntityForm {
       drupal_set_message(t('The used suggester plugin has changed. Please review the configuration for the new plugin.'), 'warning');
     }
 
-    $search->setOptions($values['options']);
     drupal_set_message(t('The autocompletion settings for the search have been saved.'));
   }
 

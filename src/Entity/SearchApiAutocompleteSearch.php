@@ -409,9 +409,4 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase {
     return $this;
   }
 
-  public function save() {
-    return parent::save();
-  }
-
-
 }

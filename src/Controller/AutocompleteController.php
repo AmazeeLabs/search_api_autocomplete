@@ -27,7 +27,7 @@ class AutocompleteController {
    *   The autocompletion response.
    */
   public function autocomplete(SearchApiAutocompleteSearch $search_api_autocomplete_settings, $fields, $keys = '') {
-    $ret = [];
+    $matches = [];
     try {
       if ($search_api_autocomplete_settings->supportsAutocompletion()) {
         list($complete, $incomplete) = $search_api_autocomplete_settings->splitKeys($keys);
@@ -107,20 +107,24 @@ class AutocompleteController {
 
             foreach ($ret as $key => $suggestion) {
               if (isset($suggestion['render'])) {
-                $ret[$key] = render($suggestion['render']);
+                $matches[] = [
+                  'value' => $key,
+                  'label' => \Drupal::service('renderer')->render($suggestion['render']),
+                ];
               }
               else {
-                $escaped_variables = ['keys', 'suggestion_prefix', 'user_input', 'suggestion_suffix'];
-                foreach ($escaped_variables as $variable) {
-                  if ($suggestion[$variable]) {
-                    $suggestion[$variable] = Html::escape($suggestion[$variable]);
-                  }
-                }
                 $ret[$key] = [
                   '#theme' => 'search_api_autocomplete_suggestion',
-                  '#suggestion' => $suggestion,
+                ]
+                  //  Convert the suggestion into a suitable variable for
+                  // templates, by adding # in front.
+                  + array_combine(array_map(function ($key) {
+                    return '#' . $key;
+                  }, array_keys($suggestion)), array_values($suggestion));
+                $matches[] = [
+                  'value' => $key,
+                  'label' => \Drupal::service('renderer')->render($ret[$key]),
                 ];
-                $ret[$key] = \Drupal::service('renderer')->render($ret[$key]);
               }
             }
           }
@@ -131,7 +135,7 @@ class AutocompleteController {
       watchdog_exception('search_api_autocomplete', $e, '%type while retrieving autocomplete suggestions: !message in %function (line %line of %file).');
     }
 
-    return new CacheableJsonResponse($ret);
+    return new JsonResponse($matches);
   }
 
   /**

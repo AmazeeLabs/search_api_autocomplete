@@ -68,7 +68,7 @@ class Server extends SuggesterPluginBase implements AutocompleteSuggesterInterfa
     $fulltext_fields = $search->index()->getFulltextFields();
     $options = [];
     foreach ($fulltext_fields as $field) {
-      $options[$field] = $fields[$field]['name'];
+      $options[$field] = $fields[$field]->getFieldIdentifier();
     }
     $form['fields'] = [
       '#type' => 'checkboxes',
@@ -102,8 +102,8 @@ class Server extends SuggesterPluginBase implements AutocompleteSuggesterInterfa
       $query->setFulltextFields($this->configuration['fields']);
     }
 
-    if (($server = $query->getIndex()->getServerInstance()) && $server instanceof SearchApiAutocompleteInterface) {
-      return $server->getAutocompleteSuggestions($query, $this->getSearch(), $incomplete_key, $user_input);
+    if (($server = $query->getIndex()->getServerInstance()) && $server->supportsFeature('search_api_autocomplete')) {
+      return $server->getBackend()->getAutocompleteSuggestions($query, $this->getSearch(), $incomplete_key, $user_input);
     }
   }
 

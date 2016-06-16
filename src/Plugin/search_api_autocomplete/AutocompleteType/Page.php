@@ -58,7 +58,7 @@ class Page extends PluginBase implements AutocompleteTypeInterface {
     $query
       ->keys($complete);
     if ($page->getFulltextFields()) {
-      $query->setFulltextFields($page->getFulltextFields());
+      $query->setFulltextFields($page->getSearchedFields());
     }
     return $query;
   }
