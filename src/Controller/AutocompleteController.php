@@ -9,6 +9,7 @@ use Drupal\Core\Session\AccountInterface;
 use Drupal\search_api\SearchApiException;
 use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 
 class AutocompleteController {
 
@@ -20,16 +21,18 @@ class AutocompleteController {
    * @param string $fields
    *   A comma-separated list of fields on which to do autocompletion. Or "-"
    *   to use all fulltext fields.
-   * @param string $keys
-   *   The user input so far.
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The request.
    *
    * @return \Drupal\Core\Cache\CacheableJsonResponse
    *   The autocompletion response.
+   *
    */
-  public function autocomplete(SearchApiAutocompleteSearch $search_api_autocomplete_settings, $fields, $keys = '') {
+  public function autocomplete(SearchApiAutocompleteSearch $search_api_autocomplete_settings, $fields, Request $request) {
     $matches = [];
     try {
       if ($search_api_autocomplete_settings->supportsAutocompletion()) {
+        $keys = $request->query->get('q');
         list($complete, $incomplete) = $search_api_autocomplete_settings->splitKeys($keys);
         $query = $search_api_autocomplete_settings->getQuery($complete, $incomplete);
         if ($query) {
