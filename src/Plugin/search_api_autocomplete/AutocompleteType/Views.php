@@ -146,6 +146,7 @@ class Views extends PluginBase implements AutocompleteTypeInterface, Configurabl
       throw new SearchApiException(t('Could not create query for view @view.', $vars));
     }
     // $query->setFulltextFields([$complete]);
+    // @todo What are the right values to use here?
     $query->setFulltextFields();
     return $query;
   }
