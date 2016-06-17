@@ -20,36 +20,36 @@ use Drupal\views\Views;
  * exposed filters.
  */
 function search_api_autocomplete_form_views_exposed_form_alter(array &$form, FormStateInterface $form_state) {
+  /** @var \Drupal\views\ViewExecutable $view */
   $view = $form_state->get('view');
   if (substr($view->storage->get('base_table'), 0, 17) != 'search_api_index_') {
     return;
   }
-  $search_id = 'search_api_views_' . $view->name;
+  $search_id = 'search_api_views_' . $view->id();
   $search = SearchApiAutocompleteSearch::load($search_id);
   $controller = new AutocompleteController();
   if (!$search || !$controller->access($search, \Drupal::currentUser())->isAllowed()) {
     return;
   }
-  $index_id = substr($view->base_table, 17);
+  $index_id = substr($view->storage->get('base_table'), 17);
   
   $index = Index::load($index_id);
-  if (empty($index->getOption('fields'))) {
+  if (!$fields = $index->getFulltextFields()) {
     return;
   }
-  $fields = $index->getFulltextFields();
   // Add the "Search: Fulltext search" filter as another text field.
-  $fields[] = 'search_api_views_fulltext';
+  $fields[] = 'search_api_fulltext';
   \Drupal::moduleHandler()->alter('search_api_autocomplete_views_fulltext_fields', $fields, $search, $view);
   foreach ($view->filter as $filter_name => $filter) {
-    if (in_array($filter->real_field, $fields)) {
+    if (in_array($filter->realField, $fields)) {
       if (!empty($filter->options['expose']['identifier'])) {
         $key = $filter->options['expose']['identifier'];
         if (isset($form[$key]) && $form[$key]['#type'] == 'textfield') {
-          if ($filter->real_field == 'search_api_views_fulltext') {
+          if ($filter->realField == 'search_api_fulltext') {
             $autocomplete_fields = $filter->options['fields'];
           }
           else {
-            $autocomplete_fields = array($filter->real_field);
+            $autocomplete_fields = [$filter->realField];
           }
           $search->alterElement($form[$key], $autocomplete_fields);
         }

@@ -6,12 +6,21 @@ use Drupal\Component\Plugin\ConfigurablePluginInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\PluginBase;
 use Drupal\Core\Plugin\PluginFormInterface;
+use Drupal\Core\Url;
 use Drupal\search_api\IndexInterface;
 use Drupal\search_api\SearchApiException;
 use Drupal\search_api_autocomplete\AutocompleteTypeInterface;
 use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
 use Drupal\views\Views as ViewsViews;
 
+/**
+ * @AutocompleteType(
+ *   id = "views",
+ *   label = @Translation("Search views"),
+ *   description = @Translation("Searches provided by views"),
+ *   provider = "search_api",
+ * )
+ */
 class Views extends PluginBase implements AutocompleteTypeInterface, ConfigurablePluginInterface, PluginFormInterface {
 
   /**
@@ -60,15 +69,17 @@ class Views extends PluginBase implements AutocompleteTypeInterface, Configurabl
     $views_id = substr($search->id(), 17);
     $view = ViewsViews::getView($views_id);
     $options = array();
-    foreach ($view->getDisplay() as $id => $display) {
-      $options[$id] = $display->display_title;
+    $view->initDisplay();
+    foreach ($view->displayHandlers as $id => $display) {
+      /** @var \Drupal\views\Plugin\views\display\DisplayPluginBase $display */
+      $options[$id] = $display->display['display_title'];
     }
     $form['display'] = [
       '#type' => 'select',
       '#title' => t('Views display'),
       '#description' => t('Please select the Views display whose settings should be used for autocomplete queries.<br />' .
-        "<strong>Note:</strong> Autocompletion doesn't work well with contextual filters. Please see the <a href='@readme_url'>README.txt</a> file for details.",
-        ['@readme_url' => url(drupal_get_path('module', 'search_api_autocomplete') . '/README.txt')]),
+        "<strong>Note:</strong> Autocompletion doesn't work well with contextual filters. Please see the <a href=':readme_url'>README.txt</a> file for details.",
+        [':readme_url' => Url::fromUri('base://' . drupal_get_path('module', 'search_api_autocomplete') . '/README.txt')->toString()]),
       '#options' => $options,
       '#default_value' => $search->getOption('custom.display') ? : 'default',
     ];
@@ -86,13 +97,15 @@ class Views extends PluginBase implements AutocompleteTypeInterface, Configurabl
    * {@inheritdoc}
    */
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
-    $views_id = substr($form_state['search']->machine_name, 17);
+    /** @var \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $search */
+    $search = $form_state->getFormObject()->getEntity();
+    $views_id = substr($search->id(), 17);
     $view = ViewsViews::getView($views_id);
     $view->setDisplay($form_state->getValue('display'));
     $view->preExecute();
     if ($view->argument) {
-      drupal_set_message(t('You have selected a display with contextual filters. This can lead to various problems. Please see the <a href="@readme_url">README.txt</a> file for details.',
-        array('@readme_url' => url(drupal_get_path('module', 'search_api_autocomplete') . '/README.txt'))), 'warning');
+      drupal_set_message(t('You have selected a display with contextual filters. This can lead to various problems. Please see the <a href=":readme_url">README.txt</a> file for details.',
+        [':readme_url' => Url::fromUri('base://' . drupal_get_path('module', 'search_api_autocomplete') . '/README.txt')->toString()]), 'warning');
     }
   }
 
@@ -102,11 +115,11 @@ class Views extends PluginBase implements AutocompleteTypeInterface, Configurabl
   public function listSearches(IndexInterface $index) {
     $ret = array();
     $base_table = 'search_api_index_' . $index->id();
-    foreach (ViewsViews::getAllViews() as $name => $view) {
+    foreach (ViewsViews::getAllViews() as $id => $view) {
       if ($view->get('base_table') === $base_table) {
         // @todo Check whether there is an exposed fulltext filter
-        $ret['search_api_views_' . $name] = [
-          'name' => !empty($view->id()) ? $view->label() : $name,
+        $ret['search_api_views_' . $id] = [
+          'name' => $id,
         ];
       }
     }
@@ -132,7 +145,8 @@ class Views extends PluginBase implements AutocompleteTypeInterface, Configurabl
       $vars['@view'] = $view->storage->label() ?: $views_id;
       throw new SearchApiException(t('Could not create query for view @view.', $vars));
     }
-    $query->setFulltextFields($complete);
+    // $query->setFulltextFields([$complete]);
+    $query->setFulltextFields();
     return $query;
   }
 
