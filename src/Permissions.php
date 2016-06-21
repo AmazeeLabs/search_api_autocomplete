@@ -12,17 +12,17 @@ class Permissions implements ContainerInjectionInterface {
   use StringTranslationTrait;
 
   /**
-   * The entity storage interface.
+   * The entity storage service.
    *
    * @var \Drupal\Core\Entity\EntityStorageInterface
    */
   protected $storage;
 
   /**
-   * Creates a new Permissions instance.
+   * Creates a Permissions object.
    *
    * @param \Drupal\Core\Entity\EntityStorageInterface $storage
-   *   The storage.
+   *   The entity storage service.
    */
   public function __construct(EntityStorageInterface $storage) {
     $this->storage = $storage;
@@ -40,7 +40,7 @@ class Permissions implements ContainerInjectionInterface {
     /** @var \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $search */
     foreach ($this->storage->loadMultiple() as $id => $search) {
       $perms['use search_api_autocomplete for ' . $id] = [
-        'title' => $this->t('Use autocomplete for the %search search', ['%search' => $search->id()]),
+        'title' => $this->t('Use autocomplete for the %search search', ['%search' => $search->label()]),
       ];
     }
     return $perms;

@@ -4,11 +4,9 @@ namespace Drupal\search_api_autocomplete\Form;
 
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Link;
 use Drupal\Core\Render\Element;
 use Drupal\Core\Url;
 use Drupal\search_api\IndexInterface;
-use Drupal\search_api_autocomplete\AutocompleteSuggesterInterface;
 use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
 
 class AutocompleteSearchAdminOverview extends FormBase {
@@ -18,43 +16,11 @@ class AutocompleteSearchAdminOverview extends FormBase {
    */
   protected $entity;
 
-  protected function getSuggestersForIndex(IndexInterface $index) {
-    /** @var \Drupal\Component\Plugin\PluginManagerInterface $manager */
-    $manager = \Drupal::service('plugin_manager.search_api_autocomplete_suggester');
-
-    $suggesters = array_map(function ($suggester_info) use ($manager) {
-      return $suggester_info['class'];
-    }, $manager->getDefinitions());
-    $suggesters = array_filter($suggesters, function ($suggester_class) use ($index) {
-      return $suggester_class::supportsIndex($index);
-    });
-    return $suggesters;
-  }
-
   /**
-   * @param string $index_id
-   *   The index ID.
-   *
-   * @return \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch[]
+   * {@inheritdoc}
    */
-  protected function loadAutocompleteSearchByIndex($index_id) {
-    return \Drupal::entityTypeManager()->getStorage('search_api_autocomplete_settings')->loadByProperties([
-      'index_id' => $index_id,
-    ]);
-  }
-
-  public function submitDelete(array $form, FormStateInterface $form_state) {
-    /** @var \Drupal\search_api\IndexInterface $index */
-    $index = $form_state->get('index');
-    $ids = array_keys($this->loadAutocompleteSearchByIndex($index->id()));
-    if ($ids) {
-      entity_delete_multiple('search_api_autocomplete_search', $ids);
-      drupal_set_message($this->t('All autocompletion settings stored for this index were deleted.'));
-    }
-    else {
-      drupal_set_message($this->t('There were no settings to delete.'), 'warning');
-    }
-    $form_state->setRedirectUrl($index->toUrl());
+  public function getFormId() {
+    return 'search_api_autocomplete_admin_overview';
   }
 
   /**
@@ -70,7 +36,7 @@ class AutocompleteSearchAdminOverview extends FormBase {
         '@feature' => 'search_api_autocomplete',
         ':service_classes_url' => 'https://www.drupal.org/node/1254698#service-classes',
       ];
-      drupal_set_message(t('There are currently no suggester plugins installed that support this index. To solve this problem, you can either:<ul><li>move the index to a server which supports the "@feature" feature (see the <a href=":service_classes_url">available service class</a>)</li><li>or install a module providing a new suggester plugin that supports this index</li></ul>', $args), 'error');
+      drupal_set_message($this->t('There are currently no suggester plugins installed that support this index. To solve this problem, you can either:<ul><li>move the index to a server which supports the "@feature" feature (see the <a href=":service_classes_url">available service class</a>)</li><li>or install a module providing a new suggester plugin that supports this index</li></ul>', $args), 'error');
       if ($this->loadAutocompleteSearchByIndex($index_id)) {
         $form['description'] = array(
           '#type' => 'item',
@@ -80,7 +46,7 @@ class AutocompleteSearchAdminOverview extends FormBase {
         );
         $form['button'] = [
           '#type' => 'submit',
-          '#value' => t('Delete autocompletion settings'),
+          '#value' => $this->t('Delete autocompletion settings'),
           '#submit' => [$this, 'submitDelete'],
         ];
       }
@@ -144,7 +110,7 @@ class AutocompleteSearchAdminOverview extends FormBase {
         ];
       }
       elseif (!empty($info['unavailable'])) {
-        $info['description'] .= '</p><p>' . t("The searches marked with an asterisk (*) are currently not available, possibly because they were deleted. If you won't use them anymore, you can delete their settings.");
+        $info['description'] .= '</p><p>' . $this->t("The searches marked with an asterisk (*) are currently not available, possibly because they were deleted. If you won't use them anymore, you can delete their settings.");
       }
       $form[$type] = [
         '#type' => 'fieldset',
@@ -155,8 +121,8 @@ class AutocompleteSearchAdminOverview extends FormBase {
       }
       $form[$type]['searches']['#type'] = 'tableselect';
       $form[$type]['searches']['#header'] = [
-        'label' => t('label'),
-        'operations' => t('Operations'),
+        'label' => $this->t('label'),
+        'operations' => $this->t('Operations'),
       ];
       $form[$type]['searches']['#empty'] = '';
       $form[$type]['searches']['#js_select'] = TRUE;
@@ -181,15 +147,15 @@ class AutocompleteSearchAdminOverview extends FormBase {
         $items = array();
         if (!$unavailable && !empty($search->status())) {
           $items[] = [
-            'title' => t('Edit'),
+            'title' => $this->t('Edit'),
             'url' => $search->toUrl('edit-form'),
           ];
           $items[] = [
-            'title' => t('Delete'),
+            'title' => $this->t('Delete'),
             'url' => $search->toUrl('delete-form'),
           ];
         }
-            
+
 
         if ($items) {
           $options['operations'] = ['data' => [
@@ -210,18 +176,45 @@ class AutocompleteSearchAdminOverview extends FormBase {
     else {
       $form['submit'] = [
         '#type' => 'submit',
-        '#value' => t('Save'),
+        '#value' => $this->t('Save'),
       ];
     }
 
     return $form;
   }
 
+  protected function getSuggestersForIndex(IndexInterface $index) {
+    /** @var \Drupal\Component\Plugin\PluginManagerInterface $manager */
+    $manager = \Drupal::service('plugin_manager.search_api_autocomplete_suggester');
+
+    $suggesters = array_map(function ($suggester_info) {
+      return $suggester_info['class'];
+    }, $manager->getDefinitions());
+    $suggesters = array_filter($suggesters, function ($suggester_class) use ($index) {
+      return $suggester_class::supportsIndex($index);
+    });
+    return $suggesters;
+  }
+
+  /**
+   * @param string $index_id
+   *   The index ID.
+   *
+   * @return \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch[]
+   */
+  protected function loadAutocompleteSearchByIndex($index_id) {
+    return \Drupal::entityTypeManager()
+      ->getStorage('search_api_autocomplete_settings')
+      ->loadByProperties([
+        'index_id' => $index_id,
+      ]);
+  }
+
   /**
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    $messages = t('The settings have been saved.');
+    $messages = $this->t('The settings have been saved.');
     foreach ($form_state->getValue('searches') as $id => $enabled) {
       /** @var \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $search */
       $search = $form_state->get(['searches', $id]);
@@ -231,20 +224,30 @@ class AutocompleteSearchAdminOverview extends FormBase {
           $options['query'] = \Drupal::destination()->getAsArray();
           $options['fragment'] = 'module-search_api_autocomplete';
           $vars[':perm_url'] = Url::fromRoute('user.admin_permissions', [], $options)->toString();
-          $messages = t('The settings have been saved. Please remember to set the <a href=":perm_url">permissions</a> for the newly enabled searches.', $vars);
+          $messages = $this->t('The settings have been saved. Please remember to set the <a href=":perm_url">permissions</a> for the newly enabled searches.', $vars);
         }
         $search->setStatus($enabled);
         $search->save();
       }
     }
-    drupal_set_message(empty($change) ? t('No values were changed.') : $messages);
+    drupal_set_message(empty($change) ? $this->t('No values were changed.') : $messages);
   }
 
-  /**
-   * {@inheritdoc}
-   */
-  public function getFormId() {
-    return 'search_api_autocomplete_admin_overview';
+  public function submitDelete(array &$form, FormStateInterface $form_state) {
+    /** @var \Drupal\search_api\IndexInterface $index */
+    $index = $form_state->get('index');
+    $ids = array_keys($this->loadAutocompleteSearchByIndex($index->id()));
+    if ($ids) {
+      $controller = \Drupal::entityTypeManager()
+        ->getStorage('search_api_autocomplete_search');
+      $entities = $controller->loadMultiple($ids);
+      $controller->delete($entities);
+      drupal_set_message($this->t('All autocompletion settings stored for this index were deleted.'));
+    }
+    else {
+      drupal_set_message($this->t('There were no settings to delete.'), 'warning');
+    }
+    $form_state->setRedirectUrl($index->toUrl());
   }
 
 }

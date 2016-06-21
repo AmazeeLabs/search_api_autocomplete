@@ -7,7 +7,6 @@ use Drupal\search_api\IndexInterface;
 use Drupal\search_api\Query\QueryInterface;
 use Drupal\search_api\SearchApiException;
 use Drupal\search_api_autocomplete\AutocompleteSuggesterInterface;
-use Drupal\search_api_autocomplete\SearchApiAutocompleteInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -29,6 +28,7 @@ class Server extends SuggesterPluginBase implements AutocompleteSuggesterInterfa
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     $search = $configuration['search'];
+    unset($configuration['search']);
     return new static(
       $search,
       $configuration,
@@ -105,6 +105,7 @@ class Server extends SuggesterPluginBase implements AutocompleteSuggesterInterfa
     if (($server = $query->getIndex()->getServerInstance()) && $server->supportsFeature('search_api_autocomplete')) {
       return $server->getBackend()->getAutocompleteSuggestions($query, $this->getSearch(), $incomplete_key, $user_input);
     }
+    return NULL;
   }
 
   /**

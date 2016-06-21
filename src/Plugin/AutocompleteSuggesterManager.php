@@ -6,9 +6,8 @@ use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Plugin\DefaultPluginManager;
 use Drupal\search_api_autocomplete\Annotation\AutocompleteSuggester;
-use Drupal\search_api_autocomplete\Annotation\AutocompleteType;
+
 use Drupal\search_api_autocomplete\AutocompleteSuggesterInterface;
-use Drupal\search_api_autocomplete\AutocompleteTypeInterface;
 
 class AutocompleteSuggesterManager extends DefaultPluginManager {
 

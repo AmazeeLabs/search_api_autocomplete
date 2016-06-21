@@ -11,7 +11,7 @@ use Drupal\search_api_autocomplete\AutocompleteTypeInterface;
 class AutocompleteTypeManager extends DefaultPluginManager {
 
   /**
-   * Constructs a new AutocompleteTypeManagerr.
+   * Constructs an AutocompleteTypeManager object.
    *
    * @param \Traversable $namespaces
    *   An object that implements \Traversable which contains the root paths

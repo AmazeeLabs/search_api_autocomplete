@@ -8,7 +8,7 @@ use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
 
 
 /**
- * Interface describing the method a service class has to add to support autocompletion.
+ * Describes the method a backend plugin has to add to support autocompletion.
  *
  * Please note that this interface is purely documentational. You shouldn't, and
  * can't, implement it explicitly (unless the module is depending on this one).
@@ -21,7 +21,7 @@ interface SearchApiAutocompleteInterface extends BackendInterface {
    * For example, when given the user input "teach us", with "us" being
    * considered incomplete, the following might be returned:
    *
-*@code
+   * @code
    *   array(
    *     array(
    *       'prefix' => t('Did you mean:'),

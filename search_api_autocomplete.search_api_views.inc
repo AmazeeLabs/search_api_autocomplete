@@ -7,11 +7,8 @@
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\search_api\Entity\Index;
-use Drupal\search_api\IndexInterface;
-use Drupal\search_api\SearchApiException;
 use Drupal\search_api_autocomplete\Controller\AutocompleteController;
 use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
-use Drupal\views\Views;
 
 /**
  * Implements hook_form_FORM_ID_alter().
@@ -32,7 +29,7 @@ function search_api_autocomplete_form_views_exposed_form_alter(array &$form, For
     return;
   }
   $index_id = substr($view->storage->get('base_table'), 17);
-  
+
   $index = Index::load($index_id);
   if (!$fields = $index->getFulltextFields()) {
     return;

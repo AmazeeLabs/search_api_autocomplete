@@ -10,7 +10,7 @@ use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
  *
  * @group search_api_autocomplete
  */
-class SearchApiAutocompleteSearchCrudTest extends KernelTestBase {
+class SearchCrudTest extends KernelTestBase {
 
   /**
    * {@inheritdoc}
@@ -22,7 +22,7 @@ class SearchApiAutocompleteSearchCrudTest extends KernelTestBase {
       'id' => 'muh',
       'label' => 'Meh',
       'index_id' => 'index1',
-      'suggester_id' => 'suggstester1',
+      'suggester_id' => 'server',
       'type' => 'test_type',
       'options' => ['key' => 'value'],
     ]);

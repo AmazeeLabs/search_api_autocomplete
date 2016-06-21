@@ -4,7 +4,6 @@ namespace Drupal\search_api_autocomplete;
 
 use Drupal\search_api\IndexInterface;
 use Drupal\search_api\Query\QueryInterface;
-use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
 
 /**
  * Represents a plugin for creating autocomplete suggestions.

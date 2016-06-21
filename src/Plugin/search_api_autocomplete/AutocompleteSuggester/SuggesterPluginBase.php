@@ -50,9 +50,9 @@ abstract class SuggesterPluginBase extends PluginBase implements AutocompleteSug
   }
 
   /**
-   * Constructs a SearchApiAutocompleteSuggesterPluginBase.
+   * Constructs a SuggesterPluginBase object.
    *
-   * @param SearchApiAutocompleteSearch $search
+   * @param \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $search
    *   The search to which this suggester is attached.
    * @param array $configuration
    *   An associative array containing the suggester's configuration, if any.
@@ -78,6 +78,13 @@ abstract class SuggesterPluginBase extends PluginBase implements AutocompleteSug
    */
   public function getDescription() {
     return isset($this->pluginDefinition['description']) ? $this->pluginDefinition['description'] : NULL;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getConfiguration() {
+    return $this->configuration;
   }
 
   /**
@@ -124,16 +131,8 @@ abstract class SuggesterPluginBase extends PluginBase implements AutocompleteSug
   /**
    * {@inheritdoc}
    */
-  public function getConfiguration() {
-    return $this->configuration + $this->defaultConfiguration();
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function calculateDependencies() {
     return [];
   }
-
 
 }

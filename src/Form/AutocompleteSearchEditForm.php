@@ -3,12 +3,10 @@
 namespace Drupal\search_api_autocomplete\Form;
 
 use Drupal\Core\Entity\EntityForm;
-use Drupal\Core\Form\FormState;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\PluginFormInterface;
 use Drupal\search_api\Form\SubFormState;
 use Drupal\search_api\IndexInterface;
-use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
 
 class AutocompleteSearchEditForm extends EntityForm {
 

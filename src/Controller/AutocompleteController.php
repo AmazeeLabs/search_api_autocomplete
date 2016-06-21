@@ -2,9 +2,9 @@
 
 namespace Drupal\search_api_autocomplete\Controller;
 
-use Drupal\Component\Utility\Html;
+
 use Drupal\Core\Access\AccessResult;
-use Drupal\Core\Cache\CacheableJsonResponse;
+
 use Drupal\Core\Session\AccountInterface;
 use Drupal\search_api\SearchApiException;
 use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;

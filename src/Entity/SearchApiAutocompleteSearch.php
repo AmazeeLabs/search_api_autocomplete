@@ -2,7 +2,6 @@
 
 namespace Drupal\search_api_autocomplete\Entity;
 
-use Drupal\Component\Plugin\PluginInspectionInterface;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Config\Entity\ConfigEntityBase;
 use Drupal\search_api\Entity\Index;
@@ -101,7 +100,7 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase {
   /**
    * The suggester plugin this search uses.
    *
-   * @var \Drupal\search_api_autocomplete\SearchApiAutocompleteSuggesterInterface
+   * @var \Drupal\search_api_autocomplete\AutocompleteSuggesterInterface
    */
   protected $suggester;
 
@@ -166,7 +165,7 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase {
    *   (optional) If TRUE, clear the internal static cache and reload the
    *   suggester.
    *
-   * @return \Drupal\search_api_autocomplete\SearchApiAutocompleteSuggesterInterface|null
+   * @return \Drupal\search_api_autocomplete\AutocompleteSuggesterInterface|null
    *   This search's suggester plugin, or NULL if it could not be loaded.
    */
   public function getSuggester($reset = FALSE) {
@@ -220,7 +219,7 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase {
         'submit_button_selector' => ':submit',
         'autosubmit' => TRUE,
         'min_length' => 1,
-        ];
+      ];
 
       $fields_string = $fields ? implode(' ', $fields) : '-';
 
@@ -332,9 +331,12 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase {
 
   /**
    * @param string $label
+   *
+   * @return $this
    */
   public function setLabel($label) {
     $this->label = $label;
+    return $this;
   }
 
   /**
@@ -353,9 +355,12 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase {
 
   /**
    * @param int $index_id
+   *
+   * @return $this
    */
   public function setIndexId($index_id) {
     $this->index_id = $index_id;
+    return $this;
   }
 
   /**
@@ -367,6 +372,8 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase {
 
   /**
    * @param string $type
+   *
+   * @return $this
    */
   public function setType($type) {
     $this->type = $type;
@@ -382,6 +389,8 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase {
 
   /**
    * @param array $options
+   *
+   * @return $this
    */
   public function setOptions($options) {
     $this->options = $options;
