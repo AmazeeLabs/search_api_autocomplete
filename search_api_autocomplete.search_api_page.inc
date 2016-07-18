@@ -6,6 +6,7 @@
  */
 
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\search_api_autocomplete\AutocompleteFormUtility;
 use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
 
 /**
@@ -17,7 +18,9 @@ use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
 function search_api_autocomplete_form_search_api_page_block_form_alter(array &$form, FormStateInterface $form_state) {
   $id = 'search_api_page_' . $form_state->getBuildInfo()['args'][0]['search_api_page'];
   $search = SearchApiAutocompleteSearch::load($id);
+
+  $autocomplete_form_utlity = new AutocompleteFormUtility(\Drupal::service('renderer'));
   if ($search && $search->status()) {
-    $search->alterElement($form['keys']);
+    $autocomplete_form_utlity->alterElement($form['keys'], $search);
   }
 }

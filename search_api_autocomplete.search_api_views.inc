@@ -7,6 +7,7 @@
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\search_api\Entity\Index;
+use Drupal\search_api_autocomplete\AutocompleteFormUtility;
 use Drupal\search_api_autocomplete\Controller\AutocompleteController;
 use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
 
@@ -24,7 +25,7 @@ function search_api_autocomplete_form_views_exposed_form_alter(array &$form, For
   }
   $search_id = 'search_api_views_' . $view->id();
   $search = SearchApiAutocompleteSearch::load($search_id);
-  $controller = new AutocompleteController();
+  $controller = new AutocompleteController(\Drupal::service('renderer'));
   if (!$search || !$controller->access($search, \Drupal::currentUser())->isAllowed()) {
     return;
   }
@@ -36,6 +37,8 @@ function search_api_autocomplete_form_views_exposed_form_alter(array &$form, For
   }
   // Add the "Search: Fulltext search" filter as another text field.
   $fields[] = 'search_api_fulltext';
+
+  $autocomplete_form_utlity = new AutocompleteFormUtility(\Drupal::service('renderer'));
   \Drupal::moduleHandler()->alter('search_api_autocomplete_views_fulltext_fields', $fields, $search, $view);
   foreach ($view->filter as $filter_name => $filter) {
     if (in_array($filter->realField, $fields)) {
@@ -48,7 +51,7 @@ function search_api_autocomplete_form_views_exposed_form_alter(array &$form, For
           else {
             $autocomplete_fields = [$filter->realField];
           }
-          $search->alterElement($form[$key], $autocomplete_fields);
+          $autocomplete_form_utlity->alterElement($form[$key], $search, $autocomplete_fields);
         }
       }
     }

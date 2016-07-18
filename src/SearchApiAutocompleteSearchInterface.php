@@ -29,8 +29,6 @@ interface SearchApiAutocompleteSearchInterface extends ConfigEntityInterface {
   public function server();
 
   /**
-   * @fixme move out.
-   *
    * Determines whether autocompletion is currently supported for this search.
    *
    * @return bool
@@ -40,32 +38,6 @@ interface SearchApiAutocompleteSearchInterface extends ConfigEntityInterface {
   public function supportsAutocompletion();
 
   /**
-   * @fixme move out.
-   *
-   * Helper method for altering a textfield form element to use autocompletion.
-   *
-   * @param array $element
-   * @param array $fields
-   */
-  public function alterElement(array &$element, array $fields = []);
-
-  /**
-   * @fixme move out.
-   *
-   * Split a string with search keywords into two parts.
-   *
-   * The first part consists of all words the user has typed completely, the
-   * second one contains the beginning of the last, possibly incomplete word.
-   *
-   * @return array
-   *   An array with $keys split into exactly two parts, both of which may be
-   *   empty.
-   */
-  public function splitKeys($keys);
-
-  /**
-   * @fixme move out.
-   *
    * Create the query that would be issued for this search for the complete
    * keys.
    *

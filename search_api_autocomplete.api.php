@@ -423,10 +423,11 @@ function example_form_example_search_form_alter(array &$form, array &$form_state
   $search = \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch::load($search_id);
   // Check whether autocompletion for the search is enabled.
   // (This is also checked automatically later, so could be skipped here.)
-  if (!empty($search->enabled)) {
+  if (!empty($search->status())) {
     // If it is, pass the textfield for the search keywords to the
     // alterElement() method of the search object.
-    $search->alterElement($form['keys']);
+    $autocomplete_form_utlity = new \Drupal\search_api_autocomplete\AutocompleteFormUtility(\Drupal::service('renderer'));
+    $autocomplete_form_utlity->alterElement($form['keys'], $search);
   }
 }
 

@@ -186,6 +186,11 @@ class AutocompleteSearchEditForm extends EntityForm {
       '#description' => $this->t('Display the estimated number of result for each suggestion. This option might not have an effect for some servers or types of suggestion.'),
       '#default_value' => (bool) $search->getOption('results', FALSE),
     ];
+    $form['options']['delay'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Delay in ms'),
+      '#default_value' => $search->getOption('delay'),
+    ];
 
     $custom_form = empty($form['options']['custom']) ? [] : $form['options']['custom'];
     if ($type instanceof PluginFormInterface) {

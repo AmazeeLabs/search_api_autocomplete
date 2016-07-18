@@ -8,6 +8,7 @@ use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Render\RendererInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\search_api\SearchApiException;
+use Drupal\search_api_autocomplete\AutocompleteFormUtility;
 use Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -60,10 +61,11 @@ class AutocompleteController extends ControllerBase implements ContainerInjectio
    */
   public function autocomplete(SearchApiAutocompleteSearchInterface $search_api_autocomplete_search, $fields, Request $request) {
     $matches = [];
+    $autocomplete_utility = new AutocompleteFormUtility($this->renderer);
     try {
       if ($search_api_autocomplete_search->supportsAutocompletion()) {
         $keys = $request->query->get('q');
-        list($complete, $incomplete) = $search_api_autocomplete_search->splitKeys($keys);
+        list($complete, $incomplete) = $autocomplete_utility->splitKeys($keys);
         $query = $search_api_autocomplete_search->getQuery($complete, $incomplete);
         if ($query) {
           // @todo Maybe make range configurable?
