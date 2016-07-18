@@ -1,14 +1,20 @@
 <?php
 
-namespace Drupal\search_api_autocomplete;
+namespace Drupal\search_api_autocomplete\Suggester;
 
+use Drupal\Component\Plugin\ConfigurablePluginInterface;
+use Drupal\Component\Plugin\PluginInspectionInterface;
 use Drupal\search_api\IndexInterface;
 use Drupal\search_api\Query\QueryInterface;
 
 /**
  * Represents a plugin for creating autocomplete suggestions.
+ *
+ * @see \Drupal\search_api_autocomplete\Suggester\SuggesterManager
+ * @see \Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\AutocompleteSuggester\SuggesterPluginBase
+ * @see \Drupal\search_api_autocomplete\Annotation\SearchApiAutocompleteSuggester
  */
-interface AutocompleteSuggesterInterface {
+interface SuggesterInterface extends ConfigurablePluginInterface, PluginInspectionInterface {
 
   /**
    * Determines whether this plugin class supports the given index.
@@ -40,7 +46,7 @@ interface AutocompleteSuggesterInterface {
   /**
    * Retrieves the search this plugin is configured for.
    *
-   * @return \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch
+   * @return \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface
    *   The search this plugin is configured for.
    */
   public function getSearch();
@@ -95,29 +101,7 @@ interface AutocompleteSuggesterInterface {
    * @param string $user_input
    *   The complete user input for the fulltext search keywords so far.
    *
-   * @return array
-   *   An array of suggestions. Each suggestion is either a simple string
-   *   containing the whole suggested keywords, or an array containing the
-   *   following keys:
-   *   - keys: The keyword (or keywords) this suggestion will autocomplete to.
-   *     If it is not present, a direct concatenation (no spaces in between) of
-   *     "suggestion_prefix", "user_input" and "suggestion_suffix" will be used
-   *     instead.
-   *   - url: A URL to which the suggestion should redirect instead of
-   *     completing the user input in the text field. This overrides the normal
-   *     behavior and thus makes "keys" obsolete.
-   *   - prefix: For special suggestions, some kind of HTML prefix describing
-   *     them.
-   *   - suggestion_prefix: A suggested prefix for the entered input.
-   *   - user_input: The input entered by the user. Defaults to $user_input.
-   *   - suggestion_suffix: A suggested suffix for the entered input.
-   *   - results: If available, the estimated number of results for these keys.
-   *   - render: If given, an HTML string or render array which should be
-   *     displayed to the user for this suggestion. If missing, the suggestion
-   *     is instead passed to theme_search_api_autocomplete_suggestion().
-   *   All the keys are optional, with the exception that at least one of
-   *   "keys", "url", "suggestion_prefix", "user_input" or "suggestion_suffix"
-   *   has to be present.
+   * @return \Drupal\search_api_autocomplete\SuggestionInterface[]
    */
   public function getAutocompleteSuggestions(QueryInterface $query, $incomplete_key, $user_input);
 

@@ -1,12 +1,13 @@
 <?php
 
-namespace Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\AutocompleteSuggester;
+namespace Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\suggester;
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\search_api\IndexInterface;
 use Drupal\search_api\Query\QueryInterface;
 use Drupal\search_api\SearchApiException;
-use Drupal\search_api_autocomplete\AutocompleteSuggesterInterface;
+use Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\AutocompleteSuggester\SuggesterPluginBase;
+use Drupal\search_api_autocomplete\Suggester\SuggesterInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -15,13 +16,13 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * The server needs to support the "search_api_autocomplete" feature for this to
  * work.
  *
- * @AutocompleteSuggester(
+ * @SearchApiAutocompleteSuggester(
  *   id = "server",
  *   label = @Translation("Retrieve from server"),
  *   description = @Translation("For compatible servers, ask the server for autocomplete suggestions."),
  * )
  */
-class Server extends SuggesterPluginBase implements AutocompleteSuggesterInterface {
+class Server extends SuggesterPluginBase implements SuggesterInterface {
 
   /**
    * {@inheritdoc}

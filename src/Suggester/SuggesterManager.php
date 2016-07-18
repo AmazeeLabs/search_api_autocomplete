@@ -1,18 +1,23 @@
 <?php
 
-namespace Drupal\search_api_autocomplete\Plugin;
+namespace Drupal\search_api_autocomplete\Suggester;
 
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Plugin\DefaultPluginManager;
-use Drupal\search_api_autocomplete\Annotation\AutocompleteSuggester;
+use Drupal\search_api_autocomplete\Annotation\SearchApiAutocompleteSuggester;
 
-use Drupal\search_api_autocomplete\AutocompleteSuggesterInterface;
-
-class AutocompleteSuggesterManager extends DefaultPluginManager {
+/**
+ * Provides a plugin manager for autocomplete suggestion plugins.
+ *
+ * @see \Drupal\search_api_autocomplete\Suggester\SuggesterInterface
+ * @see \Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\AutocompleteSuggester\SuggesterPluginBase
+ * @see \Drupal\search_api_autocomplete\Annotation\SearchApiAutocompleteSuggester
+ */
+class SuggesterManager extends DefaultPluginManager {
 
   /**
-   * Constructs a new AutocompleteSuggesterManager.
+   * Constructs a new SuggesterManager.
    *
    * @param \Traversable $namespaces
    *   An object that implements \Traversable which contains the root paths
@@ -23,7 +28,7 @@ class AutocompleteSuggesterManager extends DefaultPluginManager {
    *   The module handler to invoke the alter hook with.
    */
   public function __construct(\Traversable $namespaces, CacheBackendInterface $cache_backend, ModuleHandlerInterface $module_handler) {
-    parent::__construct('Plugin/search_api_autocomplete/AutocompleteSuggester', $namespaces, $module_handler, AutocompleteSuggesterInterface::class, AutocompleteSuggester::class);
+    parent::__construct('Plugin/search_api_autocomplete/suggester', $namespaces, $module_handler, SuggesterInterface::class, SearchApiAutocompleteSuggester::class);
 
     $this->setCacheBackend($cache_backend, 'search_api_autocomplete_suggester');
     $this->alterInfo('search_api_autocomplete_suggester');

@@ -4,8 +4,6 @@ namespace Drupal\search_api_autocomplete;
 
 use Drupal\search_api\Query\QueryInterface;
 use Drupal\search_api\Backend\BackendInterface;
-use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
-
 
 /**
  * Describes the method a backend plugin has to add to support autocompletion.
@@ -41,7 +39,7 @@ interface SearchApiAutocompleteInterface extends BackendInterface {
    *
    * @param \Drupal\search_api\Query\QueryInterface $query
    *   A query representing the completed user input so far.
-   * @param \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $search
+   * @param \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search
    *   An object containing details about the search the user is on, and
    *   settings for the autocompletion. See the class documentation for details.
    *   Especially $search->options should be checked for settings, like whether
@@ -58,6 +56,6 @@ interface SearchApiAutocompleteInterface extends BackendInterface {
    *   An array of suggestions, as defined by
    *   SearchApiAutocompleteSuggesterInterface::getAutocompleteSuggestions().
    */
-  public function getAutocompleteSuggestions(QueryInterface $query, SearchApiAutocompleteSearch $search, $incomplete_key, $user_input);
+  public function getAutocompleteSuggestions(QueryInterface $query, SearchApiAutocompleteSearchInterface $search, $incomplete_key, $user_input);
 
 }

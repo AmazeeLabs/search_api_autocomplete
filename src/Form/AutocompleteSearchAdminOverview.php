@@ -2,25 +2,109 @@
 
 namespace Drupal\search_api_autocomplete\Form;
 
+use Drupal\Component\Plugin\PluginManagerInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
+use Drupal\Core\Routing\RedirectDestinationInterface;
 use Drupal\Core\Url;
 use Drupal\search_api\IndexInterface;
 use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
+use Drupal\search_api_autocomplete\Type\TypeManager;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
+/**
+ * Defines the overview of all search autocompletion configurations.
+ */
 class AutocompleteSearchAdminOverview extends FormBase {
 
   /**
-   * @var \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch
+   * @var \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface
    */
   protected $entity;
+
+  /**
+   * The autocomplete suggester manager.
+   *
+   * @var \Drupal\Component\Plugin\PluginManagerInterface
+   */
+  protected $suggesterManager;
+
+  /**
+   * The autocomplete type manager.
+   *
+   * @var \Drupal\search_api_autocomplete\Type\TypeManager
+   */
+  protected $typeManager;
+
+  /**
+   * The entity type manager.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
+   * The redirect destination.
+   *
+   * @var \Drupal\Core\Routing\RedirectDestinationInterface
+   */
+  protected $destination;
+
+  /**
+   * Creates a new AutocompleteSearchAdminOverview instance.
+   *
+   * @param \Drupal\Component\Plugin\PluginManagerInterface $suggester_manager
+   *   The suggester manager.
+   * @param \Drupal\search_api_autocomplete\Type\TypeManager $autocomplete_type_manager
+   *   The autocomplete type manager.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager.
+   * @param \Drupal\Core\Routing\RedirectDestinationInterface $redirect_destination
+   *   The redirect destination.
+   */
+  public function __construct(PluginManagerInterface $suggester_manager, TypeManager $autocomplete_type_manager, EntityTypeManagerInterface $entity_type_manager, RedirectDestinationInterface $redirect_destination) {
+    $this->suggesterManager = $suggester_manager;
+    $this->typeManager = $autocomplete_type_manager;
+    $this->entityTypeManager = $entity_type_manager;
+    $this->redirectDestination = $redirect_destination;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('plugin_manager.search_api_autocomplete_suggester'),
+      $container->get('plugin_manager.search_api_autocomplete_type'),
+      $container->get('entity_type.manager'),
+      $container->get('redirect.destination')
+    );
+  }
 
   /**
    * {@inheritdoc}
    */
   public function getFormId() {
     return 'search_api_autocomplete_admin_overview';
+  }
+
+  /**
+   * Form submission handler for deleting an autocomplete search.
+   */
+  public function submitDelete(array $form, FormStateInterface $form_state) {
+    /** @var \Drupal\search_api\IndexInterface $index */
+    $index = $form_state->get('index');
+    $ids = array_keys($this->loadAutocompleteSearchByIndex($index->id()));
+    if ($ids) {
+      entity_delete_multiple('search_api_autocomplete_search', $ids);
+      drupal_set_message($this->t('All autocompletion settings stored for this index were deleted.'));
+    }
+    else {
+      drupal_set_message($this->t('There were no settings to delete.'), 'warning');
+    }
+    $form_state->setRedirectUrl($index->toUrl());
   }
 
   /**
@@ -54,13 +138,11 @@ class AutocompleteSearchAdminOverview extends FormBase {
     }
 
     $form['#tree'] = TRUE;
-    /** @var \Drupal\search_api_autocomplete\Plugin\AutocompleteTypeManager $type_manager */
-    $type_manager = \Drupal::service('plugin_manager.search_api_autocomplete_type');
-    $types = array_map(function ($definition) use ($type_manager) {
-      return $type_manager->createInstance($definition['id']);
-    }, $type_manager->getDefinitions());
+    $types = array_map(function ($definition) {
+      return $this->typeManager->createInstance($definition['id']);
+    }, $this->typeManager->getDefinitions());
     $searches = $this->loadAutocompleteSearchByIndex($index_id);
-    /** @var \Drupal\search_api_autocomplete\AutocompleteTypeInterface $autocomplete_type */
+    /** @var \Drupal\search_api_autocomplete\Type\TypeInterface $autocomplete_type */
     $searches_by_type = [];
     $unavailables_by_type = [];
     foreach ($types as $type => $autocomplete_type) {
@@ -90,13 +172,13 @@ class AutocompleteSearchAdminOverview extends FormBase {
         }
       }
     }
-    /** @var \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $search */
+    /** @var \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search */
     foreach ($searches as $id => $search) {
       $type = isset($types[$search->getType()]) ? $search->getType() : '';
       $searches_by_type[$type][$id] = $search;
       $unavailables_by_type[$type][$id] = TRUE;
     }
-    /** @var \Drupal\search_api_autocomplete\AutocompleteTypeInterface $autocomplete_type */
+    /** @var \Drupal\search_api_autocomplete\Type\TypeInterface $autocomplete_type */
     foreach ($types as $type => $autocomplete_type) {
 
       if (empty($searches_by_type[$type])) {
@@ -126,7 +208,7 @@ class AutocompleteSearchAdminOverview extends FormBase {
       ];
       $form[$type]['searches']['#empty'] = '';
       $form[$type]['searches']['#js_select'] = TRUE;
-      /** @var \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $search */
+      /** @var \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search */
       foreach ($searches_by_type[$type] as $id => $search) {
         $form[$type]['searches'][$id] = [
           '#type' => 'checkbox',
@@ -156,12 +238,13 @@ class AutocompleteSearchAdminOverview extends FormBase {
           ];
         }
 
-
         if ($items) {
-          $options['operations'] = ['data' => [
-            '#type' => 'operations',
-            '#links' => $items,
-          ]];
+          $options['operations'] = [
+            'data' => [
+              '#type' => 'operations',
+              '#links' => $items,
+            ],
+          ];
         }
         else {
           $options['operations'] = '';
@@ -183,45 +266,18 @@ class AutocompleteSearchAdminOverview extends FormBase {
     return $form;
   }
 
-  protected function getSuggestersForIndex(IndexInterface $index) {
-    /** @var \Drupal\Component\Plugin\PluginManagerInterface $manager */
-    $manager = \Drupal::service('plugin_manager.search_api_autocomplete_suggester');
-
-    $suggesters = array_map(function ($suggester_info) {
-      return $suggester_info['class'];
-    }, $manager->getDefinitions());
-    $suggesters = array_filter($suggesters, function ($suggester_class) use ($index) {
-      return $suggester_class::supportsIndex($index);
-    });
-    return $suggesters;
-  }
-
-  /**
-   * @param string $index_id
-   *   The index ID.
-   *
-   * @return \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch[]
-   */
-  protected function loadAutocompleteSearchByIndex($index_id) {
-    return \Drupal::entityTypeManager()
-      ->getStorage('search_api_autocomplete_settings')
-      ->loadByProperties([
-        'index_id' => $index_id,
-      ]);
-  }
-
   /**
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $messages = $this->t('The settings have been saved.');
     foreach ($form_state->getValue('searches') as $id => $enabled) {
-      /** @var \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $search */
+      /** @var \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search */
       $search = $form_state->get(['searches', $id]);
       if ($search->status() != $enabled) {
         $change = TRUE;
         if (!empty($search)) {
-          $options['query'] = \Drupal::destination()->getAsArray();
+          $options['query'] = $this->destination->getAsArray();
           $options['fragment'] = 'module-search_api_autocomplete';
           $vars[':perm_url'] = Url::fromRoute('user.admin_permissions', [], $options)->toString();
           $messages = $this->t('The settings have been saved. Please remember to set the <a href=":perm_url">permissions</a> for the newly enabled searches.', $vars);
@@ -233,21 +289,35 @@ class AutocompleteSearchAdminOverview extends FormBase {
     drupal_set_message(empty($change) ? $this->t('No values were changed.') : $messages);
   }
 
-  public function submitDelete(array &$form, FormStateInterface $form_state) {
-    /** @var \Drupal\search_api\IndexInterface $index */
-    $index = $form_state->get('index');
-    $ids = array_keys($this->loadAutocompleteSearchByIndex($index->id()));
-    if ($ids) {
-      $controller = \Drupal::entityTypeManager()
-        ->getStorage('search_api_autocomplete_search');
-      $entities = $controller->loadMultiple($ids);
-      $controller->delete($entities);
-      drupal_set_message($this->t('All autocompletion settings stored for this index were deleted.'));
-    }
-    else {
-      drupal_set_message($this->t('There were no settings to delete.'), 'warning');
-    }
-    $form_state->setRedirectUrl($index->toUrl());
+  /**
+   * Returns available suggesters for an index.
+   *
+   * @param \Drupal\search_api\IndexInterface $index
+   *   The index to filter by.
+   *
+   * @return array[]
+   *   An array of suggester plugin definitions.
+   */
+  protected function getSuggestersForIndex(IndexInterface $index) {
+    $suggesters = array_map(function ($suggester_info) {
+      return $suggester_info['class'];
+    }, $this->suggesterManager->getDefinitions());
+    $suggesters = array_filter($suggesters, function ($suggester_class) use ($index) {
+      return $suggester_class::supportsIndex($index);
+    });
+    return $suggesters;
+  }
+
+  /**
+   * @param string $index_id
+   *   The index ID.
+   *
+   * @return \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface[]
+   */
+  protected function loadAutocompleteSearchByIndex($index_id) {
+    return $this->entityTypeManager->getStorage('search_api_autocomplete_search')->loadByProperties([
+      'index_id' => $index_id,
+    ]);
   }
 
 }

@@ -17,6 +17,9 @@ class SearchCrudTest extends KernelTestBase {
    */
   public static $modules = ['search_api_autocomplete', 'search_api', 'user'];
 
+  /**
+   *
+   */
   public function testCreate() {
     $autocomplete_search = SearchApiAutocompleteSearch::create([
       'id' => 'muh',

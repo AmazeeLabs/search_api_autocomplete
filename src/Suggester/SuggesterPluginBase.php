@@ -6,18 +6,22 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\PluginBase;
 use Drupal\search_api\IndexInterface;
 use Drupal\search_api\Plugin\ConfigurablePluginInterface;
-use Drupal\search_api_autocomplete\AutocompleteSuggesterInterface;
-use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
+use Drupal\search_api_autocomplete\Suggester\SuggesterInterface;
+use Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface;
 
 /**
  * Provides a base class for suggester plugins.
+ *
+ * @see \Drupal\search_api_autocomplete\Suggester\SuggesterInterface
+ * @see \Drupal\search_api_autocomplete\Suggester\SuggesterManager
+ * @see \Drupal\search_api_autocomplete\Annotation\SearchApiAutocompleteSuggester
  */
-abstract class SuggesterPluginBase extends PluginBase implements AutocompleteSuggesterInterface, ConfigurablePluginInterface {
+abstract class SuggesterPluginBase extends PluginBase implements SuggesterInterface, ConfigurablePluginInterface {
 
   /**
    * The search this suggester is attached to.
    *
-   * @var \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch
+   * @var \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface
    */
   protected $search;
 
@@ -52,7 +56,7 @@ abstract class SuggesterPluginBase extends PluginBase implements AutocompleteSug
   /**
    * Constructs a SuggesterPluginBase object.
    *
-   * @param \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $search
+   * @param \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search
    *   The search to which this suggester is attached.
    * @param array $configuration
    *   An associative array containing the suggester's configuration, if any.
@@ -61,7 +65,7 @@ abstract class SuggesterPluginBase extends PluginBase implements AutocompleteSug
    * @param array $plugin_definition
    *   The suggester plugin's definition.
    */
-  public function __construct(SearchApiAutocompleteSearch $search, array $configuration, $plugin_id, array $plugin_definition) {
+  public function __construct(SearchApiAutocompleteSearchInterface $search, array $configuration, $plugin_id, array $plugin_definition) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->search = $search;
   }

@@ -1,5 +1,5 @@
 search_api_autocomplete.autocomplete:
-  path: /search_api_autocomplete/{search_api_autocomplete_settings}/{fields}
+  path: /search_api_autocomplete/{search_api_autocomplete_search}/{fields}
   defaults:
     _controller: \Drupal\search_api_autocomplete\Controller\AutocompleteController::autocomplete
     fields: ''

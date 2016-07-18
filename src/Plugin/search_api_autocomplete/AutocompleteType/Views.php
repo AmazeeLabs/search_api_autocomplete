@@ -9,19 +9,20 @@ use Drupal\Core\Plugin\PluginFormInterface;
 use Drupal\Core\Url;
 use Drupal\search_api\IndexInterface;
 use Drupal\search_api\SearchApiException;
-use Drupal\search_api_autocomplete\AutocompleteTypeInterface;
-use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
+use Drupal\search_api_autocomplete\Type\TypeInterface;
+use Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface;
 use Drupal\views\Views as ViewsViews;
 
 /**
- * @AutocompleteType(
+ * @SearchapiAutocompleteType(
  *   id = "views",
  *   label = @Translation("Search views"),
  *   description = @Translation("Searches provided by views"),
  *   provider = "search_api",
+ *   deriver = "Drupal\search_api_autocomplete\Plugin\Derivative\ViewsAutocompleteType"
  * )
  */
-class Views extends PluginBase implements AutocompleteTypeInterface, ConfigurablePluginInterface, PluginFormInterface {
+class Views extends PluginBase implements TypeInterface, ConfigurablePluginInterface, PluginFormInterface {
 
   /**
    * {@inheritdoc}
@@ -64,7 +65,7 @@ class Views extends PluginBase implements AutocompleteTypeInterface, Configurabl
    * {@inheritdoc}
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
-    /** @var \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $search */
+    /** @var \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search */
     $search = $form_state->getFormObject()->getEntity();
     $views_id = substr($search->id(), 17);
     $view = ViewsViews::getView($views_id);
@@ -81,7 +82,7 @@ class Views extends PluginBase implements AutocompleteTypeInterface, Configurabl
         "<strong>Note:</strong> Autocompletion doesn't work well with contextual filters. Please see the <a href=':readme_url'>README.txt</a> file for details.",
         [':readme_url' => Url::fromUri('base://' . drupal_get_path('module', 'search_api_autocomplete') . '/README.txt')->toString()]),
       '#options' => $options,
-      '#default_value' => $search->getOption('custom.display') ? : 'default',
+      '#default_value' => $search->getOption('custom.display') ?: 'default',
     ];
 
     return $form;
@@ -97,7 +98,7 @@ class Views extends PluginBase implements AutocompleteTypeInterface, Configurabl
    * {@inheritdoc}
    */
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
-    /** @var \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $search */
+    /** @var \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search */
     $search = $form_state->getFormObject()->getEntity();
     $views_id = substr($search->id(), 17);
     $view = ViewsViews::getView($views_id);
@@ -129,7 +130,7 @@ class Views extends PluginBase implements AutocompleteTypeInterface, Configurabl
   /**
    * {@inheritdoc}
    */
-  public function createQuery(SearchApiAutocompleteSearch $search, $complete, $incomplete) {
+  public function createQuery(SearchApiAutocompleteSearchInterface $search, $complete, $incomplete) {
     $views_id = substr($search->id(), 17);
     $view = ViewsViews::getView($views_id);
     if (!$view) {
@@ -145,7 +146,7 @@ class Views extends PluginBase implements AutocompleteTypeInterface, Configurabl
       $vars['@view'] = $view->storage->label() ?: $views_id;
       throw new SearchApiException(t('Could not create query for view @view.', $vars));
     }
-    // $query->setFulltextFields([$complete]);
+    // $query->setFulltextFields([$complete]);.
     // @todo What are the right values to use here?
     $query->setFulltextFields();
     return $query;

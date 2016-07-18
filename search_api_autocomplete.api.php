@@ -130,12 +130,12 @@ function hook_search_api_autocomplete_search_load(array $searches) {
  *
  * This hook is invoked after the search is inserted into the database.
  *
- * @param SearchApiAutocompleteSearch $search
+ * @param \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search
  *   The search that is being inserted.
  *
  * @see hook_entity_insert()
  */
-function hook_search_api_autocomplete_search_insert(SearchApiAutocompleteSearch $search) {
+function hook_search_api_autocomplete_search_insert(\Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search) {
   db_insert('mytable')
     ->fields(array(
       'id' => entity_id('search_api_autocomplete_search', $search),
@@ -149,12 +149,12 @@ function hook_search_api_autocomplete_search_insert(SearchApiAutocompleteSearch 
  *
  * This hook is invoked before the search is saved to the database.
  *
- * @param SearchApiAutocompleteSearch $search
+ * @param \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search
  *   The search that is being inserted or updated.
  *
  * @see hook_entity_presave()
  */
-function hook_search_api_autocomplete_search_presave(SearchApiAutocompleteSearch $search) {
+function hook_search_api_autocomplete_search_presave(\Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search) {
   $search->name = 'foo';
 }
 
@@ -163,12 +163,12 @@ function hook_search_api_autocomplete_search_presave(SearchApiAutocompleteSearch
  *
  * This hook is invoked after the search has been updated in the database.
  *
- * @param SearchApiAutocompleteSearch $search
+ * @param \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search
  *   The search that is being updated.
  *
  * @see hook_entity_update()
  */
-function hook_search_api_autocomplete_search_update(SearchApiAutocompleteSearch $search) {
+function hook_search_api_autocomplete_search_update(\Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search) {
   db_update('mytable')
     ->fields(array('extra' => print_r($search, TRUE)))
     ->condition('id', entity_id('search_api_autocomplete_search', $search))
@@ -180,12 +180,12 @@ function hook_search_api_autocomplete_search_update(SearchApiAutocompleteSearch 
  *
  * This hook is invoked after the search has been removed from the database.
  *
- * @param SearchApiAutocompleteSearch $search
+ * @param \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search
  *   The search that is being deleted.
  *
  * @see hook_entity_delete()
  */
-function hook_search_api_autocomplete_search_delete(SearchApiAutocompleteSearch $search) {
+function hook_search_api_autocomplete_search_delete(\Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search) {
   db_delete('mytable')
     ->condition('pid', entity_id('search_api_autocomplete_search', $search))
     ->execute();
@@ -201,7 +201,7 @@ function hook_search_api_autocomplete_search_delete(SearchApiAutocompleteSearch 
  */
 function hook_default_search_api_autocomplete_search() {
   $defaults['main'] = entity_create('search_api_autocomplete_search', array(
-    // …
+    // ….
   ));
   return $defaults;
 }
@@ -221,7 +221,7 @@ function hook_default_search_api_autocomplete_search_alter(array &$defaults) {
 /**
  * Alter autocomplete suggestions.
  *
- * @param array $suggestions
+ * @param \Drupal\search_api_autocomplete\SuggestionInterface[] $suggestions
  *   Associative array where keys are the complete suggested keywords, and the
  *   values are suggestion arrays as defined by
  *   SearchApiAutocompleteInterface::getAutocompleteSuggestions().
@@ -240,12 +240,12 @@ function hook_search_api_autocomplete_suggestions_alter(array &$suggestions, arr
  *
  * @param string[] $fields
  *   The machine names of the detected fulltext fields.
- * @param \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $search
+ * @param \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search
  *   The related search autocomplete object.
  * @param view $view
  *   The view for which fulltext fields should be determined.
  */
-function hook_search_api_autocomplete_views_fulltext_fields_alter(array &$fields, \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $search, view $view) {
+function hook_search_api_autocomplete_views_fulltext_fields_alter(array &$fields, \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search, view $view) {
   // Add a new field.
   $fields[] = 'extra_search_api_views_fulltext';
 }
@@ -295,7 +295,7 @@ function example_list_autocomplete_searches(\Drupal\search_api\IndexInterface $i
 /**
  * Create the query that would be issued for the given search for the complete keys.
  *
- * @param \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $search
+ * @param \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search
  *   The search for which to create the query.
  * @param $complete
  *   A string containing the complete search keys.
@@ -309,7 +309,7 @@ function example_list_autocomplete_searches(\Drupal\search_api\IndexInterface $i
  * @throws \Drupal\search_api\SearchApiException
  *   If the query couldn't be created.
  */
-function example_create_autocomplete_query(\Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $complete, $incomplete) {
+function example_create_autocomplete_query(\Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $complete, $incomplete) {
   $query = search_api_query($search->index_id);
   if ($complete) {
     $query->keys($complete);
@@ -334,13 +334,13 @@ function example_create_autocomplete_query(\Drupal\search_api_autocomplete\Entit
  * rely on knowing the array structure (like the elements' parents) and should
  * not set "#tree" to FALSE for any element.
  *
- * @param SearchApiAutocompleteSearch $search
+ * @param \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search
  *   The search whose config form should be presented.
  *
  * @see example_autocomplete_config_form_validate()
  * @see example_autocomplete_config_form_submit()
  */
-function example_autocomplete_config_form(array $form, array &$form_state, \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $search) {
+function example_autocomplete_config_form(array $form, array &$form_state, \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface) {
   $form['user_filters'] = array(
     '#type' => 'textarea',
     '#title' => t('Custom filters'),
@@ -452,7 +452,7 @@ function example_search_api_query_alter(SearchApiQueryInterface $query) {
 /**
  * Returns the URL to use for a custom script.
  *
- * @param SearchApiAutocompleteSearch $search
+ * @param \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterfaceh $search
  *   The autocomplete search in question.
  * @param array $element
  *   The form element for which autocompletion is being added.
@@ -465,7 +465,7 @@ function example_search_api_query_alter(SearchApiQueryInterface $query) {
  *
  * @ingroup callbacks
  */
-function callback_search_api_autocomplete_script_url(SearchApiAutocompleteSearch $search, array $element, array $config) {
+function callback_search_api_autocomplete_script_url(\Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search, array $element, array $config) {
   // Solution to use a custom script on multilingual sites which have the
   // current language as the first path element.
   global $language;

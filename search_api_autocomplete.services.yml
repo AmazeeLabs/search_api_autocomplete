@@ -1,7 +1,7 @@
 services:
   plugin_manager.search_api_autocomplete_type:
-    class: \Drupal\search_api_autocomplete\Plugin\AutocompleteTypeManager
+    class: \Drupal\search_api_autocomplete\Type\TypeManager
     parent: default_plugin_manager
   plugin_manager.search_api_autocomplete_suggester:
-    class: \Drupal\search_api_autocomplete\Plugin\AutocompleteSuggesterManager
+    class: \Drupal\search_api_autocomplete\Suggester\SuggesterManager
     parent: default_plugin_manager

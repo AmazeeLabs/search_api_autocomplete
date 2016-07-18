@@ -2,21 +2,52 @@
 
 namespace Drupal\search_api_autocomplete\Controller;
 
-
 use Drupal\Core\Access\AccessResult;
-
+use Drupal\Core\Controller\ControllerBase;
+use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
+use Drupal\Core\Render\RendererInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\search_api\SearchApiException;
-use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
+use Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
-class AutocompleteController {
+/**
+ * Provides a controller for autocompletion.
+ */
+class AutocompleteController extends ControllerBase implements ContainerInjectionInterface {
+
+  /**
+   * The renderer.
+   *
+   * @var \Drupal\Core\Render\RendererInterface
+   */
+  protected $renderer;
+
+  /**
+   * Creates a new AutocompleteController instance.
+   *
+   * @param \Drupal\Core\Render\RendererInterface $renderer
+   *   The renderer.
+   */
+  public function __construct(RendererInterface $renderer) {
+    $this->renderer = $renderer;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('renderer')
+    );
+  }
 
   /**
    * Page callback for getting autocomplete suggestions.
    *
-   * @param \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $search_api_autocomplete_settings
+   * @param \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search_api_autocomplete_search
    *   The search for which to retrieve autocomplete suggestions.
    * @param string $fields
    *   A comma-separated list of fields on which to do autocompletion. Or "-"
@@ -26,73 +57,45 @@ class AutocompleteController {
    *
    * @return \Drupal\Core\Cache\CacheableJsonResponse
    *   The autocompletion response.
-   *
    */
-  public function autocomplete(SearchApiAutocompleteSearch $search_api_autocomplete_settings, $fields, Request $request) {
+  public function autocomplete(SearchApiAutocompleteSearchInterface $search_api_autocomplete_search, $fields, Request $request) {
     $matches = [];
     try {
-      if ($search_api_autocomplete_settings->supportsAutocompletion()) {
+      if ($search_api_autocomplete_search->supportsAutocompletion()) {
         $keys = $request->query->get('q');
-        list($complete, $incomplete) = $search_api_autocomplete_settings->splitKeys($keys);
-        $query = $search_api_autocomplete_settings->getQuery($complete, $incomplete);
+        list($complete, $incomplete) = $search_api_autocomplete_search->splitKeys($keys);
+        $query = $search_api_autocomplete_search->getQuery($complete, $incomplete);
         if ($query) {
           // @todo Maybe make range configurable?
           $query->range(0, 10);
-          $query->setOption('search id', 'search_api_autocomplete:' . $search_api_autocomplete_settings->id());
-          if (!empty($search_api_autocomplete_settings->getOption('fields'))) {
-            $query->setFulltextFields($search_api_autocomplete_settings->getOption('fields'));
+          $query->setOption('search id', 'search_api_autocomplete:' . $search_api_autocomplete_search->id());
+          if (!empty($search_api_autocomplete_search->getOption('fields'))) {
+            $query->setFulltextFields($search_api_autocomplete_search->getOption('fields'));
           }
           elseif ($fields != '-') {
             $fields = explode(' ', $fields);
             $query->setFulltextFields($fields);
           }
           $query->preExecute();
-          $suggestions = $search_api_autocomplete_settings->getSuggester()->getAutocompleteSuggestions($query, $incomplete, $keys);
+          $suggestions = $search_api_autocomplete_search->getSuggester()->getAutocompleteSuggestions($query, $incomplete, $keys);
           if ($suggestions) {
             foreach ($suggestions as $suggestion) {
-              // Convert suggestion strings into an array.
-              if (is_string($suggestion)) {
-                $pos = strpos($suggestion, $keys);
-                if ($pos === FALSE) {
-                  $suggestion = [
-                    'user_input' => '',
-                    'suggestion_suffix' => $suggestion,
-                  ];
-                }
-                else {
-                  $suggestion = [
-                    'suggestion_prefix' => substr($suggestion, 0, $pos),
-                    'user_input' => $keys,
-                    'suggestion_suffix' => substr($suggestion, $pos + strlen($keys)),
-                  ];
-                }
-              }
-              // Add defaults.
-              $suggestion += [
-                'url' => NULL,
-                'keys' => NULL,
-                'prefix' => NULL,
-                'suggestion_prefix' => '',
-                'user_input' => $keys,
-                'suggestion_suffix' => '',
-                'results' => NULL,
-              ];
-              if (empty($search_api_autocomplete_settings->getOption('results'))) {
-                unset($suggestion['results']);
+              if (empty($search_api_autocomplete_search->getOption('results'))) {
+                $suggestion->setResults(NULL);
               }
 
               // Decide what the action of the suggestion is – entering specific
               // search terms or redirecting to a URL.
-              if (isset($suggestion['url'])) {
-                $key = ' ' . $suggestion['url'];
+              if ($suggestion->getUrl()) {
+                $key = ' ' . $suggestion->getUrl();
               }
               else {
-                // Also set the "keys" key so it will always be available in alter
-                // hooks and the theme function.
-                if (!isset($suggestion['keys'])) {
-                  $suggestion['keys'] = $suggestion['suggestion_prefix'] . $suggestion['user_input'] . $suggestion['suggestion_suffix'];
+                // Also set the "keys" key so it will always be available in
+                // alter hooks and the theme function.
+                if (!$suggestion->getKeys()) {
+                  $suggestion->setKeys($suggestion->getSuggestionPrefix() . $suggestion->getUserInput() . $suggestion->getSuggestionSuffix());
                 }
-                $key = trim($suggestion['keys']);
+                $key = trim($suggestion->getKeys());
               }
 
               if (!isset($ret[$key])) {
@@ -102,31 +105,31 @@ class AutocompleteController {
 
             $alter_params = [
               'query' => $query,
-              'search' => $search_api_autocomplete_settings,
+              'search' => $search_api_autocomplete_search,
               'incomplete_key' => $incomplete,
               'user_input' => $keys,
             ];
-            \Drupal::moduleHandler()->alter('search_api_autocomplete_suggestions', $ret, $alter_params);
+            $this->moduleHandler()->alter('search_api_autocomplete_suggestions', $ret, $alter_params);
 
+            /*** @var \Drupal\search_api_autocomplete\SuggestionInterface $suggestion */
             foreach ($ret as $key => $suggestion) {
-              if (isset($suggestion['render'])) {
+              if ($build = $suggestion->getRender()) {
                 $matches[] = [
                   'value' => $key,
-                  'label' => \Drupal::service('renderer')->render($suggestion['render']),
+                  'label' => $this->renderer->render($build),
                 ];
               }
               else {
                 $ret[$key] = [
                   '#theme' => 'search_api_autocomplete_suggestion',
-                ]
-                  //  Convert the suggestion into a suitable variable for
+                ] + array_combine(array_map(function ($key) {
+                  // Convert the suggestion into a suitable variable for
                   // templates, by adding # in front.
-                  + array_combine(array_map(function ($key) {
-                    return '#' . $key;
-                  }, array_keys($suggestion)), array_values($suggestion));
+                  return '#' . $key;
+                }, array_keys($suggestion)), array_values($suggestion));
                 $matches[] = [
                   'value' => $key,
-                  'label' => \Drupal::service('renderer')->render($ret[$key]),
+                  'label' => $this->renderer->render($ret[$key]),
                 ];
               }
             }
@@ -144,7 +147,7 @@ class AutocompleteController {
   /**
    * Checks access to the autocompletion route.
    *
-   * @param \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $search_api_autocomplete_settings
+   * @param \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search_api_autocomplete_search
    *   The configured autocompletion search.
    * @param \Drupal\Core\Session\AccountInterface $account
    *   The account.
@@ -152,10 +155,10 @@ class AutocompleteController {
    * @return \Drupal\Core\Access\AccessResult
    *   The access result.
    */
-  public function access(SearchApiAutocompleteSearch $search_api_autocomplete_settings, AccountInterface $account) {
-    $access = AccessResult::allowedIf($search_api_autocomplete_settings->status())
-      ->andIf(AccessResult::allowedIfHasPermission($account, 'use search_api_autocomplete for ' . $search_api_autocomplete_settings->id()))
-      ->andIf(AccessResult::allowedIf($search_api_autocomplete_settings->supportsAutocompletion()));
+  public function access(SearchApiAutocompleteSearchInterface $search_api_autocomplete_search, AccountInterface $account) {
+    $access = AccessResult::allowedIf($search_api_autocomplete_search->status())
+      ->andIf(AccessResult::allowedIfHasPermission($account, 'use search_api_autocomplete for ' . $search_api_autocomplete_search->id()))
+      ->andIf(AccessResult::allowedIf($search_api_autocomplete_search->supportsAutocompletion()));
     return $access;
   }
 

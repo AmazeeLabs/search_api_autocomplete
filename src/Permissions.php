@@ -7,6 +7,9 @@ use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
+/**
+ * Provides permissions of the search_api_autocomplete module.
+ */
 class Permissions implements ContainerInjectionInterface {
 
   use StringTranslationTrait;
@@ -28,16 +31,23 @@ class Permissions implements ContainerInjectionInterface {
     $this->storage = $storage;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('entity_type.manager')->getStorage('search_api_autocomplete_settings')
+      $container->get('entity_type.manager')->getStorage('search_api_autocomplete_search')
     );
   }
 
-
+  /**
+   * Returns a list of permission, one per configured search.
+   *
+   * @return array[]
+   */
   public function bySearch() {
     $perms = [];
-    /** @var \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch $search */
+    /** @var \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search */
     foreach ($this->storage->loadMultiple() as $id => $search) {
       $perms['use search_api_autocomplete for ' . $id] = [
         'title' => $this->t('Use autocomplete for the %search search', ['%search' => $search->label()]),
