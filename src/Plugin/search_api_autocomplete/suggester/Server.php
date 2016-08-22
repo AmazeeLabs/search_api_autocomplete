@@ -6,8 +6,8 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\search_api\IndexInterface;
 use Drupal\search_api\Query\QueryInterface;
 use Drupal\search_api\SearchApiException;
-use Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\AutocompleteSuggester\SuggesterPluginBase;
 use Drupal\search_api_autocomplete\Suggester\SuggesterInterface;
+use Drupal\search_api_autocomplete\Suggester\SuggesterPluginBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -37,6 +37,18 @@ class Server extends SuggesterPluginBase implements SuggesterInterface {
       $plugin_definition
     );
   }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setConfiguration(array $configuration) {
+    if (isset($configuration['fields'])) {
+      $configuration['fields'] = array_filter($configuration['fields']);
+    }
+
+    return parent::setConfiguration($configuration);
+  }
+
 
   /**
    * {@inheritdoc}

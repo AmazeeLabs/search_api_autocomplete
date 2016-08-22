@@ -59,7 +59,7 @@ class Suggestion implements SuggestionInterface {
   /**
    * If given, an HTML string or render array.
    *
-   * @var array|null
+   * @var array
    */
   protected $render;
 
@@ -80,10 +80,10 @@ class Suggestion implements SuggestionInterface {
    *   The suggestion suffix.
    * @param array|null $results
    *   The results.
-   * @param array|null|string $render
-   *   The render.
+   * @param array $render
+   *   The render array.
    */
-  public function __construct($keys = NULL, $url = '', $prefix = '', $suggestionPrefix = '', $userInput = '', $suggestionSuffix = '', $results = 0, $render = '') {
+  public function __construct($keys = NULL, $url = '', $prefix = '', $suggestionPrefix = '', $userInput = '', $suggestionSuffix = '', $results = 0, $render = []) {
     $this->keys = $keys;
     $this->url = $url;
     $this->prefix = $prefix;
@@ -246,6 +246,27 @@ class Suggestion implements SuggestionInterface {
   public function setRender($render) {
     $this->render = $render;
     return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function toRenderable() {
+    if (!empty($this->render)) {
+      return $this->render;
+    }
+    else {
+      return [
+        '#theme' => 'search_api_autocomplete_suggestion',
+        '#keys' => $this->getKeys(),
+        '#prefix' => $this->getPrefix(),
+        '#results' => $this->getResults(),
+        '#suggestion_prefix' => $this->getSuggestionPrefix(),
+        '#suggestion_suffix' => $this->getSuggestionSuffix(),
+        '#url' => $this->getUrl(),
+        '#user_input' => $this->getUserInput(),
+      ];
+    }
   }
 
 }

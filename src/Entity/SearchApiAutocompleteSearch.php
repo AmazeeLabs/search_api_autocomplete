@@ -5,7 +5,6 @@ namespace Drupal\search_api_autocomplete\Entity;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Config\Entity\ConfigEntityBase;
 use Drupal\search_api\Entity\Index;
-use Drupal\search_api_autocomplete\Controller\AutocompleteController;
 use Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface;
 
 /**

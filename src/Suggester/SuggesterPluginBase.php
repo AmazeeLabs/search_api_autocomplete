@@ -1,12 +1,11 @@
 <?php
 
-namespace Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\AutocompleteSuggester;
+namespace Drupal\search_api_autocomplete\Suggester;
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\PluginBase;
 use Drupal\search_api\IndexInterface;
 use Drupal\search_api\Plugin\ConfigurablePluginInterface;
-use Drupal\search_api_autocomplete\Suggester\SuggesterInterface;
 use Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface;
 
 /**
@@ -67,6 +66,8 @@ abstract class SuggesterPluginBase extends PluginBase implements SuggesterInterf
    */
   public function __construct(SearchApiAutocompleteSearchInterface $search, array $configuration, $plugin_id, array $plugin_definition) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
+
+    $this->setConfiguration($configuration);
     $this->search = $search;
   }
 

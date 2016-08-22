@@ -20,11 +20,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class AutocompleteSearchAdminOverview extends FormBase {
 
   /**
-   * @var \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface
-   */
-  protected $entity;
-
-  /**
    * The autocomplete suggester manager.
    *
    * @var \Drupal\Component\Plugin\PluginManagerInterface
@@ -50,7 +45,7 @@ class AutocompleteSearchAdminOverview extends FormBase {
    *
    * @var \Drupal\Core\Routing\RedirectDestinationInterface
    */
-  protected $destination;
+  protected $redirectDestination;
 
   /**
    * Creates a new AutocompleteSearchAdminOverview instance.
@@ -98,7 +93,9 @@ class AutocompleteSearchAdminOverview extends FormBase {
     $index = $form_state->get('index');
     $ids = array_keys($this->loadAutocompleteSearchByIndex($index->id()));
     if ($ids) {
-      entity_delete_multiple('search_api_autocomplete_search', $ids);
+      $autocomplete_search_storage = $this->entityTypeManager->getStorage('search_api_autocomplete_search');
+      $autocomplete_searches = $autocomplete_search_storage->loadMultiple($ids);
+      $autocomplete_search_storage->delete($autocomplete_searches);
       drupal_set_message($this->t('All autocompletion settings stored for this index were deleted.'));
     }
     else {
@@ -122,12 +119,12 @@ class AutocompleteSearchAdminOverview extends FormBase {
       ];
       drupal_set_message($this->t('There are currently no suggester plugins installed that support this index. To solve this problem, you can either:<ul><li>move the index to a server which supports the "@feature" feature (see the <a href=":service_classes_url">available service class</a>)</li><li>or install a module providing a new suggester plugin that supports this index</li></ul>', $args), 'error');
       if ($this->loadAutocompleteSearchByIndex($index_id)) {
-        $form['description'] = array(
+        $form['description'] = [
           '#type' => 'item',
           '#title' => $this->t('Delete autocompletion settings'),
           '#description' => $this->t("If you won't use autocompletion with this index anymore, you can delete all autocompletion settings associated with it. " .
             "This will delete all autocompletion settings on this index. Settings on other indexes won't be influenced."),
-        );
+        ];
         $form['button'] = [
           '#type' => 'submit',
           '#value' => $this->t('Delete autocompletion settings'),
@@ -226,7 +223,7 @@ class AutocompleteSearchAdminOverview extends FormBase {
         if ($unavailable) {
           $options['label'] = '* ' . $options['label'];
         }
-        $items = array();
+        $items = [];
         if (!$unavailable && !empty($search->status())) {
           $items[] = [
             'title' => $this->t('Edit'),
@@ -277,7 +274,7 @@ class AutocompleteSearchAdminOverview extends FormBase {
       if ($search->status() != $enabled) {
         $change = TRUE;
         if (!empty($search)) {
-          $options['query'] = $this->destination->getAsArray();
+          $options['query'] = $this->redirectDestination->getAsArray();
           $options['fragment'] = 'module-search_api_autocomplete';
           $vars[':perm_url'] = Url::fromRoute('user.admin_permissions', [], $options)->toString();
           $messages = $this->t('The settings have been saved. Please remember to set the <a href=":perm_url">permissions</a> for the newly enabled searches.', $vars);

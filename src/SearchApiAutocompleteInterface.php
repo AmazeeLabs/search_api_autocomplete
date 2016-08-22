@@ -20,21 +20,21 @@ interface SearchApiAutocompleteInterface extends BackendInterface {
    * considered incomplete, the following might be returned:
    *
    * @code
-   *   array(
-   *     array(
+   *   [
+   *     [
    *       'prefix' => t('Did you mean:'),
    *       'user_input' => 'reach us',
-   *     ),
-   *     array(
+   *     ],
+   *     [
    *       'user_input' => 'teach us',
    *       'suggestion_suffix' => 'ers',
-   *     ),
-   *     array(
+   *     ],
+   *     [
    *       'user_input' => 'teach us',
    *       'suggestion_suffix' => ' swimming',
-   *     ),
+   *     ],
    *     'teach users swimming',
-   *   );
+   *   ];
    * @endcode
    *
    * @param \Drupal\search_api\Query\QueryInterface $query

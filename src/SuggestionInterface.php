@@ -2,6 +2,8 @@
 
 namespace Drupal\search_api_autocomplete;
 
+use Drupal\Core\Render\RenderableInterface;
+
 /**
  * Defines a single autocompletion suggestion.
  *
@@ -9,7 +11,7 @@ namespace Drupal\search_api_autocomplete;
  * "url", "suggestion_prefix", "user_input" or "suggestion_suffix" has to be
  * present.
  */
-interface SuggestionInterface {
+interface SuggestionInterface extends RenderableInterface {
 
   /**
    * The keywords this suggestion will autocomplete to.

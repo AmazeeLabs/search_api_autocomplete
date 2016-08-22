@@ -44,13 +44,13 @@
  * @see example_form_example_search_form_alter()
  */
 function hook_search_api_autocomplete_types() {
-  $types['example'] = array(
+  $types['example'] = [
     'name' => t('Example searches'),
     'description' => t('Searches provided by the <em>Example</em> module.'),
     'list searches' => 'example_list_autocomplete_searches',
     'create query' => 'example_create_autocomplete_query',
     'config form' => 'example_autocomplete_config_form',
-  );
+  ];
 
   return $types;
 }
@@ -76,11 +76,11 @@ function hook_search_api_autocomplete_types() {
  */
 function hook_search_api_autocomplete_suggester_info() {
   // Source: search_api_autocomplete_search_api_autocomplete_suggester_info().
-  $suggesters['server'] = array(
+  $suggesters['server'] = [
     'label' => t('Retrieve from server'),
     'description' => t('For compatible servers, ask the server for autocomplete suggestions.'),
     'class' => 'SearchApiAutocompleteServerSuggester',
-  );
+  ];
 
   return $suggesters;
 }
@@ -119,7 +119,7 @@ function hook_search_api_autocomplete_suggester_info_alter(array &$suggesters) {
  * @see hook_entity_load()
  */
 function hook_search_api_autocomplete_search_load(array $searches) {
-  $result = db_query('SELECT pid, foo FROM {mytable} WHERE pid IN(:ids)', array(':ids' => array_keys($searches)));
+  $result = \Drupal::database()->query('SELECT pid, foo FROM {mytable} WHERE pid IN(:ids)', [':ids' => array_keys($searches)]);
   foreach ($result as $record) {
     $searches[$record->pid]->foo = $record->foo;
   }
@@ -136,11 +136,11 @@ function hook_search_api_autocomplete_search_load(array $searches) {
  * @see hook_entity_insert()
  */
 function hook_search_api_autocomplete_search_insert(\Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search) {
-  db_insert('mytable')
-    ->fields(array(
+  \Drupal::database()->insert('mytable')
+    ->fields([
       'id' => entity_id('search_api_autocomplete_search', $search),
       'extra' => print_r($search, TRUE),
-    ))
+    ])
     ->execute();
 }
 
@@ -169,8 +169,8 @@ function hook_search_api_autocomplete_search_presave(\Drupal\search_api_autocomp
  * @see hook_entity_update()
  */
 function hook_search_api_autocomplete_search_update(\Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search) {
-  db_update('mytable')
-    ->fields(array('extra' => print_r($search, TRUE)))
+  \Drupal::database()->update('mytable')
+    ->fields(['extra' => print_r($search, TRUE)])
     ->condition('id', entity_id('search_api_autocomplete_search', $search))
     ->execute();
 }
@@ -186,7 +186,7 @@ function hook_search_api_autocomplete_search_update(\Drupal\search_api_autocompl
  * @see hook_entity_delete()
  */
 function hook_search_api_autocomplete_search_delete(\Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search) {
-  db_delete('mytable')
+  \Drupal::database()->delete('mytable')
     ->condition('pid', entity_id('search_api_autocomplete_search', $search))
     ->execute();
 }
@@ -194,15 +194,15 @@ function hook_search_api_autocomplete_search_delete(\Drupal\search_api_autocompl
 /**
  * Define default search configurations.
  *
- * @return
+ * @return \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch[]
  *   An array of default searches, keyed by machine names.
  *
  * @see hook_default_search_api_autocomplete_search_alter()
  */
 function hook_default_search_api_autocomplete_search() {
-  $defaults['main'] = entity_create('search_api_autocomplete_search', array(
+  $defaults['main'] = \Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch::create('search_api_autocomplete_search', [
     // ….
-  ));
+  ]);
   return $defaults;
 }
 
@@ -278,13 +278,13 @@ function hook_search_api_autocomplete_views_fulltext_fields_alter(array &$fields
  *     options.
  */
 function example_list_autocomplete_searches(\Drupal\search_api\IndexInterface $index) {
-  $ret = array();
-  $result = db_query('SELECT name, machine_name, extra FROM {example_searches} WHERE index_id = :id', array($index->machine_name));
+  $ret = [];
+  $result = \Drupal::database()->query('SELECT name, machine_name, extra FROM {example_searches} WHERE index_id = :id', [$index->machine_name]);
   foreach ($result as $row) {
     $id = 'example_' . $row->machine_name;
-    $ret[$id] = array(
+    $ret[$id] = [
       'name' => $row->name,
-    );
+    ];
     if ($row->extra) {
       $ret[$id]['options']['custom']['extra'] = $row->extra;
     }
@@ -340,14 +340,14 @@ function example_create_autocomplete_query(\Drupal\search_api_autocomplete\Searc
  * @see example_autocomplete_config_form_validate()
  * @see example_autocomplete_config_form_submit()
  */
-function example_autocomplete_config_form(array $form, array &$form_state, \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface) {
-  $form['user_filters'] = array(
+function example_autocomplete_config_form(array $form, array &$form_state, \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search) {
+  $form['user_filters'] = [
     '#type' => 'textarea',
     '#title' => t('Custom filters'),
     '#description' => t('Enter additional filters set on the autocompletion search. ' .
         'Write one filter on each line, the field and its value separated by an equals sign (=).'),
     '#default_value' => empty($search->options['custom']['user_filters']) ? '' : $search->options['custom']['user_filters'],
-  );
+  ];
 
   return $form;
 }
@@ -370,7 +370,7 @@ function example_autocomplete_config_form(array $form, array &$form_state, \Drup
  * @see example_autocomplete_config_form_submit()
  */
 function example_autocomplete_config_form_validate(array $form, array &$form_state, array &$values) {
-  $f = array();
+  $f = [];
   foreach (explode("\n", $values['user_filters']) as $line) {
     if (preg_match('/^\s*([a-z0-9_:]+)\s*=\s*(.*\S)\s*$/i', $line, $m)) {
       $f[] = $m[1] . '=' . $m[2];
@@ -470,17 +470,17 @@ function callback_search_api_autocomplete_script_url(\Drupal\search_api_autocomp
   // Solution to use a custom script on multilingual sites which have the
   // current language as the first path element.
   global $language;
-  $options = array(
+  $options = [
     'absolute' => TRUE,
     // Don't prefix the path with the language, always point to the root
     // directory. Instead we pass the language as a GET parameter.
-    'language' => (object) array(
+    'language' => (object) [
       'language' => '',
-    ),
-    'query' => array(
+    ],
+    'query' => [
       'machine_name' => $search->machine_name,
       'language' => $language->language,
-    ),
-  );
+    ],
+  ];
   return url($config['#url'], $options);
 }

@@ -56,7 +56,7 @@ class AutocompleteController extends ControllerBase implements ContainerInjectio
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request.
    *
-   * @return \Drupal\Core\Cache\CacheableJsonResponse
+   * @return \Symfony\Component\HttpFoundation\JsonResponse
    *   The autocompletion response.
    */
   public function autocomplete(SearchApiAutocompleteSearchInterface $search_api_autocomplete_search, $fields, Request $request) {
@@ -115,23 +115,10 @@ class AutocompleteController extends ControllerBase implements ContainerInjectio
 
             /*** @var \Drupal\search_api_autocomplete\SuggestionInterface $suggestion */
             foreach ($ret as $key => $suggestion) {
-              if ($build = $suggestion->getRender()) {
+              if ($build = $suggestion->toRenderable()) {
                 $matches[] = [
                   'value' => $key,
                   'label' => $this->renderer->render($build),
-                ];
-              }
-              else {
-                $ret[$key] = [
-                  '#theme' => 'search_api_autocomplete_suggestion',
-                ] + array_combine(array_map(function ($key) {
-                  // Convert the suggestion into a suitable variable for
-                  // templates, by adding # in front.
-                  return '#' . $key;
-                }, array_keys($suggestion)), array_values($suggestion));
-                $matches[] = [
-                  'value' => $key,
-                  'label' => $this->renderer->render($ret[$key]),
                 ];
               }
             }
@@ -143,6 +130,8 @@ class AutocompleteController extends ControllerBase implements ContainerInjectio
       watchdog_exception('search_api_autocomplete', $e, '%type while retrieving autocomplete suggestions: !message in %function (line %line of %file).');
     }
 
+    // @todo Get cacheability metadata from search_api and use
+    //   \Drupal\Core\Cache\CacheableJsonResponse instead.
     return new JsonResponse($matches);
   }
 

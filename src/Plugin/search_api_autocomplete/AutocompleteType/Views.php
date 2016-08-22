@@ -19,7 +19,6 @@ use Drupal\views\Views as ViewsViews;
  *   label = @Translation("Search views"),
  *   description = @Translation("Searches provided by views"),
  *   provider = "search_api",
- *   deriver = "Drupal\search_api_autocomplete\Plugin\Derivative\ViewsAutocompleteType"
  * )
  */
 class Views extends PluginBase implements TypeInterface, ConfigurablePluginInterface, PluginFormInterface {
@@ -69,7 +68,7 @@ class Views extends PluginBase implements TypeInterface, ConfigurablePluginInter
     $search = $form_state->getFormObject()->getEntity();
     $views_id = substr($search->id(), 17);
     $view = ViewsViews::getView($views_id);
-    $options = array();
+    $options = [];
     $view->initDisplay();
     foreach ($view->displayHandlers as $id => $display) {
       /** @var \Drupal\views\Plugin\views\display\DisplayPluginBase $display */
@@ -114,7 +113,7 @@ class Views extends PluginBase implements TypeInterface, ConfigurablePluginInter
    * {@inheritdoc}
    */
   public function listSearches(IndexInterface $index) {
-    $ret = array();
+    $ret = [];
     $base_table = 'search_api_index_' . $index->id();
     foreach (ViewsViews::getAllViews() as $id => $view) {
       if ($view->get('base_table') === $base_table) {

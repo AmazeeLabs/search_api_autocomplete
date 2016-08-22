@@ -57,9 +57,11 @@ class AutocompleteFormUtility {
    * Helper method for altering a textfield form element to use autocompletion.
    *
    * @param array $element
-   * @param \Drupal\search_api_autocomplete\Controller\AutocompleteController $controller
-   *   The autocomplete controller.
+   *   The altered element
+   * @param \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search
+   *   The autocomplete search.
    * @param array $fields
+   *   (optional) Used fulltext fields.
    */
   public function alterElement(array &$element, SearchApiAutocompleteSearchInterface $search, array $fields = []) {
     // @todo find a cleaner solution.

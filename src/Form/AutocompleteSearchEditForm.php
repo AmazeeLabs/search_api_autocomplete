@@ -63,7 +63,12 @@ class AutocompleteSearchEditForm extends EntityForm {
   }
 
   /**
+   * Returns all suggesters matching for a particular search index.
    *
+   * @param \Drupal\search_api\IndexInterface $index
+   *   The search index to filter by
+   *
+   * @return \Drupal\search_api_autocomplete\Suggester\SuggesterInterface[]
    */
   protected function getSuggestersForIndex(IndexInterface $index) {
     $suggesters = array_map(function ($suggester_info) {
@@ -149,7 +154,7 @@ class AutocompleteSearchEditForm extends EntityForm {
       if ($suggester_form) {
         $form['options']['suggester_configuration'] = $suggester_form;
         $form['options']['suggester_configuration']['#type'] = 'fieldset';
-        $form['options']['suggester_configuration']['#title'] = $this->t('Configure the %suggester suggester plugin', array('%suggester' => $suggester->label()));
+        $form['options']['suggester_configuration']['#title'] = $this->t('Configure the %suggester suggester plugin', ['%suggester' => $suggester->label()]);
         $form['options']['suggester_configuration']['#description'] = $suggester->getDescription();
         $form['options']['suggester_configuration']['#collapsible'] = TRUE;
       }
@@ -195,7 +200,7 @@ class AutocompleteSearchEditForm extends EntityForm {
     $custom_form = empty($form['options']['custom']) ? [] : $form['options']['custom'];
     if ($type instanceof PluginFormInterface) {
       $type_form_state = new SubFormState($form_state, ['options', 'custom']);
-      $form['options']['custom'] = $type->buildConfigurationForm($custom_form, $type_form_state, $search);
+      $form['options']['custom'] = $type->buildConfigurationForm($custom_form, $type_form_state);
     }
 
     $form['advanced'] = [

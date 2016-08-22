@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\type;
+namespace Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\AutocompleteType;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
@@ -79,7 +79,7 @@ class Page extends PluginBase implements TypeInterface, ContainerFactoryPluginIn
    * {@inheritdoc}
    */
   public function listSearches(IndexInterface $index) {
-    $ret = array();
+    $ret = [];
     $storage = $this->entityTypeManager->getStorage('search_api_page');
     foreach ($storage->loadByProperties(['index' => $index->id()]) as $page) {
       $id = 'search_api_page_' . $page->id();

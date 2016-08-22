@@ -28,22 +28,6 @@ interface SuggesterInterface extends ConfigurablePluginInterface, PluginInspecti
   public static function supportsIndex(IndexInterface $index);
 
   /**
-   * Retrieves the plugin's ID.
-   *
-   * @return string
-   *   The plugin's ID.
-   */
-  public function getPluginId();
-
-  /**
-   * Retrieves the plugin's definition.
-   *
-   * @return array
-   *   The plugin's definition.
-   */
-  public function getPluginDefinition();
-
-  /**
    * Retrieves the search this plugin is configured for.
    *
    * @return \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface
@@ -74,21 +58,21 @@ interface SuggesterInterface extends ConfigurablePluginInterface, PluginInspecti
    * considered incomplete, the following might be returned:
    *
    * @code
-   *   array(
-   *     array(
+   *   [
+   *     [
    *       'prefix' => t('Did you mean:'),
    *       'user_input' => 'reach us',
-   *     ),
-   *     array(
+   *     ],
+   *     [
    *       'user_input' => 'teach us',
    *       'suggestion_suffix' => 'ers',
-   *     ),
-   *     array(
+   *     ],
+   *     [
    *       'user_input' => 'teach us',
    *       'suggestion_suffix' => ' swimming',
-   *     ),
+   *     ],
    *     'teach users swimming',
-   *   );
+   *   ];
    * @endcode
    *
    * @param \Drupal\search_api\Query\QueryInterface $query
