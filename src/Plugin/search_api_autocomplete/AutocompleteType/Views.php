@@ -76,8 +76,8 @@ class Views extends PluginBase implements TypeInterface, ConfigurablePluginInter
     }
     $form['display'] = [
       '#type' => 'select',
-      '#title' => t('Views display'),
-      '#description' => t('Please select the Views display whose settings should be used for autocomplete queries.<br />' .
+      '#title' => $this->t('Views display'),
+      '#description' => $this->t('Please select the Views display whose settings should be used for autocomplete queries.<br />' .
         "<strong>Note:</strong> Autocompletion doesn't work well with contextual filters. Please see the <a href=':readme_url'>README.txt</a> file for details.",
         [':readme_url' => Url::fromUri('base://' . drupal_get_path('module', 'search_api_autocomplete') . '/README.txt')->toString()]),
       '#options' => $options,
@@ -134,7 +134,7 @@ class Views extends PluginBase implements TypeInterface, ConfigurablePluginInter
     $view = ViewsViews::getView($views_id);
     if (!$view) {
       $vars['@view'] = $views_id;
-      throw new SearchApiException(t('Could not load view @view.', $vars));
+      throw new SearchApiException($this->t('Could not load view @view.', $vars));
     }
     $view->setDisplay($search->getOption('custom.display'));
     $view->preExecute();
@@ -143,7 +143,7 @@ class Views extends PluginBase implements TypeInterface, ConfigurablePluginInter
     $query = $view->getQuery()->getSearchApiQuery();
     if (!$query) {
       $vars['@view'] = $view->storage->label() ?: $views_id;
-      throw new SearchApiException(t('Could not create query for view @view.', $vars));
+      throw new SearchApiException($this->t('Could not create query for view @view.', $vars));
     }
     // $query->setFulltextFields([$complete]);.
     // @todo What are the right values to use here?

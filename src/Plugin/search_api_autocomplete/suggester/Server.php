@@ -85,8 +85,8 @@ class Server extends SuggesterPluginBase implements SuggesterInterface {
     }
     $form['fields'] = [
       '#type' => 'checkboxes',
-      '#title' => t('Override used fields'),
-      '#description' => t('Select the fields which should be searched for matches when looking for autocompletion suggestions. Leave blank to use the same fields as the underlying search.'),
+      '#title' => $this->t('Override used fields'),
+      '#description' => $this->t('Select the fields which should be searched for matches when looking for autocompletion suggestions. Leave blank to use the same fields as the underlying search.'),
       '#options' => $options,
       '#default_value' => array_combine($this->getConfiguration()['fields'], $this->getConfiguration()['fields']),
       '#attributes' => ['class' => ['search-api-checkboxes-list']],
