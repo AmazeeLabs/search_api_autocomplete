@@ -5,8 +5,8 @@ namespace Drupal\search_api_autocomplete\Form;
 use Drupal\Component\Plugin\PluginManagerInterface;
 use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Form\SubformState;
 use Drupal\Core\Plugin\PluginFormInterface;
-use Drupal\search_api\Form\SubFormState;
 use Drupal\search_api\IndexInterface;
 use Drupal\search_api_autocomplete\Type\TypeManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -149,9 +149,9 @@ class AutocompleteSearchEditForm extends EntityForm {
       if ($suggester_id != $selected_suggester_id) {
         continue;
       }
-      $suggester_form_state = new SubFormState($form_state, ['options', 'suggester_configuration']);
-      $suggester_form = $suggester->buildConfigurationForm([], $suggester_form_state);
-      if ($suggester_form) {
+      $form['options']['suggester_configuration'] = [];
+      $suggester_form_state = SubFormState::createForSubform($form['options']['suggester_configuration'], $form, $form_state);
+      if ($suggester_form = $suggester->buildConfigurationForm([], $suggester_form_state)) {
         $form['options']['suggester_configuration'] = $suggester_form;
         $form['options']['suggester_configuration']['#type'] = 'fieldset';
         $form['options']['suggester_configuration']['#title'] = $this->t('Configure the %suggester suggester plugin', ['%suggester' => $suggester->label()]);
@@ -199,7 +199,8 @@ class AutocompleteSearchEditForm extends EntityForm {
 
     $custom_form = empty($form['options']['custom']) ? [] : $form['options']['custom'];
     if ($type instanceof PluginFormInterface) {
-      $type_form_state = new SubFormState($form_state, ['options', 'custom']);
+      $form['options']['custom'] = [];
+      $type_form_state = SubFormState::createForSubform($form['options']['custom'], $form, $form_state);
       $form['options']['custom'] = $type->buildConfigurationForm($custom_form, $type_form_state);
     }
 
@@ -253,7 +254,7 @@ class AutocompleteSearchEditForm extends EntityForm {
       $suggester = $this->suggesterManager->createInstance($values['suggester_id'], ['search' => $this->entity] + $configuration);
       $suggester_form = $form['options']['suggester_configuration'];
       unset($suggester_form['old_suggester_id']);
-      $suggester_form_state = new SubFormState($form_state, ['options', 'suggester_configuration']);
+      $suggester_form_state = SubFormState::createForSubform($form['options']['suggester_configuration'], $form, $form_state);
       $suggester->validateConfigurationForm($suggester_form, $suggester_form_state);
     }
 
@@ -261,7 +262,7 @@ class AutocompleteSearchEditForm extends EntityForm {
     $type = $form_state->get('type');
     if ($type instanceof PluginFormInterface) {
       $custom_form = empty($form['options']['custom']) ? [] : $form['options']['custom'];
-      $type_form_state = new SubFormState($form_state, ['options', 'custom']);
+      $type_form_state = SubFormState::createForSubform($form['options']['custom'], $form, $form_state);
       $type->validateConfigurationForm($custom_form, $type_form_state);
     }
   }
@@ -299,7 +300,7 @@ class AutocompleteSearchEditForm extends EntityForm {
     $type = $form_state->get('type');
     if ($type instanceof PluginFormInterface) {
       $custom_form = empty($form['options']['custom']) ? [] : $form['options']['custom'];
-      $type_form_state = new SubFormState($form_state, ['options', 'custom']);
+      $type_form_state = SubFormState::createForSubform($form['options']['custom'], $form, $form_state);
       $type->submitConfigurationForm($custom_form, $type_form_state);
     }
 
@@ -322,7 +323,7 @@ class AutocompleteSearchEditForm extends EntityForm {
       ] + $configuration);
       $suggester_form = $form['options']['suggester_configuration'];
       unset($suggester_form['old_suggester_id']);
-      $suggester_form_state = new SubFormState($form_state, ['options', 'suggester_configuration']);
+      $suggester_form_state = SubFormState::createForSubform($form['options']['suggester_configuration'], $form, $form_state);
       $suggester->submitConfigurationForm($suggester_form, $suggester_form_state);
       $values['options']['suggester_configuration'] = $suggester->getConfiguration();
     }
