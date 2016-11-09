@@ -121,11 +121,13 @@ class Suggestion implements SuggestionInterface {
    *   The suggestion suffix.
    * @param int $results
    *   (optional) The amount of results.
+   * @param string $user_input
+   *   (optional) The user input.
    *
    * @return static
    */
-  public static function fromSuggestionSuffix($suggestion_suffix, $results = 0) {
-    return new static(NULL, '', '', $suggestion_suffix, '', '', $results);
+  public static function fromSuggestionSuffix($suggestion_suffix, $results = 0, $user_input = '') {
+    return new static(NULL, '', '', '', $user_input, $suggestion_suffix, $results);
   }
 
   /**
