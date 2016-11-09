@@ -78,8 +78,8 @@ class Suggestion implements SuggestionInterface {
    *   The user input.
    * @param null|string $suggestionSuffix
    *   The suggestion suffix.
-   * @param array|null $results
-   *   The results.
+   * @param int $results
+   *   The number of results.
    * @param array $render
    *   The render array.
    */
