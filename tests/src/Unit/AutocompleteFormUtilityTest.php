@@ -5,12 +5,17 @@ namespace Drupal\Tests\search_api_autocomplete\Unit;
 use Drupal\search_api_autocomplete\AutocompleteFormUtility;
 
 /**
- * @coversDefaultClass \Drupal\search_api_autocomplete\AutocompleteFormUtility
+ * Tests various utility methods of the Search API Autocomplete module.
+ *
  * @group search_api_autocomplete
+ *
+ * @coversDefaultClass \Drupal\search_api_autocomplete\AutocompleteFormUtility
  */
 class AutocompleteFormUtilityTest extends \PHPUnit_Framework_TestCase {
 
   /**
+   * Tests splitting of user input into complete and incomplete words.
+   *
    * @covers ::splitKeys
    *
    * @dataProvider providerTestSplitKeys
