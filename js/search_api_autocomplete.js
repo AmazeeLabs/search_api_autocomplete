@@ -5,6 +5,31 @@
 
 (function ($) {
 
+  var oldSelect = Drupal.autocomplete.options.select;
+  // Override the "select" option of the jQueryUI auto-complete to
+  // add the functionality to submit the form if the auto_submit class
+  // is present.
+  Drupal.autocomplete.options.select = function (event, ui) {
+    oldSelect.call(this, event, ui);
+    if ($(this).hasClass('auto_submit')) {
+      var selector = getSettingD8(this, 'selector', ':submit');
+      $(selector, this.form).trigger('click');
+    }
+  };
+
+  var getSettingD8 = function (input, setting, defaultValue) {
+    var search = $(input).data('search-api-autocomplete-search');
+    if (typeof search == 'undefined'
+      || typeof drupalSettings.search_api_autocomplete == 'undefined'
+      || typeof drupalSettings.search_api_autocomplete[search] == 'undefined'
+      || typeof drupalSettings.search_api_autocomplete[search][setting] == 'undefined') {
+      return defaultValue;
+    }
+    return Drupal.settings.search_api_autocomplete[search][setting];
+  };
+
+  // @todo All of the below is outdated in D8.
+
   // Auto-submit main search input after autocomplete.
   if (typeof Drupal.jsAC != 'undefined') {
 
