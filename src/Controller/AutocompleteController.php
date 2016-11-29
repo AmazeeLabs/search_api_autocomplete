@@ -114,10 +114,11 @@ class AutocompleteController extends ControllerBase implements ContainerInjectio
             $this->moduleHandler()->alter('search_api_autocomplete_suggestions', $ret, $alter_params);
 
             /*** @var \Drupal\search_api_autocomplete\SuggestionInterface $suggestion */
-            foreach ($ret as $key => $suggestion) {
+            foreach ($ret as $suggestion) {
               if ($build = $suggestion->toRenderable()) {
                 $matches[] = [
-                  'value' => $key,
+                  // @todo Why doesn't $key work here for numeric suggestions?
+                  'value' => $suggestion->getKeys(),
                   'label' => $this->renderer->render($build),
                 ];
               }
