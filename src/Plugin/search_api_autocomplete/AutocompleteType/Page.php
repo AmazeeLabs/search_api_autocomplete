@@ -5,12 +5,10 @@ namespace Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\Autocomp
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Plugin\PluginBase;
-use Drupal\search_api\Entity\Index;
 use Drupal\search_api\IndexInterface;
-use Drupal\search_api\Utility;
+use Drupal\search_api\Utility\QueryHelper;
 use Drupal\search_api_autocomplete\Type\TypeInterface;
 use Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface;
-use Drupal\search_api_page\Entity\SearchApiPage;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -33,6 +31,13 @@ class Page extends PluginBase implements TypeInterface, ContainerFactoryPluginIn
   protected $entityTypeManager;
 
   /**
+   * The query helper service.
+   *
+   * @var \Drupal\search_api\Utility\QueryHelper|null
+   */
+  protected $queryHelper;
+
+  /**
    * Creates a new Page instance.
    *
    * @param array $configuration
@@ -53,12 +58,39 @@ class Page extends PluginBase implements TypeInterface, ContainerFactoryPluginIn
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static(
+    $plugin = new static(
       $configuration,
       $plugin_id,
       $plugin_definition,
       $container->get('entity_type.manager')
     );
+
+    $plugin->setQueryHelper($container->get('search_api.query_helper'));
+
+    return $plugin;
+  }
+
+  /**
+   * Retrieves the query helper.
+   *
+   * @return \Drupal\search_api\Utility\QueryHelper
+   *   The query helper.
+   */
+  public function getQueryHelper() {
+    return $this->queryHelper ?: \Drupal::service('search_api.query_helper');
+  }
+
+  /**
+   * Sets the query helper.
+   *
+   * @param \Drupal\search_api\Utility\QueryHelper $query_helper
+   *   The new query helper.
+   *
+   * @return $this
+   */
+  public function setQueryHelper(QueryHelper $query_helper) {
+    $this->queryHelper = $query_helper;
+    return $this;
   }
 
   /**
@@ -93,11 +125,15 @@ class Page extends PluginBase implements TypeInterface, ContainerFactoryPluginIn
    * {@inheritdoc}
    */
   public function createQuery(SearchApiAutocompleteSearchInterface $search, $complete, $incomplete) {
-    $page = SearchApiPage::load($search->getOption('custom.page_id'));
-    // Copied from search_api_page_search_execute().
-    $query = Utility::createQuery(Index::load($page->getIndex()));
-    $query
-      ->keys($complete);
+    /** @var \Drupal\search_api_page\SearchApiPageInterface $page */
+    $page = $this->entityTypeManager
+      ->getStorage('search_api_page')
+      ->load($search->getOption('custom.page_id'));
+    $index = $this->entityTypeManager
+      ->getStorage('search_api_index')
+      ->load($page->getIndex());
+    $query = $this->getQueryHelper()->createQuery($index);
+    $query->keys($complete);
     if ($page->getFulltextFields()) {
       $query->setFulltextFields($page->getSearchedFields());
     }
