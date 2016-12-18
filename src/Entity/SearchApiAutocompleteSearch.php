@@ -326,9 +326,7 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase implements SearchApiA
    */
   public function calculateDependencies() {
     parent::calculateDependencies();
-
-    $this->index()->calculateDependencies();
-    $this->addDependencies($this->index()->getDependencies());
+    $this->addDependency($this->index()->getConfigDependencyKey(), $this->index()->getConfigDependencyName());
     return $this;
   }
 
