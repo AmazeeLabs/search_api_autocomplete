@@ -63,17 +63,11 @@ class SearchCrudTest extends KernelTestBase {
       'name' => 'Index !1%$_',
       'status' => TRUE,
       'datasource_settings' => [
-        'entity:user' => [
-          'plugin_id' => 'entity:user',
-          'settings' => [],
-        ],
+        'entity:user' => [],
       ],
       'server' => 'server',
       'tracker_settings' => [
-        'default' => [
-          'plugin_id' => 'default',
-          'settings' => [],
-        ],
+        'default' => [],
       ],
     ]);
     $index->setServer($server);
