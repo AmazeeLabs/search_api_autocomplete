@@ -11,7 +11,7 @@ use Drupal\search_api_autocomplete\Annotation\SearchApiAutocompleteSuggester;
  * Provides a plugin manager for autocomplete suggestion plugins.
  *
  * @see \Drupal\search_api_autocomplete\Suggester\SuggesterInterface
- * @see \Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\AutocompleteSuggester\SuggesterPluginBase
+ * @see \Drupal\search_api_autocomplete\Suggester\SuggesterPluginBase
  * @see \Drupal\search_api_autocomplete\Annotation\SearchApiAutocompleteSuggester
  */
 class SuggesterManager extends DefaultPluginManager {

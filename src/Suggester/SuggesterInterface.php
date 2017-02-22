@@ -11,7 +11,7 @@ use Drupal\search_api\Query\QueryInterface;
  * Represents a plugin for creating autocomplete suggestions.
  *
  * @see \Drupal\search_api_autocomplete\Suggester\SuggesterManager
- * @see \Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\AutocompleteSuggester\SuggesterPluginBase
+ * @see \Drupal\search_api_autocomplete\Suggester\SuggesterPluginBase
  * @see \Drupal\search_api_autocomplete\Annotation\SearchApiAutocompleteSuggester
  */
 interface SuggesterInterface extends ConfigurablePluginInterface, PluginInspectionInterface {

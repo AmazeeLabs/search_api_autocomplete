@@ -11,7 +11,7 @@ use Drupal\Component\Annotation\Plugin;
  *
  * @see \Drupal\search_api_autocomplete\Suggester\SuggesterInterface
  * @see \Drupal\search_api_autocomplete\Suggester\SuggesterManager
- * @see \Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\AutocompleteSuggester\SuggesterPluginBase
+ * @see \Drupal\search_api_autocomplete\Suggester\SuggesterPluginBase
  */
 class SearchApiAutocompleteSuggester extends Plugin {
 
