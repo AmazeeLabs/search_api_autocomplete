@@ -329,7 +329,7 @@ class AutocompleteSearchEditForm extends EntityForm {
     }
     else {
       $values['options']['suggester_configuration'] = [];
-      $form_state['redirect'] = NULL;
+      $form_state->disableRedirect();
       drupal_set_message(t('The used suggester plugin has changed. Please review the configuration for the new plugin.'), 'warning');
     }
 
