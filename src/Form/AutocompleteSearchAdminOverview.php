@@ -306,15 +306,20 @@ class AutocompleteSearchAdminOverview extends FormBase {
   }
 
   /**
+   * Load the autocomplete plugins for an index.
+   *
    * @param string $index_id
    *   The index ID.
    *
    * @return \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface[]
+   *   An array of autocomplete plugins.
    */
   protected function loadAutocompleteSearchByIndex($index_id) {
-    return $this->entityTypeManager->getStorage('search_api_autocomplete_search')->loadByProperties([
-      'index_id' => $index_id,
-    ]);
+    return $this->entityTypeManager
+      ->getStorage('search_api_autocomplete_search')
+      ->loadByProperties([
+        'index_id' => $index_id,
+      ]);
   }
 
 }

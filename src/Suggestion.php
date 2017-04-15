@@ -10,35 +10,35 @@ class Suggestion implements SuggestionInterface {
   /**
    * The keywords this suggestion will autocomplete to.
    *
-   * @return string[]|null
+   * @var string[]|null
    */
   protected $keys = NULL;
 
   /**
    * A URL to which the suggestion should redirect to.
    *
-   * @return string|null
+   * @var string|null
    */
   protected $url = NULL;
 
   /**
    * For special suggestions, some kind of HTML prefix describing them.
    *
-   * @return string|null
+   * @var string|null
    */
   protected $prefix = NULL;
 
   /**
    * A suggested prefix for the entered input.
    *
-   * @return string|null
+   * @var string|null
    */
   protected $suggestionPrefix = '';
 
   /**
    * The input entered by the user. Defaults to $user_input.
    *
-   * @return string|null
+   * @var string|null
    */
   protected $userInput;
 
@@ -72,7 +72,7 @@ class Suggestion implements SuggestionInterface {
    *   The url.
    * @param string $prefix
    *   The prefix.
-   * @param $suggestionPrefix
+   * @param string $suggestionPrefix
    *   The suggestion prefix.
    * @param string $userInput
    *   The user input.
@@ -83,7 +83,7 @@ class Suggestion implements SuggestionInterface {
    * @param array $render
    *   The render array.
    */
-  public function __construct($keys = NULL, $url = '', $prefix = '', $suggestionPrefix = '', $userInput = '', $suggestionSuffix = '', $results = 0, $render = []) {
+  public function __construct(array $keys = NULL, $url = '', $prefix = '', $suggestionPrefix = '', $userInput = '', $suggestionSuffix = '', $results = 0, array $render = []) {
     $this->keys = $keys;
     $this->url = $url;
     $this->prefix = $prefix;

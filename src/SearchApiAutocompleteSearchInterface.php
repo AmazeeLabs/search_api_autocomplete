@@ -38,12 +38,11 @@ interface SearchApiAutocompleteSearchInterface extends ConfigEntityInterface {
   public function supportsAutocompletion();
 
   /**
-   * Create the query that would be issued for this search for the complete
-   * keys.
+   * Create the query for this search for the complete keys.
    *
-   * @param $complete
+   * @param string $complete
    *   A string containing the complete search keys.
-   * @param $incomplete
+   * @param string $incomplete
    *   A string containing the incomplete last search key.
    *
    * @return \Drupal\search_api\Query\QueryInterface
@@ -87,19 +86,26 @@ interface SearchApiAutocompleteSearchInterface extends ConfigEntityInterface {
   public function getSuggester($reset = FALSE);
 
   /**
+   * Sets the label for autocomplete.
+   *
    * @param string $label
+   *   The label for the autocomplete.
    */
   public function setLabel($label);
 
   /**
-   * @return int
+   * Return the id of the index.
+   *
+   * @return string
+   *   The index id.
    */
   public function getIndexId();
 
   /**
    * Returns the index instance.
    *
-   * @return mixed
+   * @return \Drupal\search_api\IndexInterface
+   *   The index instance.
    */
   public function getIndexInstance();
 
@@ -110,6 +116,7 @@ interface SearchApiAutocompleteSearchInterface extends ConfigEntityInterface {
    *   The index ID.
    *
    * @return $this
+   *   An instance of the plugin.
    */
   public function setIndexId($index_id);
 
@@ -117,6 +124,7 @@ interface SearchApiAutocompleteSearchInterface extends ConfigEntityInterface {
    * Gets the autocompletion type.
    *
    * @return string
+   *   The autocompletion type.
    */
   public function getType();
 
@@ -127,6 +135,7 @@ interface SearchApiAutocompleteSearchInterface extends ConfigEntityInterface {
    *   The autocompletion type.
    *
    * @return $this
+   *   An instance of the plugin.
    */
   public function setType($type);
 
@@ -145,8 +154,9 @@ interface SearchApiAutocompleteSearchInterface extends ConfigEntityInterface {
    *   The options.
    *
    * @return $this
+   *   An instance of the plugin.
    */
-  public function setOptions($options);
+  public function setOptions(array $options);
 
   /**
    * Gets a specific option.
@@ -157,6 +167,7 @@ interface SearchApiAutocompleteSearchInterface extends ConfigEntityInterface {
    *   (optional) The default value.
    *
    * @return mixed|null
+   *   A specific option's value.
    */
   public function getOption($key, $default = NULL);
 

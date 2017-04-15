@@ -21,6 +21,7 @@ interface SuggestionInterface extends RenderableInterface {
    * instead.
    *
    * @return string[]|null
+   *   An array of keys or null when no keywords are provided.
    */
   public function getKeys();
 
@@ -32,6 +33,8 @@ interface SuggestionInterface extends RenderableInterface {
    * makes "keys" obsolete.
    *
    * @return string|null
+   *   The URL to which the suggestion should redirect to or null if no path is
+   *   found.
    */
   public function getUrl();
 
@@ -39,6 +42,7 @@ interface SuggestionInterface extends RenderableInterface {
    * For special suggestions, some kind of HTML prefix describing them.
    *
    * @return string|null
+   *   A prefix.
    */
   public function getPrefix();
 
@@ -46,6 +50,7 @@ interface SuggestionInterface extends RenderableInterface {
    * A suggested prefix for the entered input.
    *
    * @return string|null
+   *   A prefix.
    */
   public function getSuggestionPrefix();
 
@@ -53,6 +58,7 @@ interface SuggestionInterface extends RenderableInterface {
    * The input entered by the user. Defaults to $user_input.
    *
    * @return string|null
+   *   The input provided by the user.
    */
   public function getUserInput();
 
@@ -60,6 +66,7 @@ interface SuggestionInterface extends RenderableInterface {
    * A suggested suffix for the entered input.
    *
    * @return string|null
+   *   A suffix.
    */
   public function getSuggestionSuffix();
 
@@ -67,6 +74,7 @@ interface SuggestionInterface extends RenderableInterface {
    * If available, the estimated number of results for these keys.
    *
    * @return int|null
+   *   The estimated amount of results.
    */
   public function getResults();
 
@@ -77,6 +85,7 @@ interface SuggestionInterface extends RenderableInterface {
    * suggestion is instead passed to theme_search_api_autocomplete_suggestion().
    *
    * @return array|null
+   *   A renderable array of the suggestion results.
    */
   public function getRender();
 
@@ -87,6 +96,7 @@ interface SuggestionInterface extends RenderableInterface {
    *   The keys.
    *
    * @return $this
+   *   An instance of this plugin.
    */
   public function setKeys($keys);
 
@@ -97,6 +107,7 @@ interface SuggestionInterface extends RenderableInterface {
    *   The URL.
    *
    * @return $this
+   *   An instance of this plugin.
    */
   public function setUrl($url);
 
@@ -107,6 +118,7 @@ interface SuggestionInterface extends RenderableInterface {
    *   The prefix.
    *
    * @return $this
+   *   An instance of this plugin.
    */
   public function setPrefix($prefix);
 
@@ -117,6 +129,7 @@ interface SuggestionInterface extends RenderableInterface {
    *   The suggestion prefix.
    *
    * @return $this
+   *   An instance of this plugin.
    */
   public function setSuggestionPrefix($suggestionPrefix);
 
@@ -127,6 +140,7 @@ interface SuggestionInterface extends RenderableInterface {
    *   The user input.
    *
    * @return $this
+   *   An instance of this plugin.
    */
   public function setUserInput($userInput);
 
@@ -137,6 +151,7 @@ interface SuggestionInterface extends RenderableInterface {
    *   The suggestion suffix.
    *
    * @return $this
+   *   An instance of this plugin.
    */
   public function setSuggestionSuffix($suggestionSuffix);
 
@@ -147,6 +162,7 @@ interface SuggestionInterface extends RenderableInterface {
    *   The results count.
    *
    * @return $this
+   *   An instance of this plugin.
    */
   public function setResults($results);
 
@@ -157,6 +173,7 @@ interface SuggestionInterface extends RenderableInterface {
    *   The render array.
    *
    * @return $this
+   *   An instance of this plugin.
    */
   public function setRender($render);
 

@@ -14,6 +14,8 @@ use Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface;
 use Drupal\views\Views as ViewsViews;
 
 /**
+ * Autocompletion for searches provided by views.
+ *
  * @SearchapiAutocompleteType(
  *   id = "views",
  *   label = @Translation("Search views"),

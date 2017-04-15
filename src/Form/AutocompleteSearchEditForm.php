@@ -66,9 +66,10 @@ class AutocompleteSearchEditForm extends EntityForm {
    * Returns all suggesters matching for a particular search index.
    *
    * @param \Drupal\search_api\IndexInterface $index
-   *   The search index to filter by
+   *   The search index to filter by.
    *
    * @return \Drupal\search_api_autocomplete\Suggester\SuggesterInterface[]
+   *   An array of suggesters.
    */
   protected function getSuggestersForIndex(IndexInterface $index) {
     $suggesters = array_map(function ($suggester_info) {
@@ -308,11 +309,12 @@ class AutocompleteSearchEditForm extends EntityForm {
 
     // @fixme
     // $form_state['redirect'] = 'admin/config/search/search_api/index/' . $search->index_id . '/autocomplete';
+
     // Allow the suggester to decide how to save its configuration. If the user
-    // has disabled JS in the browser, or AJAX didn't work for some other reason,
-    // a different suggester might be selected than that which created the config
-    // form. In that case, we don't call the form submit method, save empty
-    // configuration for the plugin and stay on the page.
+    // has disabled JS in the browser, or AJAX didn't work for some other
+    // reason, a different suggester might be selected than that which created
+    // the config form. In that case, we don't call the form submit method, save
+    // empty configuration for the plugin and stay on the page.
     if ($values['suggester_id'] == $values['old_suggester_id']) {
       $configuration = [];
       if (!empty($values['options']['suggester_configuration'])) {

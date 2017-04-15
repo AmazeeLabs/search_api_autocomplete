@@ -41,9 +41,10 @@ class Permissions implements ContainerInjectionInterface {
   }
 
   /**
-   * Returns a list of permission, one per configured search.
+   * Returns a list of permissions, one per configured search.
    *
-   * @return array[]
+   * @return string[]
+   *   A list of permissions.
    */
   public function bySearch() {
     $perms = [];

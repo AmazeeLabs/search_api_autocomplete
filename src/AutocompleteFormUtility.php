@@ -57,7 +57,7 @@ class AutocompleteFormUtility {
    * Helper method for altering a textfield form element to use autocompletion.
    *
    * @param array $element
-   *   The altered element
+   *   The altered element.
    * @param \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search
    *   The autocomplete search.
    * @param array $fields
@@ -69,10 +69,10 @@ class AutocompleteFormUtility {
     if ($controller->access($search, \Drupal::currentUser())->isAllowed()) {
       // Add option defaults (in case of updates from earlier versions).
       $options = $search->getOptions() + [
-          'submit_button_selector' => ':submit',
-          'autosubmit' => TRUE,
-          'min_length' => 1,
-        ];
+        'submit_button_selector' => ':submit',
+        'autosubmit' => TRUE,
+        'min_length' => 1,
+      ];
 
       $fields_string = $fields ? implode(' ', $fields) : '-';
 
@@ -90,7 +90,7 @@ class AutocompleteFormUtility {
       // Allow overriding of the default handler with a route.
       if ($callback = $search->getOption('custom_autocomplete_url_callback')) {
         $callback_options = $search->getOption('custom_autocomplete_url_options', []);
-          /** @var \Drupal\Core\Url $url */
+        /** @var \Drupal\Core\Url $url */
         $url = call_user_func($callback, $this, $element, $callback_options);
         $autocomplete_route_name = $url->getRouteName();
         $autocomplete_route_parameters = $url->getRouteParameters();

@@ -86,6 +86,7 @@ interface SuggesterInterface extends ConfigurablePluginInterface, PluginInspecti
    *   The complete user input for the fulltext search keywords so far.
    *
    * @return \Drupal\search_api_autocomplete\SuggestionInterface[]
+   *   An array of suggestion interfaces.
    */
   public function getAutocompleteSuggestions(QueryInterface $query, $incomplete_key, $user_input);
 

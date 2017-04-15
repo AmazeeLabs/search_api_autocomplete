@@ -49,7 +49,6 @@ class Server extends SuggesterPluginBase implements SuggesterInterface {
     return parent::setConfiguration($configuration);
   }
 
-
   /**
    * {@inheritdoc}
    */

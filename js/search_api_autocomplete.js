@@ -104,7 +104,7 @@
       }
     };
 
-    Drupal.jsAC.prototype.select = function(node) {
+    Drupal.jsAC.prototype.select = function (node) {
       var autocompleteValue = $(node).data('autocompleteValue');
       // Check whether this is not a suggestion but a "link".
       if (autocompleteValue.charAt(0) == ' ') {

@@ -83,7 +83,9 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase implements SearchApiA
   protected $type;
 
   /**
-   * An array of options for this search, containing any of the following:
+   * An array of options for this search.
+   *
+   * The array can contain any of the following keys.
    * - results: Boolean indicating whether to also list the estimated number of
    *   results for each suggestion (if possible).
    * - fields: Array containing the fulltext fields to use for autocompletion.
@@ -115,8 +117,7 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase implements SearchApiA
   protected $suggester;
 
   /**
-   * @return \Drupal\search_api\IndexInterface
-   *   The index this search belongs to.
+   * {@inheritdoc}
    */
   public function index() {
     if (!isset($this->index)) {
@@ -129,13 +130,7 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase implements SearchApiA
   }
 
   /**
-   * Retrieves the server this search would at the moment be executed on.
-   *
-   * @return \Drupal\search_api\ServerInterface
-   *   The server this search would at the moment be executed on.
-   *
-   * @throws \Drupal\search_api\SearchApiException
-   *   If a server is set for the index but it doesn't exist.
+   * {@inheritdoc}
    */
   public function server() {
     if (!isset($this->server)) {
@@ -192,6 +187,7 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase implements SearchApiA
    * Returns the autocomplete suggester plugin manager.
    *
    * @return \Drupal\Component\Plugin\PluginManagerInterface
+   *   The suggester plugin manager.
    */
   protected function getSuggesterManager() {
     return \Drupal::service('plugin_manager.search_api_autocomplete_suggester');
@@ -201,36 +197,21 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase implements SearchApiA
    * Returns a logger.
    *
    * @return \Psr\Log\LoggerInterface
+   *   A logger instance.
    */
   protected function getLogger() {
     return \Drupal::logger('search_api_autocomplete');
   }
 
   /**
-   * Determines whether autocompletion is currently supported for this search.
-   *
-   * @return bool
-   *   TRUE if autocompletion is possible for this search with the current
-   *   settings; FALSE otherwise.
+   * {@inheritdoc}
    */
   public function supportsAutocompletion() {
     return $this->index() && $this->getSuggester() && $this->getSuggester()->supportsIndex($this->index());
   }
 
   /**
-   * Create the query that would be issued for this search for the complete keys.
-   *
-   * @param $complete
-   *   A string containing the complete search keys.
-   * @param $incomplete
-   *   A string containing the incomplete last search key.
-   *
-   * @return \Drupal\search_api\Query\QueryInterface
-   *   The query that would normally be executed when only $complete was entered
-   *   as the search keys for this search.
-   *
-   * @throws \Drupal\search_api\SearchApiException
-   *   If the query couldn't be created.
+   * {@inheritdoc}
    */
   public function getQuery($complete, $incomplete) {
     $type = $this->getTypeInstance();
@@ -245,9 +226,11 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase implements SearchApiA
    * Returns the autocomplete instance for this autocomplete search.
    *
    * @return \Drupal\search_api_autocomplete\Type\TypeInterface
+   *   The autocomplete type instance.
    */
   protected function getTypeInstance() {
-    return \Drupal::service('plugin_manager.search_api_autocomplete_type')->createInstance($this->getType());
+    return \Drupal::service('plugin_manager.search_api_autocomplete_type')
+      ->createInstance($this->getType());
   }
 
   /**
@@ -308,7 +291,7 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase implements SearchApiA
   /**
    * {@inheritdoc}
    */
-  public function setOptions($options) {
+  public function setOptions(array $options) {
     $this->options = $options;
     return $this;
   }
