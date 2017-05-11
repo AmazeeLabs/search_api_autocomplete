@@ -20,8 +20,8 @@ interface SuggestionInterface extends RenderableInterface {
    * "suggestion_prefix", "user_input" and "suggestion_suffix" will be used
    * instead.
    *
-   * @return string[]|null
-   *   An array of keys or null when no keywords are provided.
+   * @return string|null
+   *   The suggested keywords, or NULL when no keywords are provided.
    */
   public function getKeys();
 

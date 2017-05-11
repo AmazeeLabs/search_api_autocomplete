@@ -10,7 +10,7 @@ class Suggestion implements SuggestionInterface {
   /**
    * The keywords this suggestion will autocomplete to.
    *
-   * @var string[]|null
+   * @var string|null
    */
   protected $keys = NULL;
 
@@ -66,7 +66,7 @@ class Suggestion implements SuggestionInterface {
   /**
    * Creates a new Suggestion instance.
    *
-   * @param array $keys
+   * @param string|null $keys
    *   The keys.
    * @param string $url
    *   The url.
@@ -83,7 +83,7 @@ class Suggestion implements SuggestionInterface {
    * @param array $render
    *   The render array.
    */
-  public function __construct(array $keys = NULL, $url = '', $prefix = '', $suggestionPrefix = '', $userInput = '', $suggestionSuffix = '', $results = 0, array $render = []) {
+  public function __construct($keys = NULL, $url = '', $prefix = '', $suggestionPrefix = '', $userInput = '', $suggestionSuffix = '', $results = 0, array $render = []) {
     $this->keys = $keys;
     $this->url = $url;
     $this->prefix = $prefix;
