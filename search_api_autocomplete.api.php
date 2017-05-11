@@ -453,7 +453,7 @@ function example_search_api_query_alter(SearchApiQueryInterface $query) {
 /**
  * Returns the URL to use for a custom script.
  *
- * @param \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterfaceh $search
+ * @param \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search
  *   The autocomplete search in question.
  * @param array $element
  *   The form element for which autocompletion is being added.
@@ -469,7 +469,7 @@ function example_search_api_query_alter(SearchApiQueryInterface $query) {
 function callback_search_api_autocomplete_script_url(\Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search, array $element, array $config) {
   // Solution to use a custom script on multilingual sites which have the
   // current language as the first path element.
-  global $language;
+  $language = \Drupal::languageManager()->getCurrentLanguage();
   $options = [
     'absolute' => TRUE,
     // Don't prefix the path with the language, always point to the root
@@ -478,8 +478,8 @@ function callback_search_api_autocomplete_script_url(\Drupal\search_api_autocomp
       'language' => '',
     ],
     'query' => [
-      'machine_name' => $search->machine_name,
-      'language' => $language->language,
+      'machine_name' => $search->id(),
+      'language' => $language->getId(),
     ],
   ];
   return url($config['#url'], $options);
