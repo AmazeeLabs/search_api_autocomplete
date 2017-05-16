@@ -3,12 +3,12 @@
 namespace Drupal\search_api_autocomplete\Type;
 
 use Drupal\search_api\IndexInterface;
-use Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface;
+use Drupal\search_api_autocomplete\SearchInterface;
 
 /**
  * Defines the auto complete type plugin.
  *
- * @see \Drupal\search_api_autocomplete\Annotation\SearchapiAutocompleteType
+ * @see \Drupal\search_api_autocomplete\Annotation\SearchApiAutocompleteType
  * @see \Drupal\search_api_autocomplete\Type\TypeManager
  */
 interface TypeInterface {
@@ -41,18 +41,19 @@ interface TypeInterface {
   public function listSearches(IndexInterface $index);
 
   /**
-   * Creates the searchapi query based upon the typed strings.
+   * Creates a search query based on this search type.
    *
-   * @param \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search
+   * @param \Drupal\search_api_autocomplete\SearchInterface $search
    *   The autocomplete search configuration.
-   * @param string $complete
-   *   A complete word.
-   * @param string $incomplete
-   *   An incomplete word.
+   * @param string $keys
+   *   The keywords to set on the query.
    *
    * @return \Drupal\search_api\Query\QueryInterface
    *   The created query.
+   *
+   * @throws \Drupal\search_api\SearchApiException
+   *   Thrown if the query couldn't be created.
    */
-  public function createQuery(SearchApiAutocompleteSearchInterface $search, $complete, $incomplete);
+  public function createQuery(SearchInterface $search, $keys);
 
 }

@@ -32,7 +32,7 @@ interface SuggestionInterface extends RenderableInterface {
    * user input in the text field. This overrides the normal behavior and thus
    * makes "keys" obsolete.
    *
-   * @return string|null
+   * @return \Drupal\Core\Url|null
    *   The URL to which the suggestion should redirect to or null if no path is
    *   found.
    */
@@ -96,7 +96,6 @@ interface SuggestionInterface extends RenderableInterface {
    *   The keys.
    *
    * @return $this
-   *   An instance of this plugin.
    */
   public function setKeys($keys);
 
@@ -107,7 +106,6 @@ interface SuggestionInterface extends RenderableInterface {
    *   The URL.
    *
    * @return $this
-   *   An instance of this plugin.
    */
   public function setUrl($url);
 
@@ -118,51 +116,46 @@ interface SuggestionInterface extends RenderableInterface {
    *   The prefix.
    *
    * @return $this
-   *   An instance of this plugin.
    */
   public function setPrefix($prefix);
 
   /**
    * Sets the suggestion prefix.
    *
-   * @param mixed $suggestionPrefix
+   * @param mixed $suggestion_prefix
    *   The suggestion prefix.
    *
    * @return $this
-   *   An instance of this plugin.
    */
-  public function setSuggestionPrefix($suggestionPrefix);
+  public function setSuggestionPrefix($suggestion_prefix);
 
   /**
    * Sets the user input.
    *
-   * @param mixed $userInput
+   * @param string $user_input
    *   The user input.
    *
    * @return $this
-   *   An instance of this plugin.
    */
-  public function setUserInput($userInput);
+  public function setUserInput($user_input);
 
   /**
    * Sets the suggestion suffix.
    *
-   * @param null|string $suggestionSuffix
+   * @param string|null $suggestion_suffix
    *   The suggestion suffix.
    *
    * @return $this
-   *   An instance of this plugin.
    */
-  public function setSuggestionSuffix($suggestionSuffix);
+  public function setSuggestionSuffix($suggestion_suffix);
 
   /**
    * Sets the result count.
    *
-   * @param string $results
-   *   The results count.
+   * @param int $results
+   *   The result count.
    *
    * @return $this
-   *   An instance of this plugin.
    */
   public function setResults($results);
 
@@ -173,7 +166,6 @@ interface SuggestionInterface extends RenderableInterface {
    *   The render array.
    *
    * @return $this
-   *   An instance of this plugin.
    */
   public function setRender($render);
 

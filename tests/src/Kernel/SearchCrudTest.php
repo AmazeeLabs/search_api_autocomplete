@@ -5,7 +5,7 @@ namespace Drupal\Tests\search_api_autocomplete\Kernel;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\search_api\Entity\Index;
 use Drupal\search_api\Entity\Server;
-use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
+use Drupal\search_api_autocomplete\Entity\Search;
 
 /**
  * Tests saving a Search API autocomplete config entity.
@@ -78,13 +78,15 @@ class SearchCrudTest extends KernelTestBase {
    * Creates and saves an autocomplete entity.
    */
   public function testCreate() {
-    $autocomplete_search = SearchApiAutocompleteSearch::create([
+    $autocomplete_search = Search::create([
       'id' => 'muh',
       'label' => 'Meh',
       'index_id' => 'index',
-      'suggester_id' => 'server',
+      'suggester' => 'server',
       'type' => 'test_type',
-      'options' => ['key' => 'value'],
+      'options' => [
+        'delay' => 1338,
+      ],
     ]);
     $autocomplete_search->save();
   }

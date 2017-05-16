@@ -10,14 +10,14 @@ use Drupal\Core\Render\Element;
 use Drupal\Core\Routing\RedirectDestinationInterface;
 use Drupal\Core\Url;
 use Drupal\search_api\IndexInterface;
-use Drupal\search_api_autocomplete\Entity\SearchApiAutocompleteSearch;
+use Drupal\search_api_autocomplete\Entity\Search;
 use Drupal\search_api_autocomplete\Type\TypeManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Defines the overview of all search autocompletion configurations.
  */
-class AutocompleteSearchAdminOverview extends FormBase {
+class IndexOverviewForm extends FormBase {
 
   /**
    * The autocomplete suggester manager.
@@ -71,8 +71,8 @@ class AutocompleteSearchAdminOverview extends FormBase {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('plugin_manager.search_api_autocomplete_suggester'),
-      $container->get('plugin_manager.search_api_autocomplete_type'),
+      $container->get('plugin.manager.search_api_autocomplete.suggester'),
+      $container->get('plugin.manager.search_api_autocomplete.type'),
       $container->get('entity_type.manager'),
       $container->get('redirect.destination')
     );
@@ -115,9 +115,9 @@ class AutocompleteSearchAdminOverview extends FormBase {
     if (!$available_suggesters) {
       $args = [
         '@feature' => 'search_api_autocomplete',
-        ':service_classes_url' => 'https://www.drupal.org/node/1254698#service-classes',
+        ':backends_url' => 'https://www.drupal.org/docs/8/modules/search-api/getting-started/server-backends-and-features#backends',
       ];
-      drupal_set_message($this->t('There are currently no suggester plugins installed that support this index. To solve this problem, you can either:<ul><li>move the index to a server which supports the "@feature" feature (see the <a href=":service_classes_url">available service class</a>)</li><li>or install a module providing a new suggester plugin that supports this index</li></ul>', $args), 'error');
+      drupal_set_message($this->t('There are currently no suggester plugins installed that support this index. To solve this problem, you can either:<ul><li>move the index to a server which supports the "@feature" feature (see the <a href=":backends_url">available backends</a>);</li><li>or install a module providing a new suggester plugin that supports this index.</li></ul>', $args), 'error');
       if ($this->loadAutocompleteSearchByIndex($index_id)) {
         $form['description'] = [
           '#type' => 'item',
@@ -155,21 +155,16 @@ class AutocompleteSearchAdminOverview extends FormBase {
             'id' => $id,
             'label' => $id,
             'index_id' => $index_id,
-            'suggester_id' => key($available_suggesters),
+            'suggester' => key($available_suggesters),
             'type' => $type,
             'status' => 0,
             'options' => [],
           ];
-          $search['options'] += [
-            'results' => TRUE,
-            'fields' => [],
-          ];
-          // @todo this is ugly!
-          $searches_by_type[$type][$id] = SearchApiAutocompleteSearch::create($search);
+          $searches_by_type[$type][$id] = Search::create($search);
         }
       }
     }
-    /** @var \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search */
+    /** @var \Drupal\search_api_autocomplete\SearchInterface $search */
     foreach ($searches as $id => $search) {
       $type = isset($types[$search->getType()]) ? $search->getType() : '';
       $searches_by_type[$type][$id] = $search;
@@ -205,7 +200,7 @@ class AutocompleteSearchAdminOverview extends FormBase {
       ];
       $form[$type]['searches']['#empty'] = '';
       $form[$type]['searches']['#js_select'] = TRUE;
-      /** @var \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search */
+      /** @var \Drupal\search_api_autocomplete\SearchInterface $search */
       foreach ($searches_by_type[$type] as $id => $search) {
         $form[$type]['searches'][$id] = [
           '#type' => 'checkbox',
@@ -269,7 +264,7 @@ class AutocompleteSearchAdminOverview extends FormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $messages = $this->t('The settings have been saved.');
     foreach ($form_state->getValue('searches') as $id => $enabled) {
-      /** @var \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search */
+      /** @var \Drupal\search_api_autocomplete\SearchInterface $search */
       $search = $form_state->get(['searches', $id]);
       if ($search->status() != $enabled) {
         $change = TRUE;
@@ -311,7 +306,7 @@ class AutocompleteSearchAdminOverview extends FormBase {
    * @param string $index_id
    *   The index ID.
    *
-   * @return \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface[]
+   * @return \Drupal\search_api_autocomplete\SearchInterface[]
    *   An array of autocomplete plugins.
    */
   protected function loadAutocompleteSearchByIndex($index_id) {

@@ -48,7 +48,7 @@ class Permissions implements ContainerInjectionInterface {
    */
   public function bySearch() {
     $perms = [];
-    /** @var \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search */
+    /** @var \Drupal\search_api_autocomplete\SearchInterface $search */
     foreach ($this->storage->loadMultiple() as $id => $search) {
       $perms['use search_api_autocomplete for ' . $id] = [
         'title' => $this->t('Use autocomplete for the %search search', ['%search' => $search->label()]),

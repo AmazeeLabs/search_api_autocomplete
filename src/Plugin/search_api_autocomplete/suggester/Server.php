@@ -5,10 +5,9 @@ namespace Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\suggeste
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\search_api\IndexInterface;
 use Drupal\search_api\Query\QueryInterface;
-use Drupal\search_api\SearchApiException;
+use Drupal\search_api_autocomplete\AutocompleteBackendInterface;
 use Drupal\search_api_autocomplete\Suggester\SuggesterInterface;
 use Drupal\search_api_autocomplete\Suggester\SuggesterPluginBase;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Provides a suggester plugin that retrieves suggestions from the server.
@@ -19,7 +18,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @SearchApiAutocompleteSuggester(
  *   id = "server",
  *   label = @Translation("Retrieve from server"),
- *   description = @Translation("For compatible servers, ask the server for autocomplete suggestions."),
+ *   description = @Translation("Make suggestions based on the data indexed on the server."),
  * )
  */
 class Server extends SuggesterPluginBase implements SuggesterInterface {
@@ -27,38 +26,8 @@ class Server extends SuggesterPluginBase implements SuggesterInterface {
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    $search = $configuration['search'];
-    unset($configuration['search']);
-    return new static(
-      $search,
-      $configuration,
-      $plugin_id,
-      $plugin_definition
-    );
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function setConfiguration(array $configuration) {
-    if (isset($configuration['fields'])) {
-      $configuration['fields'] = array_filter($configuration['fields']);
-    }
-
-    return parent::setConfiguration($configuration);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public static function supportsIndex(IndexInterface $index) {
-    try {
-      return $index->getServerInstance() && $index->getServerInstance()->supportsFeature('search_api_autocomplete');
-    }
-    catch (SearchApiException $e) {
-      return FALSE;
-    }
+    return (bool) static::getBackend($index);
   }
 
   /**
@@ -76,8 +45,8 @@ class Server extends SuggesterPluginBase implements SuggesterInterface {
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     // Add a list of fields to include for autocomplete searches.
     $search = $this->getSearch();
-    $fields = $search->index()->getFields();
-    $fulltext_fields = $search->index()->getFulltextFields();
+    $fields = $search->getIndexInstance()->getFields();
+    $fulltext_fields = $search->getIndexInstance()->getFulltextFields();
     $options = [];
     foreach ($fulltext_fields as $field) {
       $options[$field] = $fields[$field]->getFieldIdentifier();
@@ -99,8 +68,6 @@ class Server extends SuggesterPluginBase implements SuggesterInterface {
    * {@inheritdoc}
    */
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
-    parent::submitConfigurationForm($form, $form_state);
-
     $values = $form_state->getValues();
     $values['fields'] = array_keys(array_filter($values['fields']));
     $this->setConfiguration($values);
@@ -114,16 +81,32 @@ class Server extends SuggesterPluginBase implements SuggesterInterface {
       $query->setFulltextFields($this->configuration['fields']);
     }
 
-    if (($server = $query->getIndex()->getServerInstance()) && $server->supportsFeature('search_api_autocomplete')) {
-      return $server->getBackend()->getAutocompleteSuggestions($query, $this->getSearch(), $incomplete_key, $user_input);
+    if ($backend = static::getBackend($this->getIndex())) {
+      return $backend->getAutocompleteSuggestions($query, $this->getSearch(), $incomplete_key, $user_input);
     }
     return NULL;
   }
 
   /**
-   * {@inheritdoc}
+   * Retrieves the backend for the given index, if it supports autocomplete.
+   *
+   * @param \Drupal\search_api\IndexInterface $index
+   *   The search index.
+   *
+   * @return \Drupal\search_api_autocomplete\AutocompleteBackendInterface|null
+   *   The backend plugin of the index's server, if it exists and supports
+   *   autocomplete; NULL otherwise.
    */
-  public function onDependencyRemoval(array $dependencies) {
+  protected static function getBackend(IndexInterface $index) {
+    if (!$index->hasValidServer()) {
+      return NULL;
+    }
+    $server = $index->getServerInstance();
+    $backend = $server->getBackend();
+    if ($server->supportsFeature('search_api_autocomplete') || $backend instanceof AutocompleteBackendInterface) {
+      return $backend;
+    }
+    return NULL;
   }
 
 }

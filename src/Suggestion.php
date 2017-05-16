@@ -2,6 +2,9 @@
 
 namespace Drupal\search_api_autocomplete;
 
+use Drupal\Component\Utility\Unicode;
+use Drupal\Core\Url;
+
 /**
  * Provides a value object meant to be used as result of suggestions.
  */
@@ -12,28 +15,28 @@ class Suggestion implements SuggestionInterface {
    *
    * @var string|null
    */
-  protected $keys = NULL;
+  protected $keys;
 
   /**
-   * A URL to which the suggestion should redirect to.
+   * A URL to which the suggestion should redirect.
    *
-   * @var string|null
+   * @var \Drupal\Core\Url|null
    */
-  protected $url = NULL;
+  protected $url;
 
   /**
    * For special suggestions, some kind of HTML prefix describing them.
    *
    * @var string|null
    */
-  protected $prefix = NULL;
+  protected $prefix;
 
   /**
    * A suggested prefix for the entered input.
    *
    * @var string|null
    */
-  protected $suggestionPrefix = '';
+  protected $suggestionPrefix;
 
   /**
    * The input entered by the user. Defaults to $user_input.
@@ -47,49 +50,49 @@ class Suggestion implements SuggestionInterface {
    *
    * @var string|null
    */
-  protected $suggestionSuffix = '';
+  protected $suggestionSuffix;
 
   /**
    * If available, the estimated number of results for these keys.
    *
-   * @var string
+   * @var int|null
    */
-  protected $results = NULL;
+  protected $results;
 
   /**
    * If given, an HTML string or render array.
    *
-   * @var array
+   * @var array|null
    */
   protected $render;
 
   /**
-   * Creates a new Suggestion instance.
+   * Constructs a Suggestion object.
    *
    * @param string|null $keys
-   *   The keys.
-   * @param string $url
-   *   The url.
-   * @param string $prefix
-   *   The prefix.
-   * @param string $suggestionPrefix
-   *   The suggestion prefix.
-   * @param string $userInput
-   *   The user input.
-   * @param null|string $suggestionSuffix
-   *   The suggestion suffix.
-   * @param int $results
-   *   The number of results.
-   * @param array $render
-   *   The render array.
+   *   (optional) The keys.
+   * @param \Drupal\Core\Url|null $url
+   *   (optional) The url.
+   * @param string|null $prefix
+   *   (optional) The prefix.
+   * @param string|null $suggestion_prefix
+   *   (optional) The suggestion prefix.
+   * @param string|null $user_input
+   *   (optional) The user input.
+   * @param string|null $suggestion_suffix
+   *   (optional) The suggestion suffix.
+   * @param int|null $results
+   *   (optional) The number of results.
+   * @param array|null $render
+   *   (optional) The render array.
    */
-  public function __construct($keys = NULL, $url = '', $prefix = '', $suggestionPrefix = '', $userInput = '', $suggestionSuffix = '', $results = 0, array $render = []) {
+  public function __construct($keys = NULL, Url $url = NULL, $prefix = NULL, $suggestion_prefix = NULL, $user_input = NULL, $suggestion_suffix = NULL, $results = NULL, array $render = NULL) {
     $this->keys = $keys;
     $this->url = $url;
     $this->prefix = $prefix;
-    $this->suggestionPrefix = $suggestionPrefix;
-    $this->userInput = $userInput;
-    $this->suggestionSuffix = $suggestionSuffix;
+    $this->suggestionPrefix = $suggestion_prefix;
+    $this->userInput = $user_input;
+    $this->suggestionSuffix = $suggestion_suffix;
     $this->results = $results;
     $this->render = $render;
   }
@@ -99,18 +102,21 @@ class Suggestion implements SuggestionInterface {
    *
    * @param string $suggestion
    *   The suggestion string.
-   * @param string $keys
-   *   The search keys.
+   * @param string $user_input
+   *   The user input.
    *
    * @return static
    */
-  public static function fromString($suggestion, $keys) {
-    $pos = strpos($suggestion, $keys);
+  public static function fromSuggestedKeys($suggestion, $user_input) {
+    $pos = Unicode::strpos($suggestion, $user_input);
     if ($pos === FALSE) {
-      return new static(NULL, NULL, '', '', '', $suggestion);
+      return new static(NULL, NULL, NULL, NULL, NULL, $suggestion);
     }
     else {
-      return new static(NULL, '', '', substr($suggestion, 0, $pos), $keys, substr($suggestion, $pos + strlen($keys)));
+      $prefix = Unicode::substr($suggestion, 0, $pos);
+      $pos += Unicode::strlen($user_input);
+      $suffix = Unicode::substr($suggestion, $pos);
+      return new static(NULL, NULL, NULL, $prefix, $user_input, $suffix);
     }
   }
 
@@ -126,15 +132,18 @@ class Suggestion implements SuggestionInterface {
    *
    * @return static
    */
-  public static function fromSuggestionSuffix($suggestion_suffix, $results = 0, $user_input = '') {
-    return new static(NULL, '', '', '', $user_input, $suggestion_suffix, $results);
+  public static function fromSuggestionSuffix($suggestion_suffix, $results = 0, $user_input = NULL) {
+    return new static(NULL, NULL, NULL, NULL, $user_input, $suggestion_suffix, $results);
   }
 
   /**
    * {@inheritdoc}
    */
   public function getKeys() {
-    return $this->keys;
+    if ($this->keys) {
+      return $this->keys;
+    }
+    return $this->suggestionPrefix . $this->userInput . $this->suggestionSuffix;
   }
 
   /**
@@ -213,24 +222,24 @@ class Suggestion implements SuggestionInterface {
   /**
    * {@inheritdoc}
    */
-  public function setSuggestionPrefix($suggestionPrefix) {
-    $this->suggestionPrefix = $suggestionPrefix;
+  public function setSuggestionPrefix($suggestion_prefix) {
+    $this->suggestionPrefix = $suggestion_prefix;
     return $this;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function setUserInput($userInput) {
-    $this->userInput = $userInput;
+  public function setUserInput($user_input) {
+    $this->userInput = $user_input;
     return $this;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function setSuggestionSuffix($suggestionSuffix) {
-    $this->suggestionSuffix = $suggestionSuffix;
+  public function setSuggestionSuffix($suggestion_suffix) {
+    $this->suggestionSuffix = $suggestion_suffix;
     return $this;
   }
 

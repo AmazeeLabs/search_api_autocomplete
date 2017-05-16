@@ -30,10 +30,18 @@ interface SuggesterInterface extends ConfigurablePluginInterface, PluginInspecti
   /**
    * Retrieves the search this plugin is configured for.
    *
-   * @return \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface
+   * @return \Drupal\search_api_autocomplete\SearchInterface
    *   The search this plugin is configured for.
    */
   public function getSearch();
+
+  /**
+   * Retrieves the index associated with this plugin's search.
+   *
+   * @return \Drupal\search_api\IndexInterface
+   *   The index with which the plugin's search is associated.
+   */
+  public function getIndex();
 
   /**
    * Retrieves the plugin's label.
@@ -86,7 +94,7 @@ interface SuggesterInterface extends ConfigurablePluginInterface, PluginInspecti
    *   The complete user input for the fulltext search keywords so far.
    *
    * @return \Drupal\search_api_autocomplete\SuggestionInterface[]
-   *   An array of suggestion interfaces.
+   *   An array of autocomplete suggestions.
    */
   public function getAutocompleteSuggestions(QueryInterface $query, $incomplete_key, $user_input);
 

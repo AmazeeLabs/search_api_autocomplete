@@ -12,7 +12,7 @@ use Drupal\Component\Annotation\Plugin;
  * @see \Drupal\search_api_autocomplete\Type\TypeInterface
  * @see \Drupal\search_api_autocomplete\Type\TypeManager
  */
-class SearchapiAutocompleteType extends Plugin {
+class SearchApiAutocompleteType extends Plugin {
 
   /**
    * The plugin label.

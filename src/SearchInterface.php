@@ -7,26 +7,7 @@ use Drupal\Core\Config\Entity\ConfigEntityInterface;
 /**
  * Describes the autocomplete settings for a certain search.
  */
-interface SearchApiAutocompleteSearchInterface extends ConfigEntityInterface {
-
-  /**
-   * Returns the index this search belongs to.
-   *
-   * @return \Drupal\search_api\IndexInterface
-   *   The index this search belongs to.
-   */
-  public function index();
-
-  /**
-   * Retrieves the server this search would at the moment be executed on.
-   *
-   * @return \Drupal\search_api\ServerInterface
-   *   The server this search would at the moment be executed on.
-   *
-   * @throws \Drupal\search_api\SearchApiException
-   *   If a server is set for the index but it doesn't exist.
-   */
-  public function server();
+interface SearchInterface extends ConfigEntityInterface {
 
   /**
    * Determines whether autocompletion is currently supported for this search.
@@ -38,22 +19,19 @@ interface SearchApiAutocompleteSearchInterface extends ConfigEntityInterface {
   public function supportsAutocompletion();
 
   /**
-   * Create the query for this search for the complete keys.
+   * Creates a query object for this search.
    *
-   * @param string $complete
-   *   A string containing the complete search keys.
-   * @param string $incomplete
-   *   A string containing the incomplete last search key.
+   * @param string $keys
+   *   The search keys.
    *
    * @return \Drupal\search_api\Query\QueryInterface
-   *   The query that would normally be executed when only $complete was
-   *   entered
-   *   as the search keys for this search.
+   *   The query that would normally be executed when $keys is entered as the
+   *   keywords for this search.
    *
    * @throws \Drupal\search_api\SearchApiException
-   *   If the query couldn't be created.
+   *   Thrown if the query couldn't be created.
    */
-  public function getQuery($complete, $incomplete);
+  public function getQuery($keys);
 
   /**
    * Retrieves the ID of the suggester plugin for this search.
@@ -83,10 +61,10 @@ interface SearchApiAutocompleteSearchInterface extends ConfigEntityInterface {
    * @return \Drupal\search_api_autocomplete\Suggester\SuggesterInterface|null
    *   This search's suggester plugin, or NULL if it could not be loaded.
    */
-  public function getSuggester($reset = FALSE);
+  public function getSuggesterInstance($reset = FALSE);
 
   /**
-   * Sets the label for autocomplete.
+   * Sets the label for this search.
    *
    * @param string $label
    *   The label for the autocomplete.
@@ -94,31 +72,30 @@ interface SearchApiAutocompleteSearchInterface extends ConfigEntityInterface {
   public function setLabel($label);
 
   /**
-   * Return the id of the index.
+   * Retrieves the ID of the index this search belongs to.
    *
    * @return string
-   *   The index id.
+   *   The index ID.
    */
   public function getIndexId();
 
   /**
-   * Returns the index instance.
-   *
-   * @return \Drupal\search_api\IndexInterface
-   *   The index instance.
-   */
-  public function getIndexInstance();
-
-  /**
-   * Sets the index ID.
+   * Sets the ID of the index this search belongs to.
    *
    * @param string $index_id
    *   The index ID.
    *
    * @return $this
-   *   An instance of the plugin.
    */
   public function setIndexId($index_id);
+
+  /**
+   * Retrieves the index this search belongs to.
+   *
+   * @return \Drupal\search_api\IndexInterface
+   *   The index this search belongs to.
+   */
+  public function getIndexInstance();
 
   /**
    * Gets the autocompletion type.
@@ -135,7 +112,6 @@ interface SearchApiAutocompleteSearchInterface extends ConfigEntityInterface {
    *   The autocompletion type.
    *
    * @return $this
-   *   An instance of the plugin.
    */
   public function setType($type);
 
@@ -154,7 +130,6 @@ interface SearchApiAutocompleteSearchInterface extends ConfigEntityInterface {
    *   The options.
    *
    * @return $this
-   *   An instance of the plugin.
    */
   public function setOptions(array $options);
 

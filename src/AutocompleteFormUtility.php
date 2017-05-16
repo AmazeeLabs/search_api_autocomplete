@@ -7,6 +7,8 @@ use Drupal\search_api_autocomplete\Controller\AutocompleteController;
 
 /**
  * Provides some helper methods to deal with the autocomplete form.
+ *
+ * @todo This should be a service.
  */
 class AutocompleteFormUtility {
 
@@ -58,12 +60,12 @@ class AutocompleteFormUtility {
    *
    * @param array $element
    *   The altered element.
-   * @param \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search
+   * @param \Drupal\search_api_autocomplete\SearchInterface $search
    *   The autocomplete search.
    * @param array $fields
    *   (optional) Used fulltext fields.
    */
-  public function alterElement(array &$element, SearchApiAutocompleteSearchInterface $search, array $fields = []) {
+  public function alterElement(array &$element, SearchInterface $search, array $fields = []) {
     // @todo find a cleaner solution.
     $controller = new AutocompleteController(\Drupal::service('renderer'));
     if ($controller->access($search, \Drupal::currentUser())->isAllowed()) {

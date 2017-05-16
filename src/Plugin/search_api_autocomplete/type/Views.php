@@ -1,43 +1,29 @@
 <?php
 
-namespace Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\AutocompleteType;
+namespace Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\type;
 
 use Drupal\Component\Plugin\ConfigurablePluginInterface;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Plugin\PluginBase;
 use Drupal\Core\Plugin\PluginFormInterface;
 use Drupal\Core\Url;
 use Drupal\search_api\IndexInterface;
+use Drupal\search_api\Plugin\views\query\SearchApiQuery;
 use Drupal\search_api\SearchApiException;
-use Drupal\search_api_autocomplete\Type\TypeInterface;
-use Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface;
+use Drupal\search_api_autocomplete\SearchInterface;
+use Drupal\search_api_autocomplete\Type\TypePluginBase;
 use Drupal\views\Views as ViewsViews;
 
 /**
- * Autocompletion for searches provided by views.
+ * Provides autocomplete support for Views search.
  *
- * @SearchapiAutocompleteType(
+ * @SearchApiAutocompleteType(
  *   id = "views",
  *   label = @Translation("Search views"),
- *   description = @Translation("Searches provided by views"),
+ *   description = @Translation("Searches provided by Views"),
  *   provider = "search_api",
  * )
  */
-class Views extends PluginBase implements TypeInterface, ConfigurablePluginInterface, PluginFormInterface {
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getLabel() {
-    return $this->pluginDefinition['label'];
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getDescription() {
-    return $this->pluginDefinition['description'];
-  }
+class Views extends TypePluginBase implements ConfigurablePluginInterface, PluginFormInterface {
 
   /**
    * {@inheritdoc}
@@ -50,7 +36,7 @@ class Views extends PluginBase implements TypeInterface, ConfigurablePluginInter
    * {@inheritdoc}
    */
   public function setConfiguration(array $configuration) {
-    $this->configuration = $configuration;
+    $this->configuration = $configuration + $this->defaultConfiguration();
   }
 
   /**
@@ -66,7 +52,7 @@ class Views extends PluginBase implements TypeInterface, ConfigurablePluginInter
    * {@inheritdoc}
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
-    /** @var \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search */
+    /** @var \Drupal\search_api_autocomplete\SearchInterface $search */
     $search = $form_state->getFormObject()->getEntity();
     $views_id = substr($search->id(), 17);
     $view = ViewsViews::getView($views_id);
@@ -83,7 +69,7 @@ class Views extends PluginBase implements TypeInterface, ConfigurablePluginInter
         "<strong>Note:</strong> Autocompletion doesn't work well with contextual filters. Please see the <a href=':readme_url'>README.txt</a> file for details.",
         [':readme_url' => Url::fromUri('base://' . drupal_get_path('module', 'search_api_autocomplete') . '/README.txt')->toString()]),
       '#options' => $options,
-      '#default_value' => $search->getOption('custom.display') ?: 'default',
+      '#default_value' => $this->configuration['display'],
     ];
 
     return $form;
@@ -99,7 +85,7 @@ class Views extends PluginBase implements TypeInterface, ConfigurablePluginInter
    * {@inheritdoc}
    */
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
-    /** @var \Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface $search */
+    /** @var \Drupal\search_api_autocomplete\SearchInterface $search */
     $search = $form_state->getFormObject()->getEntity();
     $views_id = substr($search->id(), 17);
     $view = ViewsViews::getView($views_id);
@@ -131,7 +117,7 @@ class Views extends PluginBase implements TypeInterface, ConfigurablePluginInter
   /**
    * {@inheritdoc}
    */
-  public function createQuery(SearchApiAutocompleteSearchInterface $search, $complete, $incomplete) {
+  public function createQuery(SearchInterface $search, $keys) {
     $views_id = substr($search->id(), 17);
     $view = ViewsViews::getView($views_id);
     if (!$view) {
@@ -139,17 +125,18 @@ class Views extends PluginBase implements TypeInterface, ConfigurablePluginInter
       throw new SearchApiException($this->t('Could not load view @view.', $vars));
     }
     $view->setDisplay($search->getOption('custom.display'));
+    // @todo Find out the GET parameter used for the "Search: Fulltext search"
+    //   filter and set it to $keys in the view's exposed input.
     $view->preExecute();
     $view->build();
-    /** @var \Drupal\search_api\Query\Query $query */
-    $query = $view->getQuery()->getSearchApiQuery();
-    if (!$query) {
-      $vars['@view'] = $view->storage->label() ?: $views_id;
-      throw new SearchApiException($this->t('Could not create query for view @view.', $vars));
+    $query_plugin = $view->getQuery();
+    if ($query_plugin instanceof SearchApiQuery) {
+      $query = $query_plugin->getSearchApiQuery();
     }
-    // $query->setFulltextFields([$complete]);.
-    // @todo What are the right values to use here?
-    $query->setFulltextFields();
+    if (empty($query)) {
+      $vars['@view'] = $view->storage->label() ?: $views_id;
+      throw new SearchApiException($this->t('Could not create search query for view @view.', $vars));
+    }
     return $query;
   }
 

@@ -5,7 +5,7 @@ namespace Drupal\search_api_autocomplete\Entity;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Config\Entity\ConfigEntityBase;
 use Drupal\search_api\Entity\Index;
-use Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface;
+use Drupal\search_api_autocomplete\SearchInterface;
 
 /**
  * Describes the autocomplete settings for a certain search.
@@ -15,8 +15,8 @@ use Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface;
  *   label = @Translation("Autocomplete search"),
  *   handlers = {
  *     "form" = {
- *       "default" = "\Drupal\search_api_autocomplete\Form\AutocompleteSearchEditForm",
- *       "edit" = "\Drupal\search_api_autocomplete\Form\AutocompleteSearchEditForm",
+ *       "default" = "\Drupal\search_api_autocomplete\Form\SearchEditForm",
+ *       "edit" = "\Drupal\search_api_autocomplete\Form\SearchEditForm",
  *       "delete" = "\Drupal\Core\Entity\EntityDeleteForm",
  *     },
  *     "list_builder" = "\Drupal\Core\Entity\EntityListBuilder",
@@ -28,7 +28,9 @@ use Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface;
  *   config_prefix = "search_api_autocomplete",
  *   entity_keys = {
  *     "id" = "id",
- *     "label" = "label"
+ *     "label" = "label",
+ *     "uuid" = "uuid",
+ *     "status" = "status",
  *   },
  *   links = {
  *     "edit-form" = "/admin/config/search/search-api/index/autocomplete/{search_api_autocomplete_search}/edit",
@@ -37,15 +39,17 @@ use Drupal\search_api_autocomplete\SearchApiAutocompleteSearchInterface;
  *   config_export = {
  *     "id",
  *     "label",
- *     "index_id",
- *     "suggester_id",
  *     "status",
+ *     "index_id",
+ *     "suggester",
+ *     "suggester_settings",
  *     "type",
+ *     "type_settings",
  *     "options",
  *   }
  * )
  */
-class SearchApiAutocompleteSearch extends ConfigEntityBase implements SearchApiAutocompleteSearchInterface {
+class Search extends ConfigEntityBase implements SearchInterface {
 
   /**
    * The entity ID.
@@ -69,11 +73,34 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase implements SearchApiA
   protected $index_id;
 
   /**
+   * The search index instance.
+   *
+   * @var \Drupal\search_api\IndexInterface|null
+   *
+   * @see \Drupal\search_api_autocomplete\Entity\Search::getIndexInstance()
+   */
+  protected $index;
+
+  /**
    * The suggester ID.
    *
    * @var string
    */
-  protected $suggester_id;
+  protected $suggester;
+
+  /**
+   * Settings for the suggester plugin.
+   *
+   * @var array
+   */
+  protected $suggester_settings = [];
+
+  /**
+   * The suggester plugin.
+   *
+   * @var \Drupal\search_api_autocomplete\Suggester\SuggesterInterface|null
+   */
+  protected $suggesterInstance;
 
   /**
    * The autocomplete type.
@@ -83,114 +110,62 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase implements SearchApiA
   protected $type;
 
   /**
-   * An array of options for this search.
+   * Settings for the type plugin.
    *
-   * The array can contain any of the following keys.
-   * - results: Boolean indicating whether to also list the estimated number of
-   *   results for each suggestion (if possible).
-   * - fields: Array containing the fulltext fields to use for autocompletion.
-   * - custom: An array of type-specific settings.
+   * @var string
+   */
+  protected $type_settings = [];
+
+  /**
+   * The type plugin.
+   *
+   * @var \Drupal\search_api_autocomplete\Type\TypeInterface|null
+   */
+  protected $typeInstance;
+
+  /**
+   * An array of general options for this search.
    *
    * @var array
    */
   protected $options = [];
 
   /**
-   * The searchapi index instance.
-   *
-   * @var \Drupal\search_api\IndexInterface
-   */
-  protected $index;
-
-  /**
-   * The searchapi server instance.
-   *
-   * @var \Drupal\search_api\ServerInterface
-   */
-  protected $server;
-
-  /**
-   * The suggester plugin this search uses.
-   *
-   * @var \Drupal\search_api_autocomplete\Suggester\SuggesterInterface
-   */
-  protected $suggester;
-
-  /**
-   * {@inheritdoc}
-   */
-  public function index() {
-    if (!isset($this->index)) {
-      $this->index = Index::load($this->index_id);
-      if (!$this->index) {
-        $this->index = FALSE;
-      }
-    }
-    return $this->index;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function server() {
-    if (!isset($this->server)) {
-      if (!$this->index() || !$this->index()->getServerInstance()) {
-        $this->server = FALSE;
-      }
-      else {
-        $this->server = $this->index()->getServerInstance();
-        if (!$this->server) {
-          $this->server = FALSE;
-        }
-      }
-    }
-    return $this->server;
-  }
-
-  /**
    * {@inheritdoc}
    */
   public function getSuggesterId() {
-    return $this->suggester_id;
+    return $this->suggester;
   }
 
   /**
    * {@inheritdoc}
    */
   public function setSuggesterId($suggester_id) {
-    $this->suggester_id = $suggester_id;
-    unset($this->suggester);
+    $this->suggester = $suggester_id;
+    unset($this->suggesterInstance);
     return $this;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getSuggester($reset = FALSE) {
-    if (!isset($this->suggester) || $reset) {
-      $configuration = !empty($this->options['suggester_configuration']) ? $this->options['suggester_configuration'] : [];
-      $this->suggester = $this->getSuggesterManager()->createInstance($this->suggester_id, [
-        'search' => $this,
-      ] + $configuration);
-      if (!$this->suggester) {
+  public function getSuggesterInstance($reset = FALSE) {
+    // @todo Throw exception for failures and get rid of $reset.
+    if (!isset($this->suggesterInstance) || $reset) {
+      $configuration = $this->suggester_settings;
+      $configuration['#search'] = $this;
+      $this->suggesterInstance = \Drupal::getContainer()
+        ->get('plugin.manager.search_api_autocomplete.suggester')
+        ->createInstance($this->suggester, $configuration);
+      if (!$this->suggesterInstance) {
         $variables['@search'] = $this->id();
-        $variables['@index'] = $this->index() ? $this->index()->label() : $this->index_id;
-        $variables['@suggester_id'] = $this->suggester_id;
-        $this->getLogger()->error('Autocomplete search @search on index @index specifies an invalid suggester plugin @suggester_id.', $variables);
-        $this->suggester = FALSE;
+        $variables['@index'] = $this->getIndexInstance() ? $this->getIndexInstance()->label() : $this->index_id;
+        $variables['@suggester'] = $this->suggester;
+        $this->getLogger()->error('Autocomplete search @search on index @index specifies an invalid suggesterInstance plugin @suggester.', $variables);
+        $this->suggesterInstance = FALSE;
       }
     }
-    return $this->suggester ? $this->suggester : NULL;
-  }
-
-  /**
-   * Returns the autocomplete suggester plugin manager.
-   *
-   * @return \Drupal\Component\Plugin\PluginManagerInterface
-   *   The suggester plugin manager.
-   */
-  protected function getSuggesterManager() {
-    return \Drupal::service('plugin_manager.search_api_autocomplete_suggester');
+    return $this->suggesterInstance ? $this->suggesterInstance : NULL;
   }
 
   /**
@@ -207,17 +182,17 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase implements SearchApiA
    * {@inheritdoc}
    */
   public function supportsAutocompletion() {
-    return $this->index() && $this->getSuggester() && $this->getSuggester()->supportsIndex($this->index());
+    return $this->getIndexInstance() && $this->getSuggesterInstance() && $this->getSuggesterInstance()->supportsIndex($this->getIndexInstance());
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getQuery($complete, $incomplete) {
+  public function getQuery($keys) {
     $type = $this->getTypeInstance();
-    $query = $type->createQuery($this, $complete, $incomplete);
-    if ($complete && !$query->getKeys()) {
-      $query->keys($complete);
+    $query = $type->createQuery($this, $keys);
+    if ($keys && !$query->getKeys()) {
+      $query->keys($keys);
     }
     return $query;
   }
@@ -229,7 +204,7 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase implements SearchApiA
    *   The autocomplete type instance.
    */
   protected function getTypeInstance() {
-    return \Drupal::service('plugin_manager.search_api_autocomplete_type')
+    return \Drupal::service('plugin.manager.search_api_autocomplete.type')
       ->createInstance($this->getType());
   }
 
@@ -253,7 +228,11 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase implements SearchApiA
    */
   public function getIndexInstance() {
     if (!isset($this->index)) {
-      $this->index = Index::load($this->getIndexId());
+      $this->index = Index::load($this->index_id);
+      if (!$this->index) {
+        // @todo Should throw exception. (Also, should never happen.)
+        $this->index = FALSE;
+      }
     }
     return $this->index;
   }
@@ -263,6 +242,7 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase implements SearchApiA
    */
   public function setIndexId($index_id) {
     $this->index_id = $index_id;
+    $this->index = NULL;
     return $this;
   }
 
@@ -301,7 +281,8 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase implements SearchApiA
    */
   public function getOption($key, $default = NULL) {
     $parts = explode('.', $key);
-    return NestedArray::getValue($this->options, $parts) ?: $default;
+    $value = NestedArray::getValue($this->options, $parts, $key_exists);
+    return $key_exists ? $value : $default;
   }
 
   /**
@@ -309,7 +290,8 @@ class SearchApiAutocompleteSearch extends ConfigEntityBase implements SearchApiA
    */
   public function calculateDependencies() {
     parent::calculateDependencies();
-    $this->addDependency($this->index()->getConfigDependencyKey(), $this->index()->getConfigDependencyName());
+    $this->addDependency($this->getIndexInstance()->getConfigDependencyKey(), $this->getIndexInstance()->getConfigDependencyName());
+    // @todo Dependencies for display, and for plugins (providers).
     return $this;
   }
 

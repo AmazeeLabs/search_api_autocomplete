@@ -20,9 +20,9 @@
   var getSettingD8 = function (input, setting, defaultValue) {
     var search = $(input).data('search-api-autocomplete-search');
     if (typeof search == 'undefined'
-      || typeof drupalSettings.search_api_autocomplete == 'undefined'
-      || typeof drupalSettings.search_api_autocomplete[search] == 'undefined'
-      || typeof drupalSettings.search_api_autocomplete[search][setting] == 'undefined') {
+        || typeof drupalSettings.search_api_autocomplete == 'undefined'
+        || typeof drupalSettings.search_api_autocomplete[search] == 'undefined'
+        || typeof drupalSettings.search_api_autocomplete[search][setting] == 'undefined') {
       return defaultValue;
     }
     return Drupal.settings.search_api_autocomplete[search][setting];
