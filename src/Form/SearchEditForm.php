@@ -152,12 +152,12 @@ class SearchEditForm extends EntityForm {
       }
       $form['suggester_settings'] = [];
       $suggester_form_state = SubFormState::createForSubform($form['suggester_settings'], $form, $form_state);
-      if ($suggester_form = $suggester->buildConfigurationForm([], $suggester_form_state)) {
-        $form['suggester_settings'] = $suggester_form;
-        $form['suggester_settings']['#type'] = 'fieldset';
+      if ($suggester instanceof PluginFormInterface) {
+        $form['suggester_settings'] = $suggester
+          ->buildConfigurationForm([], $suggester_form_state);
+        $form['suggester_settings']['#type'] = 'details';
         $form['suggester_settings']['#title'] = $this->t('Configure the %suggester suggester plugin', ['%suggester' => $suggester->label()]);
-        $form['suggester_settings']['#description'] = $suggester->getDescription();
-        $form['suggester_settings']['#collapsible'] = TRUE;
+        $form['suggester_settings']['#open'] = TRUE;
       }
       else {
         $form['suggester_settings']['#type'] = 'item';

@@ -3,7 +3,9 @@
 namespace Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\suggester;
 
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Plugin\PluginFormInterface;
 use Drupal\search_api\IndexInterface;
+use Drupal\search_api\Plugin\PluginFormTrait;
 use Drupal\search_api\Query\QueryInterface;
 use Drupal\search_api_autocomplete\AutocompleteBackendInterface;
 use Drupal\search_api_autocomplete\Suggester\SuggesterInterface;
@@ -21,7 +23,9 @@ use Drupal\search_api_autocomplete\Suggester\SuggesterPluginBase;
  *   description = @Translation("Make suggestions based on the data indexed on the server."),
  * )
  */
-class Server extends SuggesterPluginBase implements SuggesterInterface {
+class Server extends SuggesterPluginBase implements SuggesterInterface, PluginFormInterface {
+
+  use PluginFormTrait;
 
   /**
    * {@inheritdoc}

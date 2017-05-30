@@ -2,11 +2,11 @@
 
 namespace Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\type;
 
-use Drupal\Component\Plugin\ConfigurablePluginInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\PluginFormInterface;
 use Drupal\Core\Url;
 use Drupal\search_api\IndexInterface;
+use Drupal\search_api\Plugin\PluginFormTrait;
 use Drupal\search_api\Plugin\views\query\SearchApiQuery;
 use Drupal\search_api\SearchApiException;
 use Drupal\search_api_autocomplete\SearchInterface;
@@ -23,21 +23,9 @@ use Drupal\views\Views as ViewsViews;
  *   provider = "search_api",
  * )
  */
-class Views extends TypePluginBase implements ConfigurablePluginInterface, PluginFormInterface {
+class Views extends TypePluginBase implements PluginFormInterface {
 
-  /**
-   * {@inheritdoc}
-   */
-  public function getConfiguration() {
-    return $this->configuration;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function setConfiguration(array $configuration) {
-    $this->configuration = $configuration + $this->defaultConfiguration();
-  }
+  use PluginFormTrait;
 
   /**
    * {@inheritdoc}
@@ -73,12 +61,6 @@ class Views extends TypePluginBase implements ConfigurablePluginInterface, Plugi
     ];
 
     return $form;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
   }
 
   /**

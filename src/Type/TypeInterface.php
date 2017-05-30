@@ -2,6 +2,7 @@
 
 namespace Drupal\search_api_autocomplete\Type;
 
+use Drupal\Component\Plugin\ConfigurablePluginInterface;
 use Drupal\search_api\IndexInterface;
 use Drupal\search_api_autocomplete\SearchInterface;
 
@@ -11,7 +12,7 @@ use Drupal\search_api_autocomplete\SearchInterface;
  * @see \Drupal\search_api_autocomplete\Annotation\SearchApiAutocompleteType
  * @see \Drupal\search_api_autocomplete\Type\TypeManager
  */
-interface TypeInterface {
+interface TypeInterface extends ConfigurablePluginInterface {
 
   /**
    * Returns the label of the autocompletion type.

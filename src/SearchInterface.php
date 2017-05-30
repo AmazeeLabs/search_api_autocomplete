@@ -124,17 +124,7 @@ interface SearchInterface extends ConfigEntityInterface {
   public function getOptions();
 
   /**
-   * Sets the search options.
-   *
-   * @param array $options
-   *   The options.
-   *
-   * @return $this
-   */
-  public function setOptions(array $options);
-
-  /**
-   * Gets a specific option.
+   * Gets a specific option's value.
    *
    * @param string $key
    *   The key of the option.
@@ -145,5 +135,15 @@ interface SearchInterface extends ConfigEntityInterface {
    *   A specific option's value.
    */
   public function getOption($key, $default = NULL);
+
+  /**
+   * Sets the search options.
+   *
+   * @param array $options
+   *   The options.
+   *
+   * @return $this
+   */
+  public function setOptions(array $options);
 
 }

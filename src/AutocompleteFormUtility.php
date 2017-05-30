@@ -79,7 +79,10 @@ class AutocompleteFormUtility {
       $fields_string = $fields ? implode(' ', $fields) : '-';
 
       $autocomplete_route_name = 'search_api_autocomplete.autocomplete';
-      $autocomplete_route_parameters = ['search_api_autocomplete_search' => $search->id(), 'fields' => $fields_string];
+      $autocomplete_route_parameters = [
+        'search_api_autocomplete_search' => $search->id(),
+        'fields' => $fields_string,
+      ];
 
       $js_settings = [];
       if ($options['submit_button_selector'] != ':submit') {

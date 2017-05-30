@@ -271,18 +271,16 @@ class Search extends ConfigEntityBase implements SearchInterface {
   /**
    * {@inheritdoc}
    */
-  public function setOptions(array $options) {
-    $this->options = $options;
-    return $this;
+  public function getOption($key, $default = NULL) {
+    return isset($this->options[$key]) ? $this->options[$key] : $default;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getOption($key, $default = NULL) {
-    $parts = explode('.', $key);
-    $value = NestedArray::getValue($this->options, $parts, $key_exists);
-    return $key_exists ? $value : $default;
+  public function setOptions(array $options) {
+    $this->options = $options;
+    return $this;
   }
 
   /**
