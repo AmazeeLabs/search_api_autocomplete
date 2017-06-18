@@ -71,9 +71,10 @@ class AutocompleteFormUtility {
     if ($controller->access($search, \Drupal::currentUser())->isAllowed()) {
       // Add option defaults (in case of updates from earlier versions).
       $options = $search->getOptions() + [
-        'submit_button_selector' => ':submit',
         'autosubmit' => TRUE,
+        'delay' => 0,
         'min_length' => 1,
+        'submit_button_selector' => ':submit',
       ];
 
       $fields_string = $fields ? implode(' ', $fields) : '-';
@@ -88,8 +89,14 @@ class AutocompleteFormUtility {
       if ($options['submit_button_selector'] != ':submit') {
         $js_settings['selector'] = $options['submit_button_selector'];
       }
-      if ($delay = $search->getOption('delay') !== NULL) {
-        $js_settings['delay'] = $delay;
+      if ($options['delay']) {
+        $js_settings['delay'] = $options['delay'];
+      }
+      if ($options['autosubmit']) {
+        $js_settings['auto_submit'] = TRUE;
+      }
+      if ($options['min_length'] > 1) {
+        $js_settings['min_length'] = $options['min_length'];
       }
 
       // Allow overriding of the default handler with a route.
@@ -103,7 +110,7 @@ class AutocompleteFormUtility {
       }
       $element['#attached']['library'][] = 'search_api_autocomplete/search_api_autocomplete';
       if ($js_settings) {
-        $element['#attached']['drupalSettings'][] = [
+        $element['#attached']['drupalSettings'] = [
           'search_api_autocomplete' => [
             $search->id() => $js_settings,
           ],
@@ -112,15 +119,7 @@ class AutocompleteFormUtility {
 
       $element['#autocomplete_route_name'] = $autocomplete_route_name;
       $element['#autocomplete_route_parameters'] = $autocomplete_route_parameters;
-      $element += ['#attributes' => []];
-      $element['#attributes'] += ['class' => []];
-      if ($options['autosubmit']) {
-        $element['#attributes']['class'][] = 'auto_submit';
-      }
       $element['#attributes']['data-search-api-autocomplete-search'] = $search->id();
-      if ($options['min_length'] > 1) {
-        $element['#attributes']['data-min-autocomplete-length'] = $options['min_length'];
-      }
     }
   }
 

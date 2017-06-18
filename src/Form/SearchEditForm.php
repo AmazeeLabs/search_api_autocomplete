@@ -192,11 +192,6 @@ class SearchEditForm extends EntityForm {
       '#description' => $this->t('Display the estimated number of result for each suggestion. This option might not have an effect for some servers or types of suggestion.'),
       '#default_value' => (bool) $search->getOption('show_count', FALSE),
     ];
-    $form['options']['delay'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Delay in ms'),
-      '#default_value' => $search->getOption('delay'),
-    ];
 
     $type_form = empty($form['type_settings']) ? [] : $form['type_settings'];
     if ($type instanceof PluginFormInterface) {
@@ -225,6 +220,13 @@ class SearchEditForm extends EntityForm {
       '#description' => $this->t('When enabled, the search form will automatically be submitted when a selection is made by pressing "Enter".'),
       '#default_value' => $search->getOption('autosubmit', TRUE),
       '#parents' => ['options', 'autosubmit'],
+    ];
+    $form['advanced']['delay'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Delay in ms'),
+      '#description' => $this->t('The delay in milliseconds between when a keystroke occurs and when a search is performed. Low values will result in a more responsive experience for users, but can also cause a higher load on the server. Defaults to 300 ms.'),
+      '#default_value' => $search->getOption('delay'),
+      '#parents' => ['options', 'delay'],
     ];
 
     return $form;
