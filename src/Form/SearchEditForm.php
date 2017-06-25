@@ -277,15 +277,17 @@ class SearchEditForm extends EntityForm {
    * @see search_api_autocomplete_admin_search_edit_validate()
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    $values = &$form_state->getValues();
+    $search = $this->entity;
+    $values = $form_state->getValues();
+
+    /** @var \Drupal\search_api_autocomplete\Type\TypeInterface $type */
     $type = $form_state->get('type');
     if ($type instanceof PluginFormInterface) {
       $type_form = empty($form['type_settings']) ? [] : $form['type_settings'];
       $type_form_state = SubFormState::createForSubform($form['type_settings'], $form, $form_state);
       $type->submitConfigurationForm($type_form, $type_form_state);
+      $search->set('type_settings', $type->getConfiguration());
     }
-
-    $search = $this->entity;
 
     $form_state->setRedirect('search_api_autocomplete.admin_overview', ['search_api_index' => $search->getIndexId()]);
 
@@ -306,7 +308,7 @@ class SearchEditForm extends EntityForm {
       unset($suggester_form['old_suggester_id']);
       $suggester_form_state = SubFormState::createForSubform($form['suggester_settings'], $form, $form_state);
       $suggester->submitConfigurationForm($suggester_form, $suggester_form_state);
-      $values['suggester_settings'] = $suggester->getConfiguration();
+      $search->set('suggester_settings', $suggester->getConfiguration());
     }
     else {
       $values['suggester_settings'] = [];
