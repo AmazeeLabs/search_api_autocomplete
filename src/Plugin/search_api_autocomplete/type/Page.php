@@ -100,7 +100,7 @@ class Page extends TypePluginBase implements ContainerFactoryPluginInterface {
     $storage = $this->entityTypeManager->getStorage('search_api_page');
     foreach ($storage->loadByProperties(['index' => $index->id()]) as $page) {
       $id = 'search_api_page_' . $page->id();
-      $ret[$id]['name'] = $page->label();
+      $ret[$id]['label'] = $page->label();
     }
     return $ret;
   }

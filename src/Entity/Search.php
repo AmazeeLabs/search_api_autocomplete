@@ -2,10 +2,12 @@
 
 namespace Drupal\search_api_autocomplete\Entity;
 
-use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Config\Entity\ConfigEntityBase;
+use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\search_api\Entity\Index;
+use Drupal\search_api_autocomplete\SearchApiAutocompleteException;
 use Drupal\search_api_autocomplete\SearchInterface;
+use Drupal\search_api_autocomplete\Suggester\SuggesterInterface;
 
 /**
  * Describes the autocomplete settings for a certain search.
@@ -25,7 +27,7 @@ use Drupal\search_api_autocomplete\SearchInterface;
  *     },
  *   },
  *   admin_permission = "administer search_api_autocomplete",
- *   config_prefix = "search_api_autocomplete",
+ *   config_prefix = "search",
  *   entity_keys = {
  *     "id" = "id",
  *     "label" = "label",
@@ -41,9 +43,9 @@ use Drupal\search_api_autocomplete\SearchInterface;
  *     "label",
  *     "status",
  *     "index_id",
- *     "suggester",
  *     "suggester_settings",
- *     "type",
+ *     "suggester_weights",
+ *     "suggester_limits",
  *     "type_settings",
  *     "options",
  *   }
@@ -77,42 +79,65 @@ class Search extends ConfigEntityBase implements SearchInterface {
    *
    * @var \Drupal\search_api\IndexInterface|null
    *
-   * @see \Drupal\search_api_autocomplete\Entity\Search::getIndexInstance()
+   * @see \Drupal\search_api_autocomplete\Entity\Search::getIndex()
    */
   protected $index;
 
   /**
-   * The suggester ID.
+   * The settings of the suggesters selected for this search.
    *
-   * @var string
-   */
-  protected $suggester;
-
-  /**
-   * Settings for the suggester plugin.
+   * The array has the following structure:
+   *
+   * @code
+   * [
+   *   'SUGGESTER_ID' => [
+   *     // Settings …
+   *   ],
+   *   …
+   * ]
+   * @endcode
    *
    * @var array
    */
   protected $suggester_settings = [];
 
   /**
-   * The suggester plugin.
+   * The suggester weights, keyed by suggester ID.
    *
-   * @var \Drupal\search_api_autocomplete\Suggester\SuggesterInterface|null
+   * @var int[]
    */
-  protected $suggesterInstance;
+  protected $suggester_weights = [];
 
   /**
-   * The autocomplete type.
+   * The suggester limits (where set), keyed by suggester ID.
    *
-   * @var string
+   * @var int[]
    */
-  protected $type;
+  protected $suggester_limits = [];
 
   /**
-   * Settings for the type plugin.
+   * The loaded suggester plugins.
    *
-   * @var string
+   * @var \Drupal\search_api_autocomplete\Suggester\SuggesterInterface[]|null
+   */
+  protected $suggesterInstances;
+
+  /**
+   * The settings for the type plugin.
+   *
+   * The array has the following structure:
+   *
+   * @code
+   * [
+   *   'TYPE_ID' => [
+   *     // Settings …
+   *   ]
+   * ]
+   * @endcode
+   *
+   * There is always just a single entry in the array.
+   *
+   * @var array
    */
   protected $type_settings = [];
 
@@ -133,92 +158,6 @@ class Search extends ConfigEntityBase implements SearchInterface {
   /**
    * {@inheritdoc}
    */
-  public function getSuggesterId() {
-    return $this->suggester;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function setSuggesterId($suggester_id) {
-    $this->suggester = $suggester_id;
-    unset($this->suggesterInstance);
-    return $this;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getSuggesterInstance($reset = FALSE) {
-    // @todo Throw exception for failures and get rid of $reset.
-    if (!isset($this->suggesterInstance) || $reset) {
-      $configuration = $this->suggester_settings;
-      $configuration['#search'] = $this;
-      $this->suggesterInstance = \Drupal::getContainer()
-        ->get('plugin.manager.search_api_autocomplete.suggester')
-        ->createInstance($this->suggester, $configuration);
-      if (!$this->suggesterInstance) {
-        $variables['@search'] = $this->id();
-        $variables['@index'] = $this->getIndexInstance() ? $this->getIndexInstance()->label() : $this->index_id;
-        $variables['@suggester'] = $this->suggester;
-        $this->getLogger()->error('Autocomplete search @search on index @index specifies an invalid suggesterInstance plugin @suggester.', $variables);
-        $this->suggesterInstance = FALSE;
-      }
-    }
-    return $this->suggesterInstance ? $this->suggesterInstance : NULL;
-  }
-
-  /**
-   * Returns a logger.
-   *
-   * @return \Psr\Log\LoggerInterface
-   *   A logger instance.
-   */
-  protected function getLogger() {
-    return \Drupal::logger('search_api_autocomplete');
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function supportsAutocompletion() {
-    return $this->getIndexInstance() && $this->getSuggesterInstance() && $this->getSuggesterInstance()->supportsIndex($this->getIndexInstance());
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getQuery($keys) {
-    $type = $this->getTypeInstance();
-    $query = $type->createQuery($this, $keys);
-    if ($keys && !$query->getKeys()) {
-      $query->keys($keys);
-    }
-    return $query;
-  }
-
-  /**
-   * Returns the autocomplete instance for this autocomplete search.
-   *
-   * @return \Drupal\search_api_autocomplete\Type\TypeInterface
-   *   The autocomplete type instance.
-   */
-  protected function getTypeInstance() {
-    return \Drupal::service('plugin.manager.search_api_autocomplete.type')
-      ->createInstance($this->getType());
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function setLabel($label) {
-    $this->label = $label;
-    return $this;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function getIndexId() {
     return $this->index_id;
   }
@@ -226,12 +165,18 @@ class Search extends ConfigEntityBase implements SearchInterface {
   /**
    * {@inheritdoc}
    */
-  public function getIndexInstance() {
+  public function hasValidIndex() {
+    return $this->index || Index::load($this->index_id);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getIndex() {
     if (!isset($this->index)) {
       $this->index = Index::load($this->index_id);
       if (!$this->index) {
-        // @todo Should throw exception. (Also, should never happen.)
-        $this->index = FALSE;
+        throw new SearchApiAutocompleteException("The index with ID \"{$this->index_id}\" could not be loaded.");
       }
     }
     return $this->index;
@@ -240,25 +185,152 @@ class Search extends ConfigEntityBase implements SearchInterface {
   /**
    * {@inheritdoc}
    */
-  public function setIndexId($index_id) {
-    $this->index_id = $index_id;
-    $this->index = NULL;
+  public function getSuggesters() {
+    if ($this->suggesterInstances === NULL) {
+      $this->suggesterInstances = \Drupal::getContainer()
+        ->get('search_api_autocomplete.plugin_helper')
+        ->createSuggesterPlugins($this, array_keys($this->suggester_settings));
+    }
+
+    return $this->suggesterInstances;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getSuggesterIds() {
+    if ($this->suggesterInstances !== NULL) {
+      return array_keys($this->suggesterInstances);
+    }
+    return array_keys($this->suggester_settings);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function isValidSuggester($suggester_id) {
+    $suggesters = $this->getSuggesters();
+    return !empty($suggesters[$suggester_id]);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getSuggester($suggester_id) {
+    $suggesters = $this->getSuggesters();
+
+    if (empty($suggesters[$suggester_id])) {
+      $index_label = $this->label();
+      throw new SearchApiAutocompleteException("The suggester with ID '$suggester_id' could not be retrieved for index '$index_label'.");
+    }
+
+    return $suggesters[$suggester_id];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function addSuggester(SuggesterInterface $suggester) {
+    // Make sure the suggesterInstances are loaded before trying to add a plugin
+    // to them.
+    if ($this->suggesterInstances === NULL) {
+      $this->getSuggesters();
+    }
+    $this->suggesterInstances[$suggester->getPluginId()] = $suggester;
+
     return $this;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getType() {
-    return $this->type;
+  public function removeSuggester($suggester_id) {
+    // Depending on whether the suggesters have already been loaded, we have to
+    // either remove the settings or the instance.
+    if ($this->suggesterInstances === NULL) {
+      unset($this->suggester_settings[$suggester_id]);
+    }
+    else {
+      unset($this->suggesterInstances[$suggester_id]);
+    }
+    unset($this->suggester_weights[$suggester_id]);
+    unset($this->suggester_limits[$suggester_id]);
+
+    return $this;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function setType($type) {
-    $this->type = $type;
+  public function setSuggesters(array $suggesters = NULL) {
+    $this->suggesterInstances = $suggesters;
+
+    // Sanitize the suggester weights and limits.
+    $this->suggester_weights = array_intersect_key($this->suggester_weights, $suggesters);
+    $this->suggester_limits = array_intersect_key($this->suggester_limits, $suggesters);
+
     return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getSuggesterWeights() {
+    return $this->suggester_weights;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getSuggesterLimits() {
+    return $this->suggester_limits;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function hasValidType() {
+    return (bool) \Drupal::getContainer()
+      ->get('plugin.manager.search_api_autocomplete.type')
+      ->getDefinition($this->getTypeId(), FALSE);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getTypeId() {
+    if ($this->typeInstance) {
+      return $this->typeInstance->getPluginId();
+    }
+    reset($this->type_settings);
+    return key($this->type_settings);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getTypeInstance() {
+    if (!$this->typeInstance) {
+      $type_id = $this->getTypeId();
+
+      $configuration = [];
+      if (!empty($this->type_settings[$type_id])) {
+        $configuration = $this->type_settings[$type_id];
+      }
+
+      $this->typeInstance = \Drupal::getContainer()
+        ->get('search_api_autocomplete.plugin_helper')
+        ->createTypePlugin($this, $type_id, $configuration);
+    }
+
+    return $this->typeInstance;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getOption($name, $default = NULL) {
+    return isset($this->options[$name]) ? $this->options[$name] : $default;
   }
 
   /**
@@ -271,8 +343,9 @@ class Search extends ConfigEntityBase implements SearchInterface {
   /**
    * {@inheritdoc}
    */
-  public function getOption($key, $default = NULL) {
-    return isset($this->options[$key]) ? $this->options[$key] : $default;
+  public function setOption($name, $option) {
+    $this->options[$name] = $option;
+    return $this;
   }
 
   /**
@@ -286,10 +359,75 @@ class Search extends ConfigEntityBase implements SearchInterface {
   /**
    * {@inheritdoc}
    */
+  public function createQuery($keys) {
+    $type = $this->getTypeInstance();
+    $query = $type->createQuery($this, $keys);
+    if ($keys && !$query->getKeys()) {
+      $query->keys($keys);
+    }
+    return $query;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function preSave(EntityStorageInterface $storage) {
+    parent::preSave($storage);
+
+    // If we are in the process of syncing, we shouldn't change any entity
+    // properties (or other configuration).
+    if ($this->isSyncing()) {
+      return;
+    }
+
+    // Write the plugin settings to the persistent *_settings properties.
+    $this->writeChangesToSettings();
+
+    // If there are no suggesters set for the search, it can't be enabled.
+    if (!$this->getSuggesters()) {
+      $this->disable();
+    }
+  }
+
+  /**
+   * Prepares for changes to this search to be persisted.
+   *
+   * To this end, the settings for all loaded plugin objects are written back to
+   * the corresponding *_settings properties.
+   *
+   * @return $this
+   */
+  protected function writeChangesToSettings() {
+    // Write the enabled suggesters to the settings property.
+    if ($this->suggesterInstances !== NULL) {
+      $this->suggester_settings = [];
+      foreach ($this->suggesterInstances as $suggester_id => $suggester) {
+        $this->suggester_settings[$suggester_id] = $suggester->getConfiguration();
+      }
+    }
+
+    // Write the type configuration to the settings property.
+    if ($this->typeInstance !== NULL) {
+      $type_id = $this->typeInstance->getPluginId();
+      $this->type_settings = [
+        $type_id => $this->typeInstance->getConfiguration(),
+      ];
+    }
+
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function calculateDependencies() {
     parent::calculateDependencies();
-    $this->addDependency($this->getIndexInstance()->getConfigDependencyKey(), $this->getIndexInstance()->getConfigDependencyName());
-    // @todo Dependencies for display, and for plugins (providers).
+
+    $name = $this->getIndex()->getConfigDependencyName();
+    $this->addDependency('config', $name);
+
+    // @todo Dependencies for plugins (providers). See #2891251.
+
     return $this;
   }
 

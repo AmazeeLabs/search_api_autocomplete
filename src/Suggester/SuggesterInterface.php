@@ -2,62 +2,30 @@
 
 namespace Drupal\search_api_autocomplete\Suggester;
 
-use Drupal\Component\Plugin\ConfigurablePluginInterface;
-use Drupal\Component\Plugin\PluginInspectionInterface;
-use Drupal\search_api\IndexInterface;
 use Drupal\search_api\Query\QueryInterface;
+use Drupal\search_api_autocomplete\Plugin\SearchPluginInterface;
+use Drupal\search_api_autocomplete\SearchInterface;
 
 /**
  * Represents a plugin for creating autocomplete suggestions.
  *
+ * @see \Drupal\search_api_autocomplete\Annotation\SearchApiAutocompleteSuggester
  * @see \Drupal\search_api_autocomplete\Suggester\SuggesterManager
  * @see \Drupal\search_api_autocomplete\Suggester\SuggesterPluginBase
- * @see \Drupal\search_api_autocomplete\Annotation\SearchApiAutocompleteSuggester
+ * @see plugin_api
  */
-interface SuggesterInterface extends ConfigurablePluginInterface, PluginInspectionInterface {
+interface SuggesterInterface extends SearchPluginInterface {
 
   /**
-   * Determines whether this plugin class supports the given index.
+   * Determines whether this plugin supports the given search.
    *
-   * @param \Drupal\search_api\IndexInterface $index
-   *   The search index in question.
+   * @param \Drupal\search_api_autocomplete\SearchInterface $search
+   *   The search in question.
    *
    * @return bool
-   *   TRUE if this plugin supports the given search index, FALSE otherwise.
+   *   TRUE if this plugin supports the given search, FALSE otherwise.
    */
-  public static function supportsIndex(IndexInterface $index);
-
-  /**
-   * Retrieves the search this plugin is configured for.
-   *
-   * @return \Drupal\search_api_autocomplete\SearchInterface
-   *   The search this plugin is configured for.
-   */
-  public function getSearch();
-
-  /**
-   * Retrieves the index associated with this plugin's search.
-   *
-   * @return \Drupal\search_api\IndexInterface
-   *   The index with which the plugin's search is associated.
-   */
-  public function getIndex();
-
-  /**
-   * Retrieves the plugin's label.
-   *
-   * @return string
-   *   The plugin's human-readable and translated label.
-   */
-  public function label();
-
-  /**
-   * Retrieves the plugin's description.
-   *
-   * @return string|null
-   *   The plugin's translated description; or NULL if it has none.
-   */
-  public function getDescription();
+  public static function supportsSearch(SearchInterface $search);
 
   /**
    * Retrieves autocompletion suggestions for some user input.

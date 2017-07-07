@@ -12,7 +12,7 @@ use Drupal\search_api\Backend\BackendInterface;
  * return value of its getSupportedFeatures() implementation.
  *
  * Please note that this interface is purely documentational. You shouldn't, and
- * can't, implement it explicitly (unless the module is depending on this one).
+ * can't, implement it explicitly (unless your module is depending on this one).
  */
 interface AutocompleteBackendInterface extends BackendInterface {
 

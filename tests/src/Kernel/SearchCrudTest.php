@@ -82,8 +82,8 @@ class SearchCrudTest extends KernelTestBase {
       'id' => 'muh',
       'label' => 'Meh',
       'index_id' => 'index',
-      'suggester' => 'server',
-      'type' => 'test_type',
+      'suggester_settings' => ['server' => []],
+      'type_settings' => ['test_type' => []],
       'options' => [
         'delay' => 1338,
       ],

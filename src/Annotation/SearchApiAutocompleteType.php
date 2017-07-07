@@ -7,10 +7,12 @@ use Drupal\Component\Annotation\Plugin;
 /**
  * Defines an autocompletion type.
  *
- * @Annotation
- *
  * @see \Drupal\search_api_autocomplete\Type\TypeInterface
  * @see \Drupal\search_api_autocomplete\Type\TypeManager
+ * @see \Drupal\search_api_autocomplete\Type\TypePluginBase
+ * @see plugin_api
+ *
+ * @Annotation
  */
 class SearchApiAutocompleteType extends Plugin {
 

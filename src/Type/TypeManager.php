@@ -12,6 +12,8 @@ use Drupal\search_api_autocomplete\Annotation\SearchApiAutocompleteType;
  *
  * @see \Drupal\search_api_autocomplete\Annotation\SearchApiAutocompleteType
  * @see \Drupal\search_api_autocomplete\Type\TypeInterface
+ * @see \Drupal\search_api_autocomplete\Type\TypePluginBase
+ * @see plugin_api
  */
 class TypeManager extends DefaultPluginManager {
 

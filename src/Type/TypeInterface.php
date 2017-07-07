@@ -2,33 +2,19 @@
 
 namespace Drupal\search_api_autocomplete\Type;
 
-use Drupal\Component\Plugin\ConfigurablePluginInterface;
 use Drupal\search_api\IndexInterface;
 use Drupal\search_api_autocomplete\SearchInterface;
+use Drupal\search_api_autocomplete\Plugin\SearchPluginInterface;
 
 /**
  * Defines the auto complete type plugin.
  *
  * @see \Drupal\search_api_autocomplete\Annotation\SearchApiAutocompleteType
  * @see \Drupal\search_api_autocomplete\Type\TypeManager
+ * @see \Drupal\search_api_autocomplete\Type\TypePluginBase
+ * @see plugin_api
  */
-interface TypeInterface extends ConfigurablePluginInterface {
-
-  /**
-   * Returns the label of the autocompletion type.
-   *
-   * @return string
-   *   The label of the type.
-   */
-  public function getLabel();
-
-  /**
-   * Returns the description of the autocompletion type.
-   *
-   * @return string
-   *   The type description.
-   */
-  public function getDescription();
+interface TypeInterface extends SearchPluginInterface {
 
   /**
    * Returns a list of searches for this index.
@@ -52,7 +38,7 @@ interface TypeInterface extends ConfigurablePluginInterface {
    * @return \Drupal\search_api\Query\QueryInterface
    *   The created query.
    *
-   * @throws \Drupal\search_api\SearchApiException
+   * @throws \Drupal\search_api_autocomplete\SearchApiAutocompleteException
    *   Thrown if the query couldn't be created.
    */
   public function createQuery(SearchInterface $search, $keys);

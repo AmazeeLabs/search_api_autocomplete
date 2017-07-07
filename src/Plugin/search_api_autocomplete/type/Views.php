@@ -8,7 +8,7 @@ use Drupal\Core\Url;
 use Drupal\search_api\IndexInterface;
 use Drupal\search_api\Plugin\PluginFormTrait;
 use Drupal\search_api\Plugin\views\query\SearchApiQuery;
-use Drupal\search_api\SearchApiException;
+use Drupal\search_api_autocomplete\SearchApiAutocompleteException;
 use Drupal\search_api_autocomplete\SearchInterface;
 use Drupal\search_api_autocomplete\Type\TypePluginBase;
 use Drupal\views\Views as ViewsViews;
@@ -89,7 +89,7 @@ class Views extends TypePluginBase implements PluginFormInterface {
       if ($view->get('base_table') === $base_table) {
         // @todo Check whether there is an exposed fulltext filter
         $ret['search_api_views_' . $id] = [
-          'name' => $id,
+          'label' => $view->label(),
         ];
       }
     }
@@ -104,7 +104,7 @@ class Views extends TypePluginBase implements PluginFormInterface {
     $view = ViewsViews::getView($views_id);
     if (!$view) {
       $vars['@view'] = $views_id;
-      throw new SearchApiException($this->t('Could not load view @view.', $vars));
+      throw new SearchApiAutocompleteException($this->t('Could not load view @view.', $vars));
     }
     $view->setDisplay($search->getOption('custom.display'));
     // @todo Find out the GET parameter used for the "Search: Fulltext search"
@@ -117,16 +117,9 @@ class Views extends TypePluginBase implements PluginFormInterface {
     }
     if (empty($query)) {
       $vars['@view'] = $view->storage->label() ?: $views_id;
-      throw new SearchApiException($this->t('Could not create search query for view @view.', $vars));
+      throw new SearchApiAutocompleteException($this->t('Could not create search query for view @view.', $vars));
     }
     return $query;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function calculateDependencies() {
-    return [];
   }
 
 }

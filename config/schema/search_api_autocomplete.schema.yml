@@ -1,4 +1,4 @@
-search_api_autocomplete.search_api_autocomplete.*:
+search_api_autocomplete.search.*:
   type: config_entity
   label: 'Autocomplete search'
   mapping:
@@ -11,22 +11,37 @@ search_api_autocomplete.search_api_autocomplete.*:
     index_id:
       type: string
       label: 'Index ID'
-    suggester:
-      type: string
-      label: 'Suggester plugin ID'
     suggester_settings:
-      type: search_api_autocomplete.suggester.[%parent.suggester]
+      type: sequence
       label: 'Suggester settings'
-    type:
-      type: string
-      label: 'Type plugin ID'
+      sequence:
+        type: plugin.plugin_configuration.search_api_autocomplete_suggester.[%key]
+        label: 'The configuration for a single suggester'
+    suggester_weights:
+      type: sequence
+      label: 'Suggester weights'
+      sequence:
+        type: integer
+        label: 'The weight for a single suggester'
+    suggester_limits:
+      type: sequence
+      label: 'Suggester limits'
+      sequence:
+        type: integer
+        label: 'The limit for a single suggester'
     type_settings:
-      type: search_api_autocomplete.type.[%parent.type]
+      type: sequence
       label: 'Type settings'
+      sequence:
+        type: plugin.plugin_configuration.search_api_autocomplete_type.[%key]
+        label: 'The configuration for the search''s type'
     options:
       type: mapping
       label: 'Options'
       mapping:
+        limit:
+          type: integer
+          label: 'Maximum number of suggestions'
         min_length:
           type: integer
           label: 'The minimum length of user input to trigger autocomplete'
@@ -43,10 +58,10 @@ search_api_autocomplete.search_api_autocomplete.*:
           type: boolean
           label: 'Whether to automatically submit the search form when a suggestion is selected'
 
-search_api_autocomplete.suggester.*:
+plugin.plugin_configuration.search_api_autocomplete_suggester.*:
   type: mapping
 
-search_api_autocomplete.suggester.server:
+plugin.plugin_configuration.search_api_autocomplete_suggester.server:
   type: mapping
   mapping:
     fields:
@@ -55,10 +70,10 @@ search_api_autocomplete.suggester.server:
       sequence:
         type: string
 
-search_api_autocomplete.type.*:
+plugin.plugin_configuration.search_api_autocomplete_type.*:
   type: mapping
 
-search_api_autocomplete.type.views:
+plugin.plugin_configuration.search_api_autocomplete_type.views:
   type: mapping
   mapping:
     display:
