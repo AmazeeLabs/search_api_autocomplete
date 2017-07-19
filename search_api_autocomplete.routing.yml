@@ -12,4 +12,4 @@ search_api_autocomplete.admin_overview:
     _form: \Drupal\search_api_autocomplete\Form\IndexOverviewForm
     title: 'Autocomplete'
   requirements:
-    _entity_access: search_api_index.update
+    _permission: administer search_api_autocomplete

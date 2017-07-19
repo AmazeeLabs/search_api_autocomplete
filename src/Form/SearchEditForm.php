@@ -137,14 +137,6 @@ class SearchEditForm extends EntityForm {
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
     ];
-    $form['advanced']['submit_button_selector'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Search button selector'),
-      '#description' => $this->t('<a href="@jquery_url">jQuery selector</a> to identify the search button in the search form. Use the ID attribute of the "Search" submit button to prevent issues when another button is present (e.g., "Reset"). The selector is evaluated relative to the form. The default value is ":submit".', ['@jquery_url' => 'https://api.jquery.com/category/selectors/']),
-      '#default_value' => $search->getOption('submit_button_selector', ':submit'),
-      '#required' => TRUE,
-      '#parents' => ['options', 'submit_button_selector'],
-    ];
     $form['advanced']['autosubmit'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Enable auto-submit'),
@@ -152,9 +144,22 @@ class SearchEditForm extends EntityForm {
       '#default_value' => $search->getOption('autosubmit', TRUE),
       '#parents' => ['options', 'autosubmit'],
     ];
+    $form['advanced']['submit_button_selector'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Search button selector'),
+      '#description' => $this->t('<a href="@jquery_url">jQuery selector</a> identifying the button to use for submitting the search form. Use the ID attribute of the "Search" submit button to prevent issues when another button is present (e.g., "Reset"). The selector is evaluated relative to the form. The default value is "@default".', ['@jquery_url' => 'https://api.jquery.com/category/selectors/', '@default' => ':submit']),
+      '#default_value' => $search->getOption('submit_button_selector', ':submit'),
+      '#required' => TRUE,
+      '#parents' => ['options', 'submit_button_selector'],
+      '#states' => [
+        'visible' => [
+          ':input[name="options[autosubmit]"]' => ['checked' => TRUE],
+        ],
+      ],
+    ];
     $form['advanced']['delay'] = [
       '#type' => 'number',
-      '#title' => $this->t('Delay in ms'),
+      '#title' => $this->t('Delay (in ms)'),
       '#description' => $this->t('The delay in milliseconds between when a keystroke occurs and when a search is performed. Low values will result in a more responsive experience for users, but can also cause a higher load on the server. Defaults to 300 ms.'),
       '#min' => 0,
       '#step' => 1,

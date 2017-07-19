@@ -219,6 +219,8 @@ class IndexOverviewForm extends FormBase {
             'title' => $this->t('Edit'),
             'url' => $search->toUrl('edit-form'),
           ];
+        }
+        if (!$search->isNew()) {
           $items[] = [
             'title' => $this->t('Delete'),
             'url' => $search->toUrl('delete-form'),
@@ -292,11 +294,14 @@ class IndexOverviewForm extends FormBase {
       $search = $form_state->get(['searches', $id]);
       if ($search->status() != $enabled) {
         $change = TRUE;
-        if (!empty($search)) {
+        if ($search->isNew()) {
           $options['query'] = $this->redirectDestination->getAsArray();
           $options['fragment'] = 'module-search_api_autocomplete';
-          $vars[':perm_url'] = Url::fromRoute('user.admin_permissions', [], $options)->toString();
-          $messages = $this->t('The settings have been saved. Please remember to set the <a href=":perm_url">permissions</a> for the newly enabled searches.', $vars);
+          $url = Url::fromRoute('user.admin_permissions', [], $options);
+          if ($url->access()) {
+            $vars[':perm_url'] = $url->toString();
+            $messages = $this->t('The settings have been saved. Please remember to set the <a href=":perm_url">permissions</a> for the newly enabled searches.', $vars);
+          }
         }
         $search->setStatus($enabled);
         $search->save();

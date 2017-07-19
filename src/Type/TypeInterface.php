@@ -22,8 +22,10 @@ interface TypeInterface extends SearchPluginInterface {
    * @param \Drupal\search_api\IndexInterface $index
    *   A search api index.
    *
-   * @return array
-   *   An array of searches.
+   * @return array[]
+   *   An associative array of searches. Keys are the search IDs, values arrays
+   *   with information about the search. The following keys are recognized:
+   *   - label: The human-readable label for the search.
    */
   public function listSearches(IndexInterface $index);
 

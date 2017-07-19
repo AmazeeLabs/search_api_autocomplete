@@ -35,8 +35,8 @@ use Drupal\search_api_autocomplete\Suggester\SuggesterInterface;
  *     "status" = "status",
  *   },
  *   links = {
- *     "edit-form" = "/admin/config/search/search-api/index/autocomplete/{search_api_autocomplete_search}/edit",
- *     "delete-form" = "/admin/config/search/search-api/index/autocomplete/{search_api_autocomplete_search}/delete",
+ *     "edit-form" = "/admin/config/search/search-api/index/{search_api_index}/autocomplete/{search_api_autocomplete_search}/edit",
+ *     "delete-form" = "/admin/config/search/search-api/index/{search_api_index}/autocomplete/{search_api_autocomplete_search}/delete",
  *   },
  *   config_export = {
  *     "id",
@@ -154,6 +154,17 @@ class Search extends ConfigEntityBase implements SearchInterface {
    * @var array
    */
   protected $options = [];
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function urlRouteParameters($rel) {
+    $parameters = parent::urlRouteParameters($rel);
+
+    $parameters['search_api_index'] = $this->getIndexId();
+
+    return $parameters;
+  }
 
   /**
    * {@inheritdoc}

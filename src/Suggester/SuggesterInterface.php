@@ -31,7 +31,8 @@ interface SuggesterInterface extends SearchPluginInterface {
    * Retrieves autocompletion suggestions for some user input.
    *
    * For example, when given the user input "teach us", with "us" being
-   * considered incomplete, the following might be returned:
+   * considered incomplete, \Drupal\search_api_autocomplete\SuggestionInterface
+   * objects representing the following suggestions might be returned:
    *
    * @code
    *   [
@@ -47,7 +48,6 @@ interface SuggesterInterface extends SearchPluginInterface {
    *       'user_input' => 'teach us',
    *       'suggestion_suffix' => ' swimming',
    *     ],
-   *     'teach users swimming',
    *   ];
    * @endcode
    *

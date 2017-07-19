@@ -180,17 +180,16 @@ class AutocompleteController extends ControllerBase implements ContainerInjectio
    * @param \Drupal\Core\Session\AccountInterface $account
    *   The account.
    *
-   * @return \Drupal\Core\Access\AccessResult
+   * @return \Drupal\Core\Access\AccessResultInterface
    *   The access result.
    */
   public function access(SearchInterface $search_api_autocomplete_search, AccountInterface $account) {
-    $permission = 'use search_api_autocomplete for ' . $search_api_autocomplete_search->id();
-    $access = AccessResult::allowedIf($search_api_autocomplete_search->status())
-      ->andIf(AccessResult::allowedIf($search_api_autocomplete_search->hasValidIndex()))
-      ->andIf(AccessResult::allowedIf($search_api_autocomplete_search->getIndex()->status()))
-      ->andIf(AccessResult::allowedIfHasPermission($account, $permission))
-      ->cachePerPermissions()
-      ->addCacheableDependency($search_api_autocomplete_search);
+    $search = $search_api_autocomplete_search;
+    $permission = 'use search_api_autocomplete for ' . $search->id();
+    $access = AccessResult::allowedIf($search->status())
+      ->andIf(AccessResult::allowedIf($search->hasValidIndex() && $search->getIndex()->status()))
+      ->andIf(AccessResult::allowedIfHasPermissions($account, [$permission, 'administer search_api_autocomplete'], 'OR'))
+      ->addCacheableDependency($search);
     if ($access instanceof AccessResultReasonInterface) {
       $access->setReason("The \"$permission\" permission is required and autocomplete for this search must be enabled.");
     }

@@ -67,32 +67,38 @@ function search_api_autocomplete_form_views_exposed_form_alter(array &$form, For
     return;
   }
 
-  $index_id = substr($view->storage->get('base_table'), 17);
-
-  $index = Index::load($index_id);
-  if (!$fields = $index->getFulltextFields()) {
+  if (!$fields = $search->getIndex()->getFulltextFields()) {
     return;
   }
   // Add the "Search: Fulltext search" filter as another text field.
   $fields[] = 'search_api_fulltext';
 
-  \Drupal::moduleHandler()
-    ->alter('search_api_autocomplete_views_fulltext_fields', $fields, $search, $view);
+  \Drupal::moduleHandler()->alter('search_api_autocomplete_views_fulltext_fields', $fields, $search, $view);
+
   foreach ($view->filter as $filter_name => $filter) {
-    if (in_array($filter->realField, $fields)) {
-      if (!empty($filter->options['expose']['identifier'])) {
-        $key = $filter->options['expose']['identifier'];
-        if (isset($form[$key]) && $form[$key]['#type'] == 'textfield') {
-          if ($filter->realField == 'search_api_fulltext') {
-            $autocomplete_fields = $filter->options['fields'];
-          }
-          else {
-            $autocomplete_fields = [$filter->realField];
-          }
-          AutocompleteFormUtility::alterElement($form[$key], $search, $autocomplete_fields);
-        }
-      }
+    $key = $filter->options['expose']['identifier'];
+    if (!in_array($filter->realField, $fields)
+        || empty($filter->options['expose']['identifier'])
+        || !isset($form[$key])) {
+      continue;
     }
+
+    $element = &$form[$key];
+    // The Views filter for individual fulltext fields uses a nested "value"
+    // field for the real input, due to Views internals.
+    if (!empty($element['value'])) {
+      $element = &$element['value'];
+    }
+    if ($element['#type'] == 'textfield') {
+      if ($filter->realField == 'search_api_fulltext') {
+        $autocomplete_fields = $filter->options['fields'];
+      }
+      else {
+        $autocomplete_fields = [$filter->realField];
+      }
+      AutocompleteFormUtility::alterElement($element, $search, $autocomplete_fields);
+    }
+    unset($element);
   }
 }
 

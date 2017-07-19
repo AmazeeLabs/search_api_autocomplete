@@ -6,6 +6,7 @@ use Drupal\KernelTests\KernelTestBase;
 use Drupal\search_api\Entity\Index;
 use Drupal\search_api\Entity\Server;
 use Drupal\search_api_autocomplete\Entity\Search;
+use Drupal\search_api_autocomplete\SearchInterface;
 
 /**
  * Tests saving a Search API autocomplete config entity.
@@ -75,20 +76,111 @@ class SearchCrudTest extends KernelTestBase {
   }
 
   /**
-   * Creates and saves an autocomplete entity.
+   * Tests whether saving a new search entity works correctly.
    */
   public function testCreate() {
-    $autocomplete_search = Search::create([
+    $values = $this->getSearchTestValues();
+    $search = Search::create($values);
+    $search->save();
+
+    $this->assertInstanceOf(SearchInterface::class, $search);
+
+    $this->assertEquals($values['id'], $search->id());
+    $this->assertEquals($values['label'], $search->label());
+    $this->assertEquals($values['index_id'], $search->getIndexId());
+    $actual = $search->getSuggesterIds();
+    $this->assertEquals(array_keys($values['suggester_settings']), $actual);
+    $actual = $search->getSuggester('server')->getConfiguration();
+    $this->assertEquals($values['suggester_settings']['server'], $actual);
+    $actual = $search->getSuggesterWeights();
+    $this->assertEquals($values['suggester_weights'], $actual);
+    $actual = $search->getSuggesterLimits();
+    $this->assertEquals($values['suggester_limits'], $actual);
+    $this->assertEquals('views', $search->getTypeId());
+    $actual = $search->getTypeInstance()->getConfiguration();
+    $this->assertEquals($values['type_settings']['views'], $actual);
+    $this->assertEquals($values['options'], $search->getOptions());
+  }
+
+  /**
+   * Tests whether loading a search entity works correctly.
+   */
+  public function testLoad() {
+    $values = $this->getSearchTestValues();
+    $search = Search::create($values);
+    $search->save();
+
+    $loaded_search = Search::load($search->id());
+    $this->assertInstanceOf(SearchInterface::class, $loaded_search);
+    $this->assertEquals($search->toArray(), $loaded_search->toArray());
+  }
+
+  /**
+   * Tests whether updating a search entity works correctly.
+   */
+  public function testUpdate() {
+    $values = $this->getSearchTestValues();
+    $search = Search::create($values);
+    $search->save();
+
+    $search->set('label', 'foobar');
+    $search->save();
+
+    $this->assertEquals('foobar', $search->label());
+    $loaded_search = Search::load($search->id());
+    $this->assertInstanceOf(SearchInterface::class, $loaded_search);
+    $this->assertEquals($search->toArray(), $loaded_search->toArray());
+  }
+
+  /**
+   * Tests whether deleting a search entity works correctly.
+   */
+  public function testDelete() {
+    $values = $this->getSearchTestValues();
+    $search = Search::create($values);
+    $search->save();
+
+    $loaded_search = Search::load($search->id());
+    $this->assertInstanceOf(SearchInterface::class, $loaded_search);
+
+    $search->delete();
+
+    $loaded_search = Search::load($search->id());
+    $this->assertNull($loaded_search);
+  }
+
+  /**
+   * Retrieves properties for creating a test search entity.
+   *
+   * @return array
+   *   Properties for an Autocomplete Search entity.
+   */
+  protected function getSearchTestValues() {
+    return [
       'id' => 'muh',
       'label' => 'Meh',
       'index_id' => 'index',
-      'suggester_settings' => ['server' => []],
-      'type_settings' => ['test_type' => []],
-      'options' => [
-        'delay' => 1338,
+      'suggester_settings' => [
+        'server' => [
+          'fields' => ['foo', 'bar'],
+        ]
       ],
-    ]);
-    $autocomplete_search->save();
+      'suggester_weights' => ['server' => -10],
+      'suggester_limits' => ['server' => 5],
+      'type_settings' => [
+        'views' => [
+          'display' => 'page',
+        ]
+      ],
+      'options' => [
+        'limit' => 8,
+        'min_length' => 2,
+        'show_count' => TRUE,
+        'delay' => 1338,
+        'submit_button_selector' => '#edit-submit',
+        'autosubmit' => TRUE,
+      ],
+    ];
   }
 
 }
