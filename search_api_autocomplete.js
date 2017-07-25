@@ -175,7 +175,7 @@ if (typeof Drupal.jsAC != 'undefined') {
         },
         error: function (xmlhttp) {
           if (xmlhttp.status) {
-            alert(Drupal.ajaxError(xmlhttp, db.uri));
+            console.error(Drupal.ajaxError(xmlhttp, db.uri));
           }
         }
       });
