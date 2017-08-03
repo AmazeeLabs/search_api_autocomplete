@@ -24,7 +24,7 @@ class SearchApiAutocomplete extends Textfield {
 
     // Apply default form element properties.
     $info['#search_id'] = NULL;
-    $info['#fields'] = [];
+    $info['#data'] = [];
 
     array_unshift($info['#process'], [$class, 'processSearchApiAutocomplete']);
 
@@ -37,8 +37,8 @@ class SearchApiAutocomplete extends Textfield {
    * @param array $element
    *   The form element to process. Properties used:
    *   - #search_id: The entity ID of the Search config entity.
-   *   - #fields: (optional) Fulltext fields to use as the basis for
-   *     autocompletion.
+   *   - #additional_data: (optional) Additional data to pass to the
+   *     autocomplete callback as GET parameters.
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The current state of the form.
    * @param array $complete_form
@@ -71,12 +71,6 @@ class SearchApiAutocomplete extends Textfield {
     if (!$access->isAllowed()) {
       // Don't process if access isn't allowed.
       return $element;
-    }
-
-    // Check for passed-in full text fields.
-    $fields_string = '-';
-    if (!empty($element['#fields'])) {
-      $fields_string = implode(',', $element['#fields']);
     }
 
     // Add option defaults (in case of updates from earlier versions).
@@ -112,8 +106,10 @@ class SearchApiAutocomplete extends Textfield {
     $element['#autocomplete_route_name'] = 'search_api_autocomplete.autocomplete';
     $element['#autocomplete_route_parameters'] = [
       'search_api_autocomplete_search' => $search->id(),
-      'fields' => $fields_string,
     ];
+    if (!empty($element['#additional_data'])) {
+      $element['#autocomplete_route_parameters'] += $element['#additional_data'];
+    }
     $element['#attributes']['data-search-api-autocomplete-search'] = $search->id();
 
     return $element;

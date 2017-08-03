@@ -73,9 +73,19 @@ plugin.plugin_configuration.search_api_autocomplete_suggester.server:
 plugin.plugin_configuration.search_api_autocomplete_type.*:
   type: mapping
 
-plugin.plugin_configuration.search_api_autocomplete_type.views:
+plugin.plugin_configuration.search_api_autocomplete_type.views:*:
   type: mapping
   mapping:
-    display:
-      type: string
-      label: 'The plugin ID of the Views display to use'
+    displays:
+      type: mapping
+      label: 'Displays'
+      mapping:
+        default:
+          type: boolean
+          label: 'Whether to exclude (TRUE) or include (FALSE) the selected Views displays.'
+        selected:
+          type: sequence
+          label: 'The selected Views displays'
+          sequence:
+            type: string
+            label: 'A Views display machine name'

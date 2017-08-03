@@ -87,4 +87,18 @@ interface PluginHelperInterface {
    */
   public function createTypePlugins(SearchInterface $search, array $plugin_ids = NULL, array $configurations = []);
 
+  /**
+   * Creates objects for all type plugins associated with the given index.
+   *
+   * Type plugins are first filtered by their "index" definition key and then
+   * via their getIndexId() method.
+   *
+   * @param string $index_id
+   *   The ID of the search index for which to create type plugins.
+   *
+   * @return \Drupal\search_api_autocomplete\type\TypeInterface[]
+   *   The created type plugin objects.
+   */
+  public function createTypePluginsForIndex($index_id);
+
 }

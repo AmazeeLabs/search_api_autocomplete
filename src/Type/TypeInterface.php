@@ -2,12 +2,11 @@
 
 namespace Drupal\search_api_autocomplete\Type;
 
-use Drupal\search_api\IndexInterface;
 use Drupal\search_api_autocomplete\SearchInterface;
 use Drupal\search_api_autocomplete\Plugin\SearchPluginInterface;
 
 /**
- * Defines the auto complete type plugin.
+ * Defines the autocomplete search type plugin.
  *
  * @see \Drupal\search_api_autocomplete\Annotation\SearchApiAutocompleteType
  * @see \Drupal\search_api_autocomplete\Type\TypeManager
@@ -17,17 +16,41 @@ use Drupal\search_api_autocomplete\Plugin\SearchPluginInterface;
 interface TypeInterface extends SearchPluginInterface {
 
   /**
-   * Returns a list of searches for this index.
+   * Retrieves a group label for this type.
    *
-   * @param \Drupal\search_api\IndexInterface $index
-   *   A search api index.
+   * Used to group searches from the same source together in the UI.
    *
-   * @return array[]
-   *   An associative array of searches. Keys are the search IDs, values arrays
-   *   with information about the search. The following keys are recognized:
-   *   - label: The human-readable label for the search.
+   * @return string
+   *   A translated, human-readable label to group the type by.
    */
-  public function listSearches(IndexInterface $index);
+  public function getGroupLabel();
+
+  /**
+   * Retrieves a description for this type's group.
+   *
+   * Types with the same group label should aim to also return the same group
+   * description.
+   *
+   * @return string
+   *   A translated, human-readable description for this type's group.
+   */
+  public function getGroupDescription();
+
+  /**
+   * Retrieves the ID of the index to which this type plugin belongs.
+   *
+   * @return string
+   *   The type plugin's index's ID.
+   */
+  public function getIndexId();
+
+  /**
+   * Retrieves the index to which this type plugin belongs.
+   *
+   * @return \Drupal\search_api\IndexInterface
+   *   The type plugin's index.
+   */
+  public function getIndex();
 
   /**
    * Creates a search query based on this search type.
@@ -35,7 +58,10 @@ interface TypeInterface extends SearchPluginInterface {
    * @param \Drupal\search_api_autocomplete\SearchInterface $search
    *   The autocomplete search configuration.
    * @param string $keys
-   *   The keywords to set on the query.
+   *   The keywords to set on the query, if possible. Otherwise, this parameter
+   *   can also be ignored.
+   * @param array $data
+   *   (optional) Additional data passed to the callback.
    *
    * @return \Drupal\search_api\Query\QueryInterface
    *   The created query.
@@ -43,6 +69,6 @@ interface TypeInterface extends SearchPluginInterface {
    * @throws \Drupal\search_api_autocomplete\SearchApiAutocompleteException
    *   Thrown if the query couldn't be created.
    */
-  public function createQuery(SearchInterface $search, $keys);
+  public function createQuery(SearchInterface $search, $keys, array $data = []);
 
 }

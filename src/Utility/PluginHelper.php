@@ -145,4 +145,25 @@ class PluginHelper implements PluginHelperInterface {
   public function createTypePlugins(SearchInterface $search, array $plugin_ids = NULL, array $configurations = []) {
     return $this->createSearchPlugins($search, 'type', $plugin_ids, $configurations);
   }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function createTypePluginsForIndex($index_id) {
+    $definitions = $this->typePluginManager->getDefinitions();
+    $types = [];
+    foreach ($definitions as $type_id => $definition) {
+      if (!empty($definition['index']) && $definition['index'] !== $index_id) {
+        continue;
+      }
+      /** @var \Drupal\search_api_autocomplete\Type\TypeInterface $type */
+      $type = $this->typePluginManager->createInstance($type_id);
+      if ($type->getIndexId() === $index_id) {
+        $types[$type_id] = $type;
+      }
+    }
+
+    return $types;
+  }
+
 }

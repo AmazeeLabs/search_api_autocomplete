@@ -152,7 +152,7 @@ display:
       path: search-api-autocomplete-test
 label: 'Search API Autocomplete Test view'
 module: views
-id: search_api_autocomplete_test
+id: search_api_autocomplete_test_view
 tag: ''
 langcode: en
 dependencies:

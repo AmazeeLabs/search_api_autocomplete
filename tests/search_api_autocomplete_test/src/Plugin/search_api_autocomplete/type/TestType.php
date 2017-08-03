@@ -4,7 +4,6 @@ namespace Drupal\search_api_autocomplete_test\Plugin\search_api_autocomplete\typ
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\PluginFormInterface;
-use Drupal\search_api\IndexInterface;
 use Drupal\search_api_autocomplete\SearchInterface;
 use Drupal\search_api_autocomplete\Type\TypePluginBase;
 use Drupal\search_api_test\TestPluginTrait;
@@ -14,8 +13,11 @@ use Drupal\search_api_test\TestPluginTrait;
  *
  * @SearchApiAutocompleteType(
  *   id = "search_api_autocomplete_test",
- *   label = @Translation("Test type"),
- *   description = @Translation("Type used for tests."),
+ *   label = @Translation("Autocomplete test module search"),
+ *   description = @Translation("Test autocomplete search type"),
+ *   group_label = @Translation("Test type"),
+ *   group_description = @Translation("Type used for tests."),
+ *   index = "autocomplete_search_index",
  * )
  */
 class TestType extends TypePluginBase implements PluginFormInterface {
@@ -58,26 +60,12 @@ class TestType extends TypePluginBase implements PluginFormInterface {
   /**
    * {@inheritdoc}
    */
-  public function listSearches(IndexInterface $index) {
-    $this->logMethodCall(__FUNCTION__, func_get_args());
-    if ($override = $this->getMethodOverride(__FUNCTION__)) {
-      return call_user_func($override, $this, $index);
-    }
-    return [
-      'search_api_autocomplete_test' => [
-        'label' => 'Autocomplete test module search',
-      ],
-    ];
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function createQuery(SearchInterface $search, $keys) {
+  public function createQuery(SearchInterface $search, $keys, array $data = []) {
     $this->logMethodCall(__FUNCTION__, func_get_args());
     if ($override = $this->getMethodOverride(__FUNCTION__)) {
       return call_user_func($override, $this, $search, $keys);
     }
     return $search->getIndex()->query()->keys($keys);
   }
+
 }

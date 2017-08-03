@@ -42,13 +42,13 @@ class AutocompleteFormUtility {
    *   The altered element.
    * @param \Drupal\search_api_autocomplete\SearchInterface $search
    *   The autocomplete search.
-   * @param array $fields
-   *   (optional) Used fulltext fields.
+   * @param array $data
+   *   (optional) Additional data to pass to the autocomplete callback.
    */
-  public static function alterElement(array &$element, SearchInterface $search, array $fields = []) {
+  public static function alterElement(array &$element, SearchInterface $search, array $data = []) {
     $element['#type'] = 'search_api_autocomplete';
     $element['#search_id'] = $search->id();
-    $element['#fields'] = $fields;
+    $element['#additional_data'] = $data;
   }
 
 }

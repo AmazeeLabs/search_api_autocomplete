@@ -17,7 +17,7 @@ use Drupal\Component\Annotation\Plugin;
 class SearchApiAutocompleteType extends Plugin {
 
   /**
-   * The plugin label.
+   * The type label.
    *
    * @var string
    *
@@ -26,12 +26,37 @@ class SearchApiAutocompleteType extends Plugin {
   public $label;
 
   /**
-   * The plugin description.
+   * The type description.
    *
    * @var string
    *
    * @ingroup plugin_translatable
    */
   public $description;
+
+  /**
+   * The type's group label.
+   *
+   * @var string
+   *
+   * @ingroup plugin_translatable
+   */
+  public $group_label = NULL;
+
+  /**
+   * The type's group's description.
+   *
+   * @var string
+   *
+   * @ingroup plugin_translatable
+   */
+  public $group_description = NULL;
+
+  /**
+   * The type's index ID.
+   *
+   * @var string
+   */
+  public $index;
 
 }

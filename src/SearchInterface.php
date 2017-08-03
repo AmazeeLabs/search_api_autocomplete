@@ -206,15 +206,18 @@ interface SearchInterface extends ConfigEntityInterface {
    * Creates a query object for this search.
    *
    * @param string $keys
-   *   The search keys.
+   *   The fulltext search keywords to place on the query.
+   * @param array $data
+   *   (optional) Additional data passed to the callback.
    *
    * @return \Drupal\search_api\Query\QueryInterface
    *   The query that would normally be executed when $keys is entered as the
-   *   keywords for this search.
+   *   keywords for this search. Callers should check whether keywords are
+   *   actually set on the query.
    *
    * @throws \Drupal\search_api_autocomplete\SearchApiAutocompleteException
    *   Thrown if the query couldn't be created.
    */
-  public function createQuery($keys);
+  public function createQuery($keys, array $data = []);
 
 }

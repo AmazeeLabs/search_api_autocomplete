@@ -51,16 +51,13 @@ class AutocompleteController extends ControllerBase implements ContainerInjectio
    *
    * @param \Drupal\search_api_autocomplete\SearchInterface $search_api_autocomplete_search
    *   The search for which to retrieve autocomplete suggestions.
-   * @param string $fields
-   *   A comma-separated list of fields on which to do autocompletion. Or "-"
-   *   to use all fulltext fields.
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request.
    *
    * @return \Symfony\Component\HttpFoundation\JsonResponse
    *   The autocompletion response.
    */
-  public function autocomplete(SearchInterface $search_api_autocomplete_search, $fields, Request $request) {
+  public function autocomplete(SearchInterface $search_api_autocomplete_search, Request $request) {
     $matches = [];
     $search = $search_api_autocomplete_search;
 
@@ -68,19 +65,17 @@ class AutocompleteController extends ControllerBase implements ContainerInjectio
       return new JsonResponse($matches);
     }
 
-    $autocomplete_utility = new AutocompleteFormUtility($this->renderer);
     try {
       $keys = $request->query->get('q');
-      list($complete, $incomplete) = $autocomplete_utility->splitKeys($keys);
-      $query = $search->createQuery($complete);
+      list($complete, $incomplete) = AutocompleteFormUtility::splitKeys($keys);
+      $data = $request->query->all();
+      unset($data['q']);
+      $query = $search->createQuery($complete, $data);
       if (!$query) {
         return new JsonResponse($matches);
       }
 
       // Prepare the query.
-      if ($fields !== '-') {
-        $query->setFulltextFields(explode(',', $fields));
-      }
       $query->setSearchId('search_api_autocomplete:' . $search->id());
       $query->preExecute();
 

@@ -37,7 +37,7 @@ class IntegrationTest extends JavascriptTestBase {
    *
    * @var string
    */
-  protected $searchId = 'search_api_views_search_api_autocomplete_test';
+  protected $searchId = 'search_api_autocomplete_test_view';
 
   /**
    * An admin user used for the tests.
@@ -113,7 +113,7 @@ class IntegrationTest extends JavascriptTestBase {
 
     // Enable all Views searches (just one).
     $assert_session->checkboxNotChecked("searches[{$this->searchId}]");
-    $this->click('table[data-drupal-selector="edit-views-searches"] > thead > tr > th.select-all input.form-checkbox');
+    $this->click('table[data-drupal-selector="edit-search-views-searches"] > thead > tr > th.select-all input.form-checkbox');
     $assert_session->checkboxChecked("searches[{$this->searchId}]");
 
     $this->click('[data-drupal-selector="edit-submit"]');
@@ -166,7 +166,7 @@ class IntegrationTest extends JavascriptTestBase {
       'suggesters[weights][server][weight]' => '10',
       'suggesters[settings][server][fields][name]' => FALSE,
       'suggesters[settings][server][fields][body]' => TRUE,
-      'type_settings[display]' => 'page',
+      'type_settings[displays][selected][default]' => FALSE,
       'options[limit]' => '5',
       'options[min_length]' => '2',
       'options[show_count]' => TRUE,
@@ -284,7 +284,7 @@ class IntegrationTest extends JavascriptTestBase {
       'anonymous' => NULL,
     ];
     $permission = "use search_api_autocomplete for {$this->searchId}";
-    $autocomplete_path = "search_api_autocomplete/{$this->searchId}/-";
+    $autocomplete_path = "search_api_autocomplete/{$this->searchId}";
     foreach ($users as $user_type => $account) {
       $this->drupalLogout();
       if ($account) {

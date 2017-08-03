@@ -20,6 +20,7 @@ class SearchCrudTest extends KernelTestBase {
    */
   public static $modules = [
     'search_api_autocomplete',
+    'search_api_autocomplete_test',
     'search_api',
     'search_api_db',
     'user',
@@ -60,7 +61,7 @@ class SearchCrudTest extends KernelTestBase {
     $server->save();
 
     $index = Index::create([
-      'id' => 'index',
+      'id' => 'autocomplete_search_index',
       'name' => 'Index !1%$_',
       'status' => TRUE,
       'datasource_settings' => [
@@ -96,9 +97,9 @@ class SearchCrudTest extends KernelTestBase {
     $this->assertEquals($values['suggester_weights'], $actual);
     $actual = $search->getSuggesterLimits();
     $this->assertEquals($values['suggester_limits'], $actual);
-    $this->assertEquals('views', $search->getTypeId());
+    $this->assertEquals('search_api_autocomplete_test', $search->getTypeId());
     $actual = $search->getTypeInstance()->getConfiguration();
-    $this->assertEquals($values['type_settings']['views'], $actual);
+    $this->assertEquals($values['type_settings']['search_api_autocomplete_test'], $actual);
     $this->assertEquals($values['options'], $search->getOptions());
   }
 
@@ -159,18 +160,18 @@ class SearchCrudTest extends KernelTestBase {
     return [
       'id' => 'muh',
       'label' => 'Meh',
-      'index_id' => 'index',
+      'index_id' => 'autocomplete_search_index',
       'suggester_settings' => [
         'server' => [
           'fields' => ['foo', 'bar'],
-        ]
+        ],
       ],
       'suggester_weights' => ['server' => -10],
       'suggester_limits' => ['server' => 5],
       'type_settings' => [
-        'views' => [
-          'display' => 'page',
-        ]
+        'search_api_autocomplete_test' => [
+          'foo' => 'bar',
+        ],
       ],
       'options' => [
         'limit' => 8,

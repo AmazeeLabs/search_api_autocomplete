@@ -15,7 +15,15 @@ use Drupal\search_api_autocomplete\Suggester\SuggesterInterface;
  * @ConfigEntityType(
  *   id = "search_api_autocomplete_search",
  *   label = @Translation("Autocomplete search"),
+ *   label_collection = @Translation("Autocomplete searches"),
+ *   label_singular = @Translation("autocomplete search"),
+ *   label_plural = @Translation("autocomplete searches"),
+ *   label_count = @PluralTranslation(
+ *     singular = "@count autocomplete search",
+ *     plural = "@count autocomplete searches",
+ *   ),
  *   handlers = {
+ *     "storage" = "Drupal\search_api_autocomplete\Entity\SearchStorage",
  *     "form" = {
  *       "default" = "\Drupal\search_api_autocomplete\Form\SearchEditForm",
  *       "edit" = "\Drupal\search_api_autocomplete\Form\SearchEditForm",
@@ -370,12 +378,9 @@ class Search extends ConfigEntityBase implements SearchInterface {
   /**
    * {@inheritdoc}
    */
-  public function createQuery($keys) {
+  public function createQuery($keys, array $data = []) {
     $type = $this->getTypeInstance();
-    $query = $type->createQuery($this, $keys);
-    if ($keys && !$query->getKeys()) {
-      $query->keys($keys);
-    }
+    $query = $type->createQuery($this, $keys, $data);
     return $query;
   }
 
@@ -384,6 +389,19 @@ class Search extends ConfigEntityBase implements SearchInterface {
    */
   public function preSave(EntityStorageInterface $storage) {
     parent::preSave($storage);
+
+    // Make sure the type plugin's index matches this entity's index.
+    $type_index_id = $this->getTypeInstance()->getIndexId();
+    if ($this->getIndexId() !== $type_index_id) {
+      throw new SearchApiAutocompleteException("Attempt to save autocomplete search '{$this->id()}' with type '{$this->getTypeId()}' of index '$type_index_id' while the autocomplete search points to index '{$this->getIndexId()}'");
+    }
+
+    // Make sure only one search entity is ever saved for a certain type plugin.
+    /** @var \Drupal\search_api_autocomplete\Entity\SearchStorage $storage */
+    $search = $storage->loadByType($this->getTypeId());
+    if ($search && $search->id() !== $this->id()) {
+      throw new SearchApiAutocompleteException("Attempt to save autocomplete search '{$this->id()}' with type '{$this->getTypeId()}' when this type is already used for '{$search->id()}'");
+    }
 
     // If we are in the process of syncing, we shouldn't change any entity
     // properties (or other configuration).

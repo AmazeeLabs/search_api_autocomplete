@@ -11,6 +11,8 @@ use Drupal\Core\Routing\RedirectDestinationInterface;
 use Drupal\Core\Url;
 use Drupal\search_api\IndexInterface;
 use Drupal\search_api_autocomplete\Entity\Search;
+use Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\type\Page;
+use Drupal\search_api_autocomplete\Type\TypeInterface;
 use Drupal\search_api_autocomplete\Type\TypeManager;
 use Drupal\search_api_autocomplete\Utility\PluginHelperInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -106,175 +108,105 @@ class IndexOverviewForm extends FormBase {
 
     $form['#tree'] = TRUE;
 
-    $searches = $this->loadAutocompleteSearchByIndex($index_id);
+    /** @var \Drupal\search_api_autocomplete\SearchInterface[] $searches_by_type */
     $searches_by_type = [];
-    $unavailable_searches = [];
-    $no_suggesters = [];
+    foreach ($this->loadAutocompleteSearchByIndex($index_id) as $search) {
+      $searches_by_type[$search->getTypeId()] = $search;
+    }
     $any_suggester = FALSE;
+    $used_ids = [];
 
-    $suggesters = array_map(function ($suggester_info) {
-      return $suggester_info['class'];
-    }, $this->suggesterManager->getDefinitions());
-
-    /** @var \Drupal\search_api_autocomplete\Type\TypeInterface[] $types */
-    $types = array_map(function ($definition) {
-      return $this->typeManager->createInstance($definition['id']);
-    }, $this->typeManager->getDefinitions());
-    foreach ($types as $type => $autocomplete_type) {
-      $t_searches = $autocomplete_type->listSearches($search_api_index);
-      foreach ($t_searches as $id => $search) {
-        if (isset($searches[$id])) {
-          $searches_by_type[$type][$id] = $searches[$id];
-          unset($searches[$id]);
-        }
-        else {
-          $search += [
-            'id' => $id,
-            'status' => FALSE,
-            'label' => $id,
-            'index_id' => $index_id,
-            'type_settings' => [
-              $type => [],
-            ],
-            'options' => [],
-          ];
-          $search = Search::create($search);
-          $available_suggesters = array_filter($suggesters, function ($suggester_class) use ($search) {
-            return $suggester_class::supportsSearch($search);
-          });
-          if ($available_suggesters) {
-            reset($available_suggesters);
-            $suggester_id = key($available_suggesters);
-            $suggester = $this->pluginHelper->createSuggesterPlugin($search, $suggester_id);
-            $search->setSuggesters([
-              $suggester_id => $suggester,
-            ]);
-            $searches_by_type[$type][$id] = $search;
-          }
-          else {
-            $no_suggesters[$id] = $search->label();
-          }
-        }
-      }
-    }
-
-    // Add settings for unknown searches to list, so they can be deleted.
-    foreach ($searches as $id => $search) {
-      $type = isset($types[$search->getTypeId()]) ? $search->getTypeId() : '';
-      $searches_by_type[$type][$id] = $search;
-      $unavailable_searches[$type][$id] = TRUE;
-    }
-
-    /** @var \Drupal\search_api_autocomplete\Type\TypeInterface $autocomplete_type */
-    foreach ($types as $type => $autocomplete_type) {
-      if (empty($searches_by_type[$type])) {
-        continue;
-      }
-      if (!$type) {
-        $info = [
-          'name' => $this->t('Unavailable search types'),
-          'description' => $this->t("The modules providing these searches were disabled or uninstalled. If you won't use them anymore, you can delete their settings."),
+    $types = $this->pluginHelper->createTypePluginsForIndex($index_id);
+    foreach ($types as $type_id => $type) {
+      $group_label = (string) $type->getGroupLabel();
+      if (empty($form[$group_label])) {
+        $form[$group_label] = [
+          '#type' => 'fieldset',
+          '#title' => $type->getGroupLabel(),
         ];
-      }
-      elseif (!empty($info['unavailable'])) {
-        $info['description'] .= '</p><p>' . $this->t("The searches marked with an asterisk (*) are currently not available, possibly because they were deleted. If you won't use them anymore, you can delete their autocomplete settings.");
-      }
-      $form[$type] = [
-        '#type' => 'fieldset',
-        '#title' => $autocomplete_type->label(),
-      ];
-      if ($description = $autocomplete_type->getDescription()) {
-        $form[$type]['#description'] = '<p>' . $description . '</p>';
-      }
-      $form[$type]['searches']['#type'] = 'tableselect';
-      $form[$type]['searches']['#header'] = [
-        'label' => $this->t('label'),
-        'operations' => $this->t('Operations'),
-      ];
-      $form[$type]['searches']['#empty'] = '';
-      $form[$type]['searches']['#js_select'] = TRUE;
-      /** @var \Drupal\search_api_autocomplete\SearchInterface $search */
-      foreach ($searches_by_type[$type] as $id => $search) {
-        $any_suggester |= $search->getSuggesterIds();
-
-        $form[$type]['searches'][$id] = [
-          '#type' => 'checkbox',
-          '#default_value' => $search->status(),
-          '#parents' => ['searches', $id],
+        if ($description = $type->getGroupDescription()) {
+          $form[$group_label]['#description'] = '<p>' . $description . '</p>';
+        }
+        $form[$group_label]['searches']['#type'] = 'tableselect';
+        $form[$group_label]['searches']['#header'] = [
+          'label' => $this->t('label'),
+          'operations' => $this->t('Operations'),
         ];
-        $unavailable = !empty($info['unavailable'][$id]);
-        if ($unavailable) {
-          $form[$type]['searches'][$id]['#default_value'] = FALSE;
-          $form[$type]['searches'][$id]['#disabled'] = TRUE;
-        }
-        $form_state->set(['searches', $id], $search);
-        $options = &$form[$type]['searches']['#options'][$id];
-        $options['label'] = $search->label();
-        if ($unavailable) {
-          $options['label'] = '* ' . $options['label'];
-        }
-        $items = [];
-        if (!$unavailable && !empty($search->status())) {
-          $items[] = [
-            'title' => $this->t('Edit'),
-            'url' => $search->toUrl('edit-form'),
-          ];
-        }
-        if (!$search->isNew()) {
-          $items[] = [
-            'title' => $this->t('Delete'),
-            'url' => $search->toUrl('delete-form'),
-          ];
-        }
-
-        if ($items) {
-          $options['operations'] = [
-            'data' => [
-              '#type' => 'operations',
-              '#links' => $items,
-            ],
-          ];
-        }
-        else {
-          $options['operations'] = '';
-        }
-        unset($options);
+        $form[$group_label]['searches']['#empty'] = '';
+        $form[$group_label]['searches']['#js_select'] = TRUE;
       }
-    }
 
-    if ($no_suggesters) {
-      if (!$any_suggester) {
-        $args = [
-          '@feature' => 'search_api_autocomplete',
-          ':backends_url' => 'https://www.drupal.org/docs/8/modules/search-api/getting-started/server-backends-and-features#backends',
-        ];
-        drupal_set_message($this->t('There are currently no suggester plugins installed that support this index. To solve this problem, you can either:<ul><li>move the index to a server which supports the "@feature" feature (see the <a href=":backends_url">available backends</a>);</li><li>or install a module providing a new suggester plugin that supports this index.</li></ul>', $args), 'error');
-        if ($this->loadAutocompleteSearchByIndex($index_id)) {
-          $form['description'] = [
-            '#type' => 'item',
-            '#title' => $this->t('Delete autocompletion settings'),
-            '#description' => $this->t("If you won't use autocompletion with this index anymore, you can delete all autocompletion settings associated with it. This will delete all autocompletion settings on this index. Settings on other indexes won't be influenced."),
-          ];
-          $form['button'] = [
-            '#type' => 'submit',
-            '#value' => $this->t('Delete autocompletion settings'),
-            '#submit' => [$this, 'submitDelete'],
-          ];
-        }
-        return $form;
+      $suggesters_available = TRUE;
+      if (isset($searches_by_type[$type_id])) {
+        $search = $searches_by_type[$type_id];
       }
       else {
-        $args = [
-          '@searches' => implode(', ', $no_suggesters),
-        ];
-        drupal_set_message($this->t('The following searches cannot be enabled because no suggesters are available for them: @searches.', $args));
+        $search = $this->createSearchForType($type, $used_ids);
+        $used_ids[$search->id()] = TRUE;
+        // Determine whether there were any suggesters available for that
+        // search.
+        $suggesters_available = (bool) $search->getSuggesterIds();
       }
+      // Update whether we encountered any search at all which had a suggester
+      // available.
+      $any_suggester |= $suggesters_available;
+
+      $id = $search->id();
+      $form_state->set(['searches', $id], $search);
+      $form[$group_label]['searches'][$id] = [
+        '#type' => 'checkbox',
+        '#default_value' => $search->status(),
+        '#parents' => ['searches', $id],
+      ];
+      if (!$search->status() && !$suggesters_available) {
+        $form[$group_label]['searches'][$id]['#disabled'] = TRUE;
+        $form[$group_label]['searches'][$id]['#attributes'] = [
+          'title' => $this->t('Cannot be enabled because no suggester plugins are available that support this search.'),
+        ];
+      }
+
+      $options = &$form[$group_label]['searches']['#options'][$id];
+      $options['label'] = $search->label();
+      $items = [];
+      if ($search->status()) {
+        $items[] = [
+          'title' => $this->t('Edit'),
+          'url' => $search->toUrl('edit-form'),
+        ];
+      }
+      if (!$search->isNew()) {
+        $items[] = [
+          'title' => $this->t('Delete'),
+          'url' => $search->toUrl('delete-form'),
+        ];
+      }
+
+      if ($items) {
+        $options['operations'] = [
+          'data' => [
+            '#type' => 'operations',
+            '#links' => $items,
+          ],
+        ];
+      }
+      else {
+        $options['operations'] = '';
+      }
+      unset($options);
     }
 
     if (!Element::children($form)) {
       $form['message']['#markup'] = '<p>' . $this->t('There are currently no searches known for this index.') . '</p>';
     }
     else {
+      if (!$any_suggester) {
+        $args = [
+          '@feature' => 'search_api_autocomplete',
+          ':backends_url' => 'https://www.drupal.org/docs/8/modules/search-api/getting-started/server-backends-and-features#backends',
+        ];
+        drupal_set_message($this->t('There are currently no suggester plugins installed that support this index. To solve this problem, you can either:<ul><li>move the index to a server which supports the "@feature" feature (see the <a href=":backends_url">available backends</a>);</li><li>or install a module providing a new suggester plugin that supports this index.</li></ul>', $args), 'error');
+      }
+
       $form['submit'] = [
         '#type' => 'submit',
         '#value' => $this->t('Save'),
@@ -285,6 +217,62 @@ class IndexOverviewForm extends FormBase {
   }
 
   /**
+   * Creates a new search entity for the given type.
+   *
+   * @param \Drupal\search_api_autocomplete\Type\TypeInterface $type
+   *   The type plugin for which to create a search.
+   * @param true[] $used_ids
+   *   The IDs of the searches created so far for this form (to avoid
+   *   duplicates). IDs are used as array keys, mapping to TRUE.
+   *
+   * @return \Drupal\search_api_autocomplete\SearchInterface
+   *   The new search entity.
+   */
+  protected function createSearchForType(TypeInterface $type, array $used_ids) {
+    $type_id = $type->getPluginId();
+    $index_id = $type->getIndexId();
+
+    $id = $base_id = $type->getDerivativeId() ?: $type_id;
+    $search_storage = $this->entityTypeManager
+      ->getStorage('search_api_autocomplete_search');
+    $i = 0;
+    while (!empty($used_ids[$id]) || $search_storage->load($id)) {
+      $id = $base_id . '_' . ++$i;
+    }
+
+    $search = Search::create([
+      'id' => $id,
+      'status' => FALSE,
+      'label' => $type->label(),
+      'index_id' => $index_id,
+      'type_settings' => [
+        $type_id => [],
+      ],
+      'options' => [],
+    ]);
+
+    // Find a supported suggester and set it as the default for the search.
+    $suggesters = array_map(function ($suggester_info) {
+      return $suggester_info['class'];
+    }, $this->suggesterManager->getDefinitions());
+    $filter_suggesters = function ($suggester_class) use ($search) {
+      return $suggester_class::supportsSearch($search);
+    };
+    $available_suggesters = array_filter($suggesters, $filter_suggesters);
+    if ($available_suggesters) {
+      reset($available_suggesters);
+      $suggester_id = key($available_suggesters);
+      $suggester = $this->pluginHelper
+        ->createSuggesterPlugin($search, $suggester_id);
+      $search->setSuggesters([
+        $suggester_id => $suggester,
+      ]);
+    }
+
+    return $search;
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
@@ -292,7 +280,7 @@ class IndexOverviewForm extends FormBase {
     foreach ($form_state->getValue('searches') as $id => $enabled) {
       /** @var \Drupal\search_api_autocomplete\SearchInterface $search */
       $search = $form_state->get(['searches', $id]);
-      if ($search->status() != $enabled) {
+      if ($search && $search->status() != $enabled) {
         $change = TRUE;
         if ($search->isNew()) {
           $options['query'] = $this->redirectDestination->getAsArray();
@@ -311,30 +299,6 @@ class IndexOverviewForm extends FormBase {
   }
 
   /**
-   * Form submission handler for deleting an autocomplete search.
-   *
-   * @param array $form
-   *   An associative array containing the structure of the form.
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
-   *   The current state of the form.
-   */
-  public function submitDelete(array $form, FormStateInterface $form_state) {
-    /** @var \Drupal\search_api\IndexInterface $index */
-    $index = $form_state->get('index');
-    $ids = array_keys($this->loadAutocompleteSearchByIndex($index->id()));
-    if ($ids) {
-      $autocomplete_search_storage = $this->entityTypeManager->getStorage('search_api_autocomplete_search');
-      $autocomplete_searches = $autocomplete_search_storage->loadMultiple($ids);
-      $autocomplete_search_storage->delete($autocomplete_searches);
-      drupal_set_message($this->t('All autocompletion settings stored for this index were deleted.'));
-    }
-    else {
-      drupal_set_message($this->t('There were no settings to delete.'), 'warning');
-    }
-    $form_state->setRedirectUrl($index->toUrl());
-  }
-
-  /**
    * Load the autocomplete plugins for an index.
    *
    * @param string $index_id
@@ -344,11 +308,13 @@ class IndexOverviewForm extends FormBase {
    *   An array of autocomplete plugins.
    */
   protected function loadAutocompleteSearchByIndex($index_id) {
-    return $this->entityTypeManager
+    /** @var \Drupal\search_api_autocomplete\SearchInterface[] $searches */
+    $searches = $this->entityTypeManager
       ->getStorage('search_api_autocomplete_search')
       ->loadByProperties([
         'index_id' => $index_id,
       ]);
+    return $searches;
   }
 
 }

@@ -13,8 +13,9 @@ interface SearchPluginInterface extends ConfigurablePluginInterface {
   /**
    * Retrieves the search this plugin is configured for.
    *
-   * @return \Drupal\search_api_autocomplete\SearchInterface
-   *   The search this plugin is configured for.
+   * @return \Drupal\search_api_autocomplete\SearchInterface|null
+   *   The search this plugin is configured for, or NULL if no search entity has
+   *   yet been set for it.
    */
   public function getSearch();
 

@@ -4,8 +4,6 @@ namespace Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\type;
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\PluginFormInterface;
-use Drupal\Core\Url;
-use Drupal\search_api\IndexInterface;
 use Drupal\search_api\Plugin\PluginFormTrait;
 use Drupal\search_api\Plugin\views\query\SearchApiQuery;
 use Drupal\search_api_autocomplete\SearchApiAutocompleteException;
@@ -18,9 +16,10 @@ use Drupal\views\Views as ViewsViews;
  *
  * @SearchApiAutocompleteType(
  *   id = "views",
- *   label = @Translation("Search views"),
- *   description = @Translation("Searches provided by Views"),
+ *   group_label = @Translation("Search views"),
+ *   group_description = @Translation("Searches provided by Views"),
  *   provider = "search_api",
+ *   deriver = "Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\type\ViewsDeriver"
  * )
  */
 class Views extends TypePluginBase implements PluginFormInterface {
@@ -32,7 +31,10 @@ class Views extends TypePluginBase implements PluginFormInterface {
    */
   public function defaultConfiguration() {
     return [
-      'display' => 'default',
+      'displays' => [
+        'default' => TRUE,
+        'selected' => [],
+      ],
     ];
   }
 
@@ -40,24 +42,33 @@ class Views extends TypePluginBase implements PluginFormInterface {
    * {@inheritdoc}
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
-    /** @var \Drupal\search_api_autocomplete\SearchInterface $search */
-    $search = $form_state->getFormObject()->getEntity();
-    $views_id = substr($search->id(), 17);
-    $view = ViewsViews::getView($views_id);
+    $view = ViewsViews::getView($this->getDerivativeId());
+    if (!$view) {
+      return [];
+    }
     $options = [];
     $view->initDisplay();
     foreach ($view->displayHandlers as $id => $display) {
       /** @var \Drupal\views\Plugin\views\display\DisplayPluginBase $display */
       $options[$id] = $display->display['display_title'];
     }
-    $form['display'] = [
-      '#type' => 'select',
-      '#title' => $this->t('Views display'),
-      '#description' => $this->t('Please select the Views display whose settings should be used for autocomplete queries.<br />' .
-        "<strong>Note:</strong> Autocompletion doesn't work well with contextual filters. Please see the <a href=':readme_url'>README.txt</a> file for details.",
-        [':readme_url' => Url::fromUri('base://' . drupal_get_path('module', 'search_api_autocomplete') . '/README.txt')->toString()]),
+
+    $form['displays']['default'] = [
+      '#type' => 'radios',
+      '#title' => $this->t('For which Views displays should Autocomplete be active?'),
+      '#options' => [
+        1 => $this->t('All except those selected'),
+        0 => $this->t('None except those selected'),
+      ],
+      '#default_value' => (int) $this->configuration['displays']['default'],
+    ];
+    $form['displays']['selected'] = [
+      '#type' => 'checkboxes',
+      '#title' => $this->t('Displays'),
       '#options' => $options,
-      '#default_value' => $this->configuration['display'],
+      '#default_value' => $this->configuration['displays']['selected'],
+      '#size' => min(4, count($options)),
+      '#multiple' => TRUE,
     ];
 
     return $form;
@@ -67,58 +78,60 @@ class Views extends TypePluginBase implements PluginFormInterface {
    * {@inheritdoc}
    */
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
-    /** @var \Drupal\search_api_autocomplete\SearchInterface $search */
-    $search = $form_state->getFormObject()->getEntity();
-    $views_id = substr($search->id(), 17);
-    $view = ViewsViews::getView($views_id);
-    $view->setDisplay($form_state->getValue('display'));
-    $view->preExecute();
-    if ($view->argument) {
-      drupal_set_message(t('You have selected a display with contextual filters. This can lead to various problems. Please see the <a href=":readme_url">README.txt</a> file for details.',
-        [':readme_url' => Url::fromUri('base://' . drupal_get_path('module', 'search_api_autocomplete') . '/README.txt')->toString()]), 'warning');
-    }
+    // Filter out empty checkboxes.
+    $parents = ['displays', 'selected'];
+    $value = $form_state->getValue($parents, []);
+    $value = array_keys(array_filter($value));
+    $form_state->setValue($parents, $value);
+
+    $this->setConfiguration($form_state->getValues());
   }
 
   /**
    * {@inheritdoc}
    */
-  public function listSearches(IndexInterface $index) {
-    $ret = [];
-    $base_table = 'search_api_index_' . $index->id();
-    foreach (ViewsViews::getAllViews() as $id => $view) {
-      if ($view->get('base_table') === $base_table) {
-        // @todo Check whether there is an exposed fulltext filter
-        $ret['search_api_views_' . $id] = [
-          'label' => $view->label(),
-        ];
-      }
-    }
-    return $ret;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function createQuery(SearchInterface $search, $keys) {
-    $views_id = substr($search->id(), 17);
+  public function createQuery(SearchInterface $search, $keys, array $data = []) {
+    $views_id = $this->getDerivativeId();
     $view = ViewsViews::getView($views_id);
     if (!$view) {
       $vars['@view'] = $views_id;
       throw new SearchApiAutocompleteException($this->t('Could not load view @view.', $vars));
     }
-    $view->setDisplay($search->getOption('custom.display'));
-    // @todo Find out the GET parameter used for the "Search: Fulltext search"
-    //   filter and set it to $keys in the view's exposed input.
+
+    $data += [
+      'display' => NULL,
+      'arguments' => [],
+    ];
+
+    $view->setDisplay($data['display']);
+    $view->setArguments($data['arguments']);
+
+    // If we know the filter's identifier, use that to get the correct keys
+    // placed on the query.
+    if (!empty($data['filter'])) {
+      $view->setExposedInput([
+        $data['filter'] => $keys,
+      ]);
+    }
+
     $view->preExecute();
     $view->build();
+
     $query_plugin = $view->getQuery();
-    if ($query_plugin instanceof SearchApiQuery) {
-      $query = $query_plugin->getSearchApiQuery();
+    if (!($query_plugin instanceof SearchApiQuery)) {
+      $views_label = $view->storage->label() ?: $views_id;
+      throw new SearchApiAutocompleteException("Could not create search query for view '$views_label': view is not based on Search API.");
     }
-    if (empty($query)) {
-      $vars['@view'] = $view->storage->label() ?: $views_id;
-      throw new SearchApiAutocompleteException($this->t('Could not create search query for view @view.', $vars));
+    $query = $query_plugin->getSearchApiQuery();
+    if (!$query) {
+      $views_label = $view->storage->label() ?: $views_id;
+      throw new SearchApiAutocompleteException("Could not create search query for view '$views_label'.");
     }
+
+    if (!empty($data['fields'])) {
+      $query->setFulltextFields($data['fields']);
+    }
+
     return $query;
   }
 

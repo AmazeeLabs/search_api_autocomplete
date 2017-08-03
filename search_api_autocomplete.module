@@ -8,7 +8,6 @@
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
-use Drupal\search_api\Entity\Index;
 use Drupal\search_api_autocomplete\AutocompleteFormUtility;
 use Drupal\search_api_autocomplete\Entity\Search;
 
@@ -62,18 +61,34 @@ function search_api_autocomplete_form_views_exposed_form_alter(array &$form, For
   if (substr($view->storage->get('base_table'), 0, 17) != 'search_api_index_') {
     return;
   }
-  $search = Search::load('search_api_views_' . $view->id());
+
+  /** @var \Drupal\search_api_autocomplete\Entity\SearchStorage $search_storage */
+  $search_storage = \Drupal::entityTypeManager()
+    ->getStorage('search_api_autocomplete_search');
+  $search = $search_storage->loadByType('views:' . $view->id());
   if (!$search) {
     return;
   }
 
-  if (!$fields = $search->getIndex()->getFulltextFields()) {
+  $config = $search->getTypeInstance()->getConfiguration();
+  $selected = in_array($view->current_display, $config['displays']['selected']);
+  if ($selected === $config['displays']['selected']) {
+    return;
+  }
+
+  $fields = $search->getIndex()->getFulltextFields();
+  if (!$fields) {
     return;
   }
   // Add the "Search: Fulltext search" filter as another text field.
   $fields[] = 'search_api_fulltext';
 
   \Drupal::moduleHandler()->alter('search_api_autocomplete_views_fulltext_fields', $fields, $search, $view);
+
+  $base_data = [
+    'display' => $view->current_display,
+    'arguments' => $view->args,
+  ];
 
   foreach ($view->filter as $filter_name => $filter) {
     $key = $filter->options['expose']['identifier'];
@@ -84,20 +99,23 @@ function search_api_autocomplete_form_views_exposed_form_alter(array &$form, For
     }
 
     $element = &$form[$key];
+    $data = $base_data;
+
     // The Views filter for individual fulltext fields uses a nested "value"
     // field for the real input, due to Views internals.
     if (!empty($element['value'])) {
       $element = &$element['value'];
+      $key .= '[value]';
+      // In this case, we also need to manually pass the fulltext fields, so
+      // they will be applied properly.
+      $data['fields'] = [$filter->realField];
     }
-    if ($element['#type'] == 'textfield') {
-      if ($filter->realField == 'search_api_fulltext') {
-        $autocomplete_fields = $filter->options['fields'];
-      }
-      else {
-        $autocomplete_fields = [$filter->realField];
-      }
-      AutocompleteFormUtility::alterElement($element, $search, $autocomplete_fields);
+
+    if (isset($element['#type']) && $element['#type'] === 'textfield') {
+      $data['filter'] = $key;
+      AutocompleteFormUtility::alterElement($element, $search, $data);
     }
+
     unset($element);
   }
 }
