@@ -48,6 +48,25 @@ function search_api_autocomplete_entity_operation(EntityInterface $entity) {
 }
 
 /**
+ * Implements hook_hook_info().
+ *
+ * Allows other modules to place all their hook implementations for this module
+ * into a "MODULE.search_api_autocomplete.inc" file.
+ */
+function search_api_autocomplete_hook_info() {
+  $hooks = [
+    'search_api_autocomplete_suggestions_alter',
+    'search_api_autocomplete_suggester_alter',
+    'search_api_autocomplete_type_alter',
+    'search_api_autocomplete_views_fulltext_fields_alter',
+  ];
+  $info = [
+    'group' => 'search_api_autocomplete',
+  ];
+  return array_fill_keys($hooks, $info);
+}
+
+/**
  * Implements hook_form_FORM_ID_alter() for "views_exposed_form".
  *
  * Adds autocompletion to input fields for fulltext keywords on views with

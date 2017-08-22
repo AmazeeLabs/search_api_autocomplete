@@ -80,6 +80,7 @@ class IntegrationTest extends JavascriptTestBase {
     $this->configureSearch();
     $this->checkEntityDependencies();
     $this->checkSearchAutocomplete();
+    $this->checkHooks();
     $this->checkAutocompleteAccess();
     $this->checkAdminAccess();
   }
@@ -181,6 +182,7 @@ class IntegrationTest extends JavascriptTestBase {
    * Verifies that the search entity's dependencies were calculated correctly.
    */
   protected function checkEntityDependencies() {
+    /** @var \Drupal\search_api_autocomplete\SearchInterface $search */
     $search = Search::load($this->searchId);
     $expected = [
       'config' => [
@@ -292,6 +294,39 @@ class IntegrationTest extends JavascriptTestBase {
   }
 
   /**
+   * Checks that the module's hooks work as expected.
+   */
+  protected function checkHooks() {
+    $assert_session = $this->assertSession();
+
+    \Drupal::getContainer()->get('module_installer')->install([
+      'search_api_autocomplete_test_hooks',
+    ]);
+
+    $this->drupalGet($this->getAdminPath());
+    $assert_session->pageTextContains('The Siren');
+    $assert_session->pageTextContains('Planet Hell');
+    $assert_session->pageTextNotContains('Search views');
+    $assert_session->pageTextNotContains('Searches provided by Views');
+
+    $this->drupalGet($this->getAdminPath('edit'));
+    $assert_session->pageTextContains('Wish I Had an Angel');
+    $assert_session->pageTextNotContains('Test suggester');
+
+    $this->drupalGet('search-api-autocomplete-test');
+    $assert_session->statusCodeEquals(200);
+    $assert_session->pageTextContains("Creek Mary's Blood");
+
+    $autocomplete_path = "search_api_autocomplete/{$this->searchId}";
+    $this->drupalGet($autocomplete_path, ['query' => ['q' => 'test']]);
+    $assert_session->responseContains('dark chest of wonders');
+
+    \Drupal::getContainer()->get('module_installer')->uninstall([
+      'search_api_autocomplete_test_hooks',
+    ]);
+  }
+
+  /**
    * Verifies that autocomplete is only applied after access checks.
    */
   protected function checkAutocompleteAccess() {
@@ -321,7 +356,9 @@ class IntegrationTest extends JavascriptTestBase {
       $assert_session->statusCodeEquals(403);
 
       $rid = $account ? 'authenticated' : 'anonymous';
-      Role::load($rid)->grantPermission($permission)->save();
+      $role = Role::load($rid);
+      $role->grantPermission($permission);
+      $role->save();
 
       $this->drupalGet('search-api-autocomplete-test');
       $assert_session->statusCodeEquals(200);

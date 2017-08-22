@@ -7,7 +7,6 @@ use Drupal\Core\Plugin\PluginFormInterface;
 use Drupal\search_api\Query\QueryInterface;
 use Drupal\search_api_autocomplete\SearchInterface;
 use Drupal\search_api_autocomplete\Suggester\SuggesterPluginBase;
-use Drupal\search_api_autocomplete\Suggestion\Suggestion;
 use Drupal\search_api_autocomplete\Suggestion\SuggestionFactory;
 use Drupal\search_api_test\TestPluginTrait;
 

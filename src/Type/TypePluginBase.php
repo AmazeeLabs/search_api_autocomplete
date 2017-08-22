@@ -10,9 +10,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * Provides a base class for type plugins.
  *
  * Plugins extending this class need to define a plugin definition array through
- * annotation. These definition arrays may be altered through
- * hook_search_api_autocomplete_type_alter(). The definition includes the
- * following keys:
+ * annotation. The definition includes the following keys:
  * - id: The unique, system-wide identifier of the type plugin.
  * - label: The human-readable name of the type plugin, translated.
  * - description: A human-readable description for the type plugin,
@@ -33,6 +31,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @see \Drupal\search_api_autocomplete\Type\TypeInterface
  * @see \Drupal\search_api_autocomplete\Type\TypeManager
  * @see plugin_api
+ * @see hook_search_api_autocomplete_type_alter()
  */
 abstract class TypePluginBase extends SearchPluginBase implements TypeInterface {
 
