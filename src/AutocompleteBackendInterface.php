@@ -35,7 +35,7 @@ interface AutocompleteBackendInterface extends BackendInterface {
    * @param string $user_input
    *   The complete user input for the fulltext search keywords so far.
    *
-   * @return \Drupal\search_api_autocomplete\SuggestionInterface[]
+   * @return \Drupal\search_api_autocomplete\Suggestion\SuggestionInterface[]
    *   An array of autocomplete suggestions.
    */
   public function getAutocompleteSuggestions(QueryInterface $query, SearchInterface $search, $incomplete_key, $user_input);

@@ -194,7 +194,7 @@ class IntegrationTest extends JavascriptTestBase {
         ->getText();
       $suffix = $element->find('css', '.autocomplete-suggestion-suggestion-suffix')
         ->getText();
-      $count = $element->find('css', '.autocomplete-suggestion-results');
+      $count = $element->find('css', '.autocomplete-suggestion-results-count');
       $keys = $user_input . $suffix;
       $suggestions[] = [
         'keys' => $keys,

@@ -10,7 +10,7 @@
   font-weight: bold;
 }
 
-.search-api-autocomplete-suggestion .autocomplete-suggestion-results {
+.search-api-autocomplete-suggestion .autocomplete-suggestion-results-count {
   position: absolute;
   right: 0.2em;
 }

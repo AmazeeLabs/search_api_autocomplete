@@ -7,7 +7,8 @@ use Drupal\Core\Plugin\PluginFormInterface;
 use Drupal\search_api\Query\QueryInterface;
 use Drupal\search_api_autocomplete\SearchInterface;
 use Drupal\search_api_autocomplete\Suggester\SuggesterPluginBase;
-use Drupal\search_api_autocomplete\Suggestion;
+use Drupal\search_api_autocomplete\Suggestion\Suggestion;
+use Drupal\search_api_autocomplete\Suggestion\SuggestionFactory;
 use Drupal\search_api_test\TestPluginTrait;
 
 /**
@@ -78,8 +79,9 @@ class TestSuggester extends SuggesterPluginBase implements PluginFormInterface {
     }
 
     $suggestions = [];
+    $factory = new SuggestionFactory($user_input);
     for ($i = 1; $i <= $query->getOption('limit', 10); ++$i) {
-      $suggestions[] = Suggestion::fromSuggestionSuffix("-suggester-$i", $i, $user_input);
+      $suggestions[] = $factory->createFromSuggestionSuffix("-suggester-$i", $i);
     }
     return $suggestions;
   }

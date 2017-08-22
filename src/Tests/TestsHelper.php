@@ -4,7 +4,7 @@ namespace Drupal\search_api_autocomplete\Tests;
 
 use Drupal\search_api\Query\QueryInterface;
 use Drupal\search_api_autocomplete\SearchInterface;
-use Drupal\search_api_autocomplete\Suggestion;
+use Drupal\search_api_autocomplete\Suggestion\SuggestionFactory;
 
 /**
  * Contains helper methods for running tests.
@@ -57,7 +57,7 @@ class TestsHelper {
    * @param string $user_input
    *   The complete user input for the fulltext search keywords so far.
    *
-   * @return \Drupal\search_api_autocomplete\SuggestionInterface[]
+   * @return \Drupal\search_api_autocomplete\Suggestion\SuggestionInterface[]
    *   An array of autocomplete suggestions.
    *
    * @see \Drupal\search_api_autocomplete\AutocompleteBackendInterface::getAutocompleteSuggestions()
@@ -67,8 +67,9 @@ class TestsHelper {
     static::logMethodCall('backend', __FUNCTION__, $args);
 
     $suggestions = [];
+    $factory = new SuggestionFactory($user_input);
     for ($i = 1; $i <= $query->getOption('limit', 10); ++$i) {
-      $suggestions[] = Suggestion::fromSuggestionSuffix("-backend-$i", $i, $user_input);
+      $suggestions[] = $factory->createFromSuggestionSuffix("-backend-$i", $i);
     }
     return $suggestions;
   }
@@ -83,7 +84,7 @@ class TestsHelper {
    * @param array $args
    *   (optional) The method arguments.
    */
-  protected function logMethodCall($type, $method, array $args = []) {
+  protected static function logMethodCall($type, $method, array $args = []) {
     $state = \Drupal::state();
 
     // Log call.

@@ -19,10 +19,11 @@ function search_api_autocomplete_theme() {
     'variables' => [
       'keys' => NULL,
       'prefix' => NULL,
+      'label' => NULL,
       'suggestion_prefix' => '',
       'user_input' => '',
       'suggestion_suffix' => '',
-      'results' => NULL,
+      'results_count' => NULL,
     ],
   ];
 

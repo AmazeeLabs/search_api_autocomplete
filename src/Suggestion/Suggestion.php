@@ -1,8 +1,7 @@
 <?php
 
-namespace Drupal\search_api_autocomplete;
+namespace Drupal\search_api_autocomplete\Suggestion;
 
-use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Url;
 
 /**
@@ -15,7 +14,7 @@ class Suggestion implements SuggestionInterface {
    *
    * @var string|null
    */
-  protected $keys;
+  protected $suggestedKeys;
 
   /**
    * A URL to which the suggestion should redirect.
@@ -30,6 +29,13 @@ class Suggestion implements SuggestionInterface {
    * @var string|null
    */
   protected $prefix;
+
+  /**
+   * The label to use for the suggestion.
+   *
+   * @var string|null
+   */
+  protected $label;
 
   /**
    * A suggested prefix for the entered input.
@@ -57,7 +63,7 @@ class Suggestion implements SuggestionInterface {
    *
    * @var int|null
    */
-  protected $results;
+  protected $resultsCount;
 
   /**
    * If given, an HTML string or render array.
@@ -69,79 +75,46 @@ class Suggestion implements SuggestionInterface {
   /**
    * Constructs a Suggestion object.
    *
-   * @param string|null $keys
-   *   (optional) The keys.
+   * @param string|null $suggested_keys
+   *   (optional) The suggested keys.
    * @param \Drupal\Core\Url|null $url
-   *   (optional) The url.
+   *   (optional) The URL to redirect to.
    * @param string|null $prefix
-   *   (optional) The prefix.
+   *   (optional) The prefix for the suggestion.
+   * @param string|null $label
+   *   (optional) The label for the suggestion.
    * @param string|null $suggestion_prefix
-   *   (optional) The suggestion prefix.
+   *   (optional) The suggested prefix.
    * @param string|null $user_input
    *   (optional) The user input.
    * @param string|null $suggestion_suffix
-   *   (optional) The suggestion suffix.
-   * @param int|null $results
-   *   (optional) The number of results.
+   *   (optional) The suggested suffix.
+   * @param int|null $results_count
+   *   (optional) The estimated number of results.
    * @param array|null $render
    *   (optional) The render array.
    */
-  public function __construct($keys = NULL, Url $url = NULL, $prefix = NULL, $suggestion_prefix = NULL, $user_input = NULL, $suggestion_suffix = NULL, $results = NULL, array $render = NULL) {
-    $this->keys = $keys;
+  public function __construct($suggested_keys = NULL, Url $url = NULL, $prefix = NULL, $label = NULL, $suggestion_prefix = NULL, $user_input = NULL, $suggestion_suffix = NULL, $results_count = NULL, array $render = NULL) {
+    $this->suggestedKeys = $suggested_keys;
     $this->url = $url;
     $this->prefix = $prefix;
+    $this->label = $label;
     $this->suggestionPrefix = $suggestion_prefix;
     $this->userInput = $user_input;
     $this->suggestionSuffix = $suggestion_suffix;
-    $this->results = $results;
+    $this->resultsCount = $results_count;
     $this->render = $render;
-  }
-
-  /**
-   * Creates a new suggestion from a string.
-   *
-   * @param string $suggestion
-   *   The suggestion string.
-   * @param string $user_input
-   *   The user input.
-   *
-   * @return static
-   */
-  public static function fromSuggestedKeys($suggestion, $user_input) {
-    $pos = Unicode::strpos($suggestion, $user_input);
-    if ($pos === FALSE) {
-      return new static(NULL, NULL, NULL, NULL, NULL, $suggestion);
-    }
-    else {
-      $prefix = Unicode::substr($suggestion, 0, $pos);
-      $pos += Unicode::strlen($user_input);
-      $suffix = Unicode::substr($suggestion, $pos);
-      return new static(NULL, NULL, NULL, $prefix, $user_input, $suffix);
-    }
-  }
-
-  /**
-   * Creates a suggestion from a suggestion suffix.
-   *
-   * @param string $suggestion_suffix
-   *   The suggestion suffix.
-   * @param int $results
-   *   (optional) The amount of results.
-   * @param string $user_input
-   *   (optional) The user input.
-   *
-   * @return static
-   */
-  public static function fromSuggestionSuffix($suggestion_suffix, $results = 0, $user_input = NULL) {
-    return new static(NULL, NULL, NULL, NULL, $user_input, $suggestion_suffix, $results);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getKeys() {
-    if ($this->keys) {
-      return $this->keys;
+  public function getSuggestedKeys() {
+    if ($this->url) {
+      return NULL;
+    }
+    if ($this->suggestedKeys) {
+      return $this->suggestedKeys;
     }
     return $this->suggestionPrefix . $this->userInput . $this->suggestionSuffix;
   }
@@ -158,6 +131,13 @@ class Suggestion implements SuggestionInterface {
    */
   public function getPrefix() {
     return $this->prefix;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getLabel() {
+    return $this->label;
   }
 
   /**
@@ -184,8 +164,8 @@ class Suggestion implements SuggestionInterface {
   /**
    * {@inheritdoc}
    */
-  public function getResults() {
-    return $this->results;
+  public function getResultsCount() {
+    return $this->resultsCount;
   }
 
   /**
@@ -198,8 +178,8 @@ class Suggestion implements SuggestionInterface {
   /**
    * {@inheritdoc}
    */
-  public function setKeys($keys) {
-    $this->keys = $keys;
+  public function setSuggestedKeys($suggestedKeys) {
+    $this->suggestedKeys = $suggestedKeys;
     return $this;
   }
 
@@ -216,6 +196,14 @@ class Suggestion implements SuggestionInterface {
    */
   public function setPrefix($prefix) {
     $this->prefix = $prefix;
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setLabel($label) {
+    $this->label = $label;
     return $this;
   }
 
@@ -246,8 +234,8 @@ class Suggestion implements SuggestionInterface {
   /**
    * {@inheritdoc}
    */
-  public function setResults($results) {
-    $this->results = $results;
+  public function setResultsCount($results) {
+    $this->resultsCount = $results;
     return $this;
   }
 
@@ -266,18 +254,17 @@ class Suggestion implements SuggestionInterface {
     if (!empty($this->render)) {
       return $this->render;
     }
-    else {
-      return [
-        '#theme' => 'search_api_autocomplete_suggestion',
-        '#keys' => $this->getKeys(),
-        '#prefix' => $this->getPrefix(),
-        '#results' => $this->getResults(),
-        '#suggestion_prefix' => $this->getSuggestionPrefix(),
-        '#suggestion_suffix' => $this->getSuggestionSuffix(),
-        '#url' => $this->getUrl(),
-        '#user_input' => $this->getUserInput(),
-      ];
-    }
+    return [
+      '#theme' => 'search_api_autocomplete_suggestion',
+      '#keys' => $this->getSuggestedKeys(),
+      '#prefix' => $this->getPrefix(),
+      '#label' => $this->getLabel(),
+      '#results_count' => $this->getResultsCount(),
+      '#suggestion_prefix' => $this->getSuggestionPrefix(),
+      '#suggestion_suffix' => $this->getSuggestionSuffix(),
+      '#url' => $this->getUrl(),
+      '#user_input' => $this->getUserInput(),
+    ];
   }
 
 }

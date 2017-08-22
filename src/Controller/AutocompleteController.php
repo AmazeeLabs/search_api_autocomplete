@@ -90,7 +90,7 @@ class AutocompleteController extends ControllerBase implements ContainerInjectio
       $suggester_weights += array_fill_keys(array_keys($suggesters), 0);
       asort($suggester_weights);
 
-      /** @var \Drupal\search_api_autocomplete\SuggestionInterface[] $suggestions */
+      /** @var \Drupal\search_api_autocomplete\Suggestion\SuggestionInterface[] $suggestions */
       $suggestions = [];
       // Go through all enabled suggesters in order of increasing weight and
       // add their suggestions (until the limit is reached).
@@ -119,7 +119,7 @@ class AutocompleteController extends ControllerBase implements ContainerInjectio
             $key = ' ' . $suggestion->getUrl()->toString();
           }
           else {
-            $key = trim($suggestion->getKeys());
+            $key = trim($suggestion->getSuggestedKeys());
           }
 
           if (!isset($suggestions[$key])) {
@@ -150,11 +150,11 @@ class AutocompleteController extends ControllerBase implements ContainerInjectio
         // If "Display result count estimates" was disabled, remove the
         // count from the suggestion.
         if (!$show_count) {
-          $suggestion->setResults(NULL);
+          $suggestion->setResultsCount(NULL);
         }
         if ($build = $suggestion->toRenderable()) {
           $matches[] = [
-            'value' => $suggestion->getKeys(),
+            'value' => $suggestion->getSuggestedKeys(),
             'label' => $this->renderer->render($build),
           ];
         }

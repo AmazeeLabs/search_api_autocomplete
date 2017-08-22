@@ -1,61 +1,68 @@
 <?php
 
-namespace Drupal\search_api_autocomplete;
+namespace Drupal\search_api_autocomplete\Suggestion;
 
 use Drupal\Core\Render\RenderableInterface;
 
 /**
  * Defines a single autocompletion suggestion.
- *
- * All the keys are optional, with the exception that at least one of "keys",
- * "url", "suggestion_prefix", "user_input" or "suggestion_suffix" has to be
- * present.
  */
 interface SuggestionInterface extends RenderableInterface {
 
   /**
-   * The keywords this suggestion will autocomplete to.
-   *
-   * If it is not present, a direct concatenation (no spaces in between) of
-   * "suggestion_prefix", "user_input" and "suggestion_suffix" will be used
-   * instead.
+   * Retrieves the keywords this suggestion will autocomplete to.
    *
    * @return string|null
-   *   The suggested keywords, or NULL when no keywords are provided.
+   *   The suggested keywords, or NULL if the suggestion should direct to a URL
+   *   instead.
    */
-  public function getKeys();
+  public function getSuggestedKeys();
 
   /**
-   * A URL to which the suggestion should redirect to.
+   * Retrieves the URL to which the suggestion should redirect.
    *
    * A URL to which the suggestion should redirect instead of completing the
    * user input in the text field. This overrides the normal behavior and thus
-   * makes "keys" obsolete.
+   * makes the suggested keys obsolete.
    *
    * @return \Drupal\Core\Url|null
-   *   The URL to which the suggestion should redirect to or null if no path is
-   *   found.
+   *   The URL to which the suggestion should redirect to, or NULL if none was
+   *   set.
    */
   public function getUrl();
 
   /**
-   * For special suggestions, some kind of HTML prefix describing them.
+   * Retrieves the prefix for the suggestion.
+   *
+   * For special kinds of suggestions, this will contain some kind of prefix
+   * describing them.
    *
    * @return string|null
-   *   A prefix.
+   *   The prefix, if set.
    */
   public function getPrefix();
 
   /**
-   * A suggested prefix for the entered input.
+   * Retrieves the label to use for the suggestion.
+   *
+   * Should only be used if the other fields that will be displayed (suggestion
+   * prefix/suffix and user input) are empty.
+   *
+   * @return string
+   *  The suggestion's label.
+   */
+  public function getLabel();
+
+  /**
+   * Retrieves the prefix suggested for the entered keys.
    *
    * @return string|null
-   *   A prefix.
+   *   The suggested prefix, if any.
    */
   public function getSuggestionPrefix();
 
   /**
-   * The input entered by the user. Defaults to $user_input.
+   * The input entered by the user, if it should be included in the label.
    *
    * @return string|null
    *   The input provided by the user.
@@ -71,38 +78,39 @@ interface SuggestionInterface extends RenderableInterface {
   public function getSuggestionSuffix();
 
   /**
-   * If available, the estimated number of results for these keys.
+   * Returns the estimated number of results for this suggestion.
    *
    * @return int|null
-   *   The estimated amount of results.
+   *   The estimated number of results, or NULL if no estimate is available.
    */
-  public function getResults();
+  public function getResultsCount();
 
   /**
-   * A render array.
+   * Returns the render array set for this suggestion.
    *
    * This should be displayed to the user for this suggestion. If missing, the
-   * suggestion is instead passed to theme_search_api_autocomplete_suggestion().
+   * suggestion is instead rendered with the
+   * "search_api_autocomplete_suggestion" theme.
    *
    * @return array|null
-   *   A renderable array of the suggestion results.
+   *   A renderable array of the suggestion results, or NULL if none was set.
    */
   public function getRender();
 
   /**
    * Sets the keys.
    *
-   * @param mixed $keys
+   * @param string|null $keys
    *   The keys.
    *
    * @return $this
    */
-  public function setKeys($keys);
+  public function setSuggestedKeys($keys);
 
   /**
    * Sets the URL.
    *
-   * @param mixed $url
+   * @param \Drupal\Core\Url|null $url
    *   The URL.
    *
    * @return $this
@@ -112,7 +120,7 @@ interface SuggestionInterface extends RenderableInterface {
   /**
    * Sets the prefix.
    *
-   * @param mixed $prefix
+   * @param string|null $prefix
    *   The prefix.
    *
    * @return $this
@@ -120,9 +128,19 @@ interface SuggestionInterface extends RenderableInterface {
   public function setPrefix($prefix);
 
   /**
+   * Sets the label.
+   *
+   * @param string|null $label
+   *   The new label.
+   *
+   * @return $this
+   */
+  public function setLabel($label);
+
+  /**
    * Sets the suggestion prefix.
    *
-   * @param mixed $suggestion_prefix
+   * @param string|null $suggestion_prefix
    *   The suggestion prefix.
    *
    * @return $this
@@ -132,7 +150,7 @@ interface SuggestionInterface extends RenderableInterface {
   /**
    * Sets the user input.
    *
-   * @param string $user_input
+   * @param string|null $user_input
    *   The user input.
    *
    * @return $this
@@ -152,12 +170,12 @@ interface SuggestionInterface extends RenderableInterface {
   /**
    * Sets the result count.
    *
-   * @param int $results
+   * @param string|null $results
    *   The result count.
    *
    * @return $this
    */
-  public function setResults($results);
+  public function setResultsCount($results);
 
   /**
    * Sets the render array.
