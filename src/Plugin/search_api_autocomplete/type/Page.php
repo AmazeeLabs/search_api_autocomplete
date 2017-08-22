@@ -5,8 +5,10 @@ namespace Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\type;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\search_api\Utility\QueryHelperInterface;
+use Drupal\search_api_autocomplete\SearchApiAutocompleteException;
 use Drupal\search_api_autocomplete\SearchInterface;
 use Drupal\search_api_autocomplete\Type\TypePluginBase;
+use Drupal\search_api_page\SearchApiPageInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -96,16 +98,43 @@ class Page extends TypePluginBase implements ContainerFactoryPluginInterface {
    * {@inheritdoc}
    */
   public function createQuery(SearchInterface $search, $keys, array $data = []) {
+    $query = $this->getQueryHelper()->createQuery($this->getIndex());
+    $query->keys($keys);
+    $page = $this->getPage();
+    if ($page && $page->getFulltextFields()) {
+      $query->setFulltextFields($page->getSearchedFields());
+    }
+    return $query;
+  }
+
+  /**
+   * Retrieves the search page entity for this plugin.
+   *
+   * @return \Drupal\search_api_page\SearchApiPageInterface|null
+   *   The search page, or NULL if it couldn't be loaded.
+   */
+  protected function getPage() {
     /** @var \Drupal\search_api_page\SearchApiPageInterface $page */
     $page = $this->getEntityTypeManager()
       ->getStorage('search_api_page')
       ->load($this->getDerivativeId());
-    $query = $this->getQueryHelper()->createQuery($this->getIndex());
-    $query->keys($keys);
-    if ($page->getFulltextFields()) {
-      $query->setFulltextFields($page->getSearchedFields());
+    return $page;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function calculateDependencies() {
+    $this->dependencies = parent::calculateDependencies();
+
+    $page = $this->getPage();
+    if ($page) {
+      $key = $page->getConfigDependencyKey();
+      $name = $page->getConfigDependencyName();
+      $this->addDependency($key, $name);
     }
-    return $query;
+
+    return $this->dependencies;
   }
 
 }

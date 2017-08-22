@@ -7,6 +7,7 @@ use Drupal\search_api\Entity\Index;
 use Drupal\search_api\Entity\Server;
 use Drupal\search_api_autocomplete\Entity\Search;
 use Drupal\search_api_autocomplete\SearchInterface;
+use Drupal\search_api_test\PluginTestTrait;
 
 /**
  * Tests saving a Search API autocomplete config entity.
@@ -14,6 +15,8 @@ use Drupal\search_api_autocomplete\SearchInterface;
  * @group search_api_autocomplete
  */
 class SearchCrudTest extends KernelTestBase {
+
+  use PluginTestTrait;
 
   /**
    * {@inheritdoc}
@@ -80,7 +83,15 @@ class SearchCrudTest extends KernelTestBase {
    * Tests whether saving a new search entity works correctly.
    */
   public function testCreate() {
+    $this->setMethodOverride('type', 'calculateDependencies', function () {
+      return [
+        'config' => ['search_api.server.server'],
+        'module' => ['user'],
+      ];
+    });
+
     $values = $this->getSearchTestValues();
+    /** @var \Drupal\search_api_autocomplete\SearchInterface $search */
     $search = Search::create($values);
     $search->save();
 
@@ -101,6 +112,18 @@ class SearchCrudTest extends KernelTestBase {
     $actual = $search->getTypeInstance()->getConfiguration();
     $this->assertEquals($values['type_settings']['search_api_autocomplete_test'], $actual);
     $this->assertEquals($values['options'], $search->getOptions());
+
+    $expected = [
+      'config' => [
+        'search_api.index.autocomplete_search_index',
+        'search_api.server.server',
+      ],
+      'module' => [
+        'search_api_autocomplete_test',
+        'user',
+      ],
+    ];
+    $this->assertEquals($expected, $search->getDependencies());
   }
 
   /**

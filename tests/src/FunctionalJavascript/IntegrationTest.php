@@ -4,6 +4,7 @@ namespace Drupal\Tests\search_api_autocomplete\FunctionalJavascript;
 
 use Behat\Mink\Driver\GoutteDriver;
 use Drupal\FunctionalJavascriptTests\JavascriptTestBase;
+use Drupal\search_api_autocomplete\Entity\Search;
 use Drupal\search_api_autocomplete\Tests\TestsHelper;
 use Drupal\search_api_test\PluginTestTrait;
 use Drupal\user\Entity\Role;
@@ -77,6 +78,7 @@ class IntegrationTest extends JavascriptTestBase {
 
     $this->enableSearch();
     $this->configureSearch();
+    $this->checkEntityDependencies();
     $this->checkSearchAutocomplete();
     $this->checkAutocompleteAccess();
     $this->checkAdminAccess();
@@ -173,6 +175,24 @@ class IntegrationTest extends JavascriptTestBase {
       'options[delay]' => '1000',
     ];
     $this->submitForm($edit, 'Save');
+  }
+
+  /**
+   * Verifies that the search entity's dependencies were calculated correctly.
+   */
+  protected function checkEntityDependencies() {
+    $search = Search::load($this->searchId);
+    $expected = [
+      'config' => [
+        'search_api.index.autocomplete_search_index',
+        "views.view.{$this->searchId}",
+      ],
+      'module' => [
+        'search_api',
+        'search_api_autocomplete_test',
+      ],
+    ];
+    $this->assertEquals($expected, $search->getDependencies());
   }
 
   /**

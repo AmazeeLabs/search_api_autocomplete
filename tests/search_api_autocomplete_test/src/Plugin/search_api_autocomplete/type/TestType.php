@@ -68,4 +68,15 @@ class TestType extends TypePluginBase implements PluginFormInterface {
     return $search->getIndex()->query()->keys($keys);
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function calculateDependencies() {
+    $this->logMethodCall(__FUNCTION__, func_get_args());
+    if ($override = $this->getMethodOverride(__FUNCTION__)) {
+      return call_user_func($override, $this);
+    }
+    return [];
+  }
+
 }

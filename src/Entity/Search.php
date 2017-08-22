@@ -428,10 +428,14 @@ class Search extends ConfigEntityBase implements SearchInterface {
    */
   protected function writeChangesToSettings() {
     // Write the enabled suggesters to the settings property.
-    if ($this->suggesterInstances !== NULL) {
-      $this->suggester_settings = [];
-      foreach ($this->suggesterInstances as $suggester_id => $suggester) {
-        $this->suggester_settings[$suggester_id] = $suggester->getConfiguration();
+    $this->suggester_settings = [];
+    foreach ($this->getSuggesters() as $suggester_id => $suggester) {
+      if ($suggester->supportsSearch($this)) {
+        $configuration = $suggester->getConfiguration();
+        $this->suggester_settings[$suggester_id] = $configuration;
+      }
+      else {
+        unset($this->suggesterInstances[$suggester_id]);
       }
     }
 
@@ -455,7 +459,13 @@ class Search extends ConfigEntityBase implements SearchInterface {
     $name = $this->getIndex()->getConfigDependencyName();
     $this->addDependency('config', $name);
 
-    // @todo Dependencies for plugins (providers). See #2891251.
+    if ($this->hasValidType()) {
+      $this->calculatePluginDependencies($this->getTypeInstance());
+    }
+
+    foreach ($this->getSuggesters() as $suggester) {
+      $this->calculatePluginDependencies($suggester);
+    }
 
     return $this;
   }

@@ -9,7 +9,10 @@ use Drupal\search_api\Plugin\views\query\SearchApiQuery;
 use Drupal\search_api_autocomplete\SearchApiAutocompleteException;
 use Drupal\search_api_autocomplete\SearchInterface;
 use Drupal\search_api_autocomplete\Type\TypePluginBase;
+use Drupal\views\ViewEntityInterface;
+use Drupal\views\ViewExecutableFactory;
 use Drupal\views\Views as ViewsViews;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Provides autocomplete support for Views search.
@@ -25,6 +28,48 @@ use Drupal\views\Views as ViewsViews;
 class Views extends TypePluginBase implements PluginFormInterface {
 
   use PluginFormTrait;
+
+  /**
+   * The views executable factory.
+   *
+   * @var \Drupal\views\ViewExecutableFactory|null
+   */
+  protected $viewsExecutableFactory;
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    /** @var static $plugin */
+    $plugin = parent::create($container, $configuration, $plugin_id, $plugin_definition);
+
+    $plugin->setViewsExecutableFactory($container->get('views.executable'));
+
+    return $plugin;
+  }
+
+  /**
+   * Retrieves the Views executable factory.
+   *
+   * @return \Drupal\views\ViewExecutableFactory
+   *   The Views executable factory.
+   */
+  public function getViewsExecutableFactory() {
+    return $this->viewsExecutableFactory ?: \Drupal::service('views.executable');
+  }
+
+  /**
+   * Sets the Views executable factory.
+   *
+   * @param \Drupal\views\ViewExecutableFactory $views_executable_factory
+   *   The new Views executable factory.
+   *
+   * @return $this
+   */
+  public function setViewsExecutableFactory(ViewExecutableFactory $views_executable_factory) {
+    $this->viewsExecutableFactory = $views_executable_factory;
+    return $this;
+  }
 
   /**
    * {@inheritdoc}
@@ -92,7 +137,10 @@ class Views extends TypePluginBase implements PluginFormInterface {
    */
   public function createQuery(SearchInterface $search, $keys, array $data = []) {
     $views_id = $this->getDerivativeId();
-    $view = ViewsViews::getView($views_id);
+    $view = $this->getEntityTypeManager()->getStorage('view')->load($views_id);
+    if ($view instanceof ViewEntityInterface) {
+      $view = $this->getViewsExecutableFactory()->get($view);
+    }
     if (!$view) {
       $vars['@view'] = $views_id;
       throw new SearchApiAutocompleteException($this->t('Could not load view @view.', $vars));
@@ -133,6 +181,23 @@ class Views extends TypePluginBase implements PluginFormInterface {
     }
 
     return $query;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function calculateDependencies() {
+    $this->dependencies = parent::calculateDependencies();
+
+    $view_id = $this->getDerivativeId();
+    $view = $this->getEntityTypeManager()->getStorage('view')->load($view_id);
+    if ($view) {
+      $key = $view->getConfigDependencyKey();
+      $name = $view->getConfigDependencyName();
+      $this->addDependency($key, $name);
+    }
+
+    return $this->dependencies;
   }
 
 }
