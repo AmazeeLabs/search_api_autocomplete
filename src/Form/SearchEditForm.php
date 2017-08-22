@@ -114,7 +114,7 @@ class SearchEditForm extends EntityForm {
       '#required' => TRUE,
       '#min' => 1,
       '#step' => 1,
-      '#default_value' => $search->getOption('limit', 10),
+      '#default_value' => $search->getOption('limit'),
     ];
     $form['options']['min_length'] = [
       '#type' => 'number',
@@ -122,13 +122,13 @@ class SearchEditForm extends EntityForm {
       '#description' => $this->t('If the entered keywords are shorter than this, no autocomplete suggestions will be displayed.'),
       '#min' => 1,
       '#step' => 1,
-      '#default_value' => $search->getOption('min_length', 1),
+      '#default_value' => $search->getOption('min_length'),
     ];
     $form['options']['show_count'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Display result count estimates'),
       '#description' => $this->t('Display the estimated number of result for each suggestion. This option might not have an effect for some servers or types of suggestion.'),
-      '#default_value' => (bool) $search->getOption('show_count', FALSE),
+      '#default_value' => (bool) $search->getOption('show_count'),
     ];
 
     $form['advanced'] = [
@@ -141,14 +141,14 @@ class SearchEditForm extends EntityForm {
       '#type' => 'checkbox',
       '#title' => $this->t('Enable auto-submit'),
       '#description' => $this->t('When enabled, the search form will automatically be submitted when a selection is made by pressing "Enter".'),
-      '#default_value' => $search->getOption('autosubmit', TRUE),
+      '#default_value' => $search->getOption('autosubmit'),
       '#parents' => ['options', 'autosubmit'],
     ];
     $form['advanced']['submit_button_selector'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Search button selector'),
       '#description' => $this->t('<a href="@jquery_url">jQuery selector</a> identifying the button to use for submitting the search form. Use the ID attribute of the "Search" submit button to prevent issues when another button is present (e.g., "Reset"). The selector is evaluated relative to the form. The default value is "@default".', ['@jquery_url' => 'https://api.jquery.com/category/selectors/', '@default' => ':submit']),
-      '#default_value' => $search->getOption('submit_button_selector', ':submit'),
+      '#default_value' => $search->getOption('submit_button_selector'),
       '#required' => TRUE,
       '#parents' => ['options', 'submit_button_selector'],
       '#states' => [

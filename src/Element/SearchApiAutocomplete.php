@@ -74,12 +74,7 @@ class SearchApiAutocomplete extends Textfield {
     }
 
     // Add option defaults (in case of updates from earlier versions).
-    $options = $search->getOptions() + [
-      'autosubmit' => TRUE,
-      'delay' => 0,
-      'min_length' => 1,
-      'submit_button_selector' => ':submit',
-    ];
+    $options = $search->getOptions();
     $js_settings = [];
     if ($options['submit_button_selector'] != ':submit') {
       $js_settings['selector'] = $options['submit_button_selector'];

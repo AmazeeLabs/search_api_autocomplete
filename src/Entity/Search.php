@@ -166,6 +166,19 @@ class Search extends ConfigEntityBase implements SearchInterface {
   /**
    * {@inheritdoc}
    */
+  public static function getDefaultOptions() {
+    return [
+      'autosubmit' => TRUE,
+      'delay' => 0,
+      'limit' => 10,
+      'min_length' => 1,
+      'submit_button_selector' => ':submit',
+    ];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   protected function urlRouteParameters($rel) {
     $parameters = parent::urlRouteParameters($rel);
 
@@ -348,15 +361,16 @@ class Search extends ConfigEntityBase implements SearchInterface {
   /**
    * {@inheritdoc}
    */
-  public function getOption($name, $default = NULL) {
-    return isset($this->options[$name]) ? $this->options[$name] : $default;
+  public function getOption($name) {
+    $options = $this->getOptions();
+    return isset($options[$name]) ? $options[$name] : NULL;
   }
 
   /**
    * {@inheritdoc}
    */
   public function getOptions() {
-    return $this->options;
+    return $this->options + static::getDefaultOptions();
   }
 
   /**

@@ -11,6 +11,14 @@ use Drupal\search_api_autocomplete\Suggester\SuggesterInterface;
 interface SearchInterface extends ConfigEntityInterface {
 
   /**
+   * Retrieves the default options for a search.
+   *
+   * @return array
+   *   An associative array of options.
+   */
+  public static function getDefaultOptions();
+
+  /**
    * Retrieves the ID of the index this search belongs to.
    *
    * @return string
@@ -164,13 +172,11 @@ interface SearchInterface extends ConfigEntityInterface {
    *
    * @param string $key
    *   The key of the option.
-   * @param mixed|null $default
-   *   (optional) The default value.
    *
    * @return mixed|null
-   *   A specific option's value.
+   *   The option's value, or NULL if the option is unknown.
    */
-  public function getOption($key, $default = NULL);
+  public function getOption($key);
 
   /**
    * Gets the search's options.

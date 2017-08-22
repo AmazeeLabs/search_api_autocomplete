@@ -80,7 +80,7 @@ class AutocompleteController extends ControllerBase implements ContainerInjectio
       $query->preExecute();
 
       // Get total limit and per-suggester limits.
-      $limit = $search->getOption('limit', 10);
+      $limit = $search->getOption('limit');
       $suggester_limits = $search->getSuggesterLimits();
 
       // Get all enabled suggesters, ordered by weight.
