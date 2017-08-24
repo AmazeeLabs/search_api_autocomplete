@@ -8,7 +8,6 @@
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
-use Drupal\search_api_autocomplete\AutocompleteFormUtility;
 use Drupal\search_api_autocomplete\Entity\Search;
 
 /**
@@ -133,7 +132,9 @@ function search_api_autocomplete_form_views_exposed_form_alter(array &$form, For
 
     if (isset($element['#type']) && $element['#type'] === 'textfield') {
       $data['filter'] = $key;
-      AutocompleteFormUtility::alterElement($element, $search, $data);
+      \Drupal::getContainer()
+        ->get('search_api_autocomplete.helper')
+        ->alterElement($element, $search, $data);
     }
 
     unset($element);
@@ -154,6 +155,8 @@ function search_api_autocomplete_form_search_api_page_block_form_alter(array &$f
   $search = Search::load($id);
 
   if ($search && $search->status()) {
-    AutocompleteFormUtility::alterElement($form['keys'], $search);
+    \Drupal::getContainer()
+      ->get('search_api_autocomplete.helper')
+      ->alterElement($form['keys'], $search);
   }
 }

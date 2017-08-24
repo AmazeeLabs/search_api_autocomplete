@@ -2,7 +2,7 @@
 
 namespace Drupal\Tests\search_api_autocomplete\Unit;
 
-use Drupal\search_api_autocomplete\AutocompleteFormUtility;
+use Drupal\search_api_autocomplete\Utility\AutocompleteHelper;
 use Drupal\Tests\UnitTestCase;
 
 /**
@@ -10,9 +10,9 @@ use Drupal\Tests\UnitTestCase;
  *
  * @group search_api_autocomplete
  *
- * @coversDefaultClass \Drupal\search_api_autocomplete\AutocompleteFormUtility
+ * @coversDefaultClass \Drupal\search_api_autocomplete\Utility\AutocompleteHelper
  */
-class AutocompleteFormUtilityTest extends UnitTestCase {
+class AutocompleteHelperTest extends UnitTestCase {
 
   /**
    * Tests splitting of user input into complete and incomplete words.
@@ -27,7 +27,8 @@ class AutocompleteFormUtilityTest extends UnitTestCase {
    * @dataProvider providerTestSplitKeys
    */
   public function testSplitKeys($keys, array $expected) {
-    $this->assertEquals($expected, AutocompleteFormUtility::splitKeys($keys));
+    $service = new AutocompleteHelper();
+    $this->assertEquals($expected, $service->splitKeys($keys));
   }
 
   /**

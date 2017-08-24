@@ -2,15 +2,12 @@
 
 namespace Drupal\search_api_autocomplete\Controller;
 
-use Drupal\Core\Access\AccessResult;
-use Drupal\Core\Access\AccessResultReasonInterface;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Render\RendererInterface;
-use Drupal\Core\Session\AccountInterface;
-use Drupal\search_api_autocomplete\AutocompleteFormUtility;
 use Drupal\search_api_autocomplete\SearchApiAutocompleteException;
 use Drupal\search_api_autocomplete\SearchInterface;
+use Drupal\search_api_autocomplete\Utility\AutocompleteHelperInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,6 +16,13 @@ use Symfony\Component\HttpFoundation\Request;
  * Provides a controller for autocompletion.
  */
 class AutocompleteController extends ControllerBase implements ContainerInjectionInterface {
+
+  /**
+   * The autocomplete helper service.
+   *
+   * @var \Drupal\search_api_autocomplete\Utility\AutocompleteHelperInterface
+   */
+  protected $autocompleteHelper;
 
   /**
    * The renderer.
@@ -30,10 +34,13 @@ class AutocompleteController extends ControllerBase implements ContainerInjectio
   /**
    * Creates a new AutocompleteController instance.
    *
+   * @param \Drupal\search_api_autocomplete\Utility\AutocompleteHelperInterface $autocomplete_helper
+   *   The autocomplete helper service.
    * @param \Drupal\Core\Render\RendererInterface $renderer
    *   The renderer.
    */
-  public function __construct(RendererInterface $renderer) {
+  public function __construct(AutocompleteHelperInterface $autocomplete_helper, RendererInterface $renderer) {
+    $this->autocompleteHelper = $autocomplete_helper;
     $this->renderer = $renderer;
   }
 
@@ -42,6 +49,7 @@ class AutocompleteController extends ControllerBase implements ContainerInjectio
    */
   public static function create(ContainerInterface $container) {
     return new static(
+      $container->get('search_api_autocomplete.helper'),
       $container->get('renderer')
     );
   }
@@ -67,7 +75,8 @@ class AutocompleteController extends ControllerBase implements ContainerInjectio
 
     try {
       $keys = $request->query->get('q');
-      list($complete, $incomplete) = AutocompleteFormUtility::splitKeys($keys);
+      $split_keys = $this->autocompleteHelper->splitKeys($keys);
+      list($complete, $incomplete) = $split_keys;
       $data = $request->query->all();
       unset($data['q']);
       $query = $search->createQuery($complete, $data);
@@ -165,30 +174,6 @@ class AutocompleteController extends ControllerBase implements ContainerInjectio
     }
 
     return new JsonResponse($matches);
-  }
-
-  /**
-   * Checks access to the autocompletion route.
-   *
-   * @param \Drupal\search_api_autocomplete\SearchInterface $search_api_autocomplete_search
-   *   The configured autocompletion search.
-   * @param \Drupal\Core\Session\AccountInterface $account
-   *   The account.
-   *
-   * @return \Drupal\Core\Access\AccessResultInterface
-   *   The access result.
-   */
-  public function access(SearchInterface $search_api_autocomplete_search, AccountInterface $account) {
-    $search = $search_api_autocomplete_search;
-    $permission = 'use search_api_autocomplete for ' . $search->id();
-    $access = AccessResult::allowedIf($search->status())
-      ->andIf(AccessResult::allowedIf($search->hasValidIndex() && $search->getIndex()->status()))
-      ->andIf(AccessResult::allowedIfHasPermissions($account, [$permission, 'administer search_api_autocomplete'], 'OR'))
-      ->addCacheableDependency($search);
-    if ($access instanceof AccessResultReasonInterface) {
-      $access->setReason("The \"$permission\" permission is required and autocomplete for this search must be enabled.");
-    }
-    return $access;
   }
 
 }

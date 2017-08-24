@@ -3,7 +3,7 @@ search_api_autocomplete.autocomplete:
   defaults:
     _controller: \Drupal\search_api_autocomplete\Controller\AutocompleteController::autocomplete
   requirements:
-    _custom_access: \Drupal\search_api_autocomplete\Controller\AutocompleteController::access
+    _search_api_autocomplete: 'TRUE'
 
 search_api_autocomplete.admin_overview:
   path: /admin/config/search/search-api/index/{search_api_index}/autocomplete

@@ -11,6 +11,12 @@ services:
     class: \Drupal\search_api_autocomplete\Type\TypeManager
     parent: default_plugin_manager
 
+  search_api_autocomplete.helper:
+    class: \Drupal\search_api_autocomplete\Utility\AutocompleteHelper
+    arguments: []
+    tags:
+      - { name: access_check, applies_to: _search_api_autocomplete }
+
   search_api_autocomplete.plugin_helper:
     class: \Drupal\search_api_autocomplete\Utility\PluginHelper
     arguments: ['@plugin.manager.search_api_autocomplete.suggester', '@plugin.manager.search_api_autocomplete.type']

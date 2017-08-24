@@ -5,7 +5,6 @@ namespace Drupal\search_api_autocomplete\Element;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Render\Element\Textfield;
-use Drupal\search_api_autocomplete\Controller\AutocompleteController;
 use Drupal\search_api_autocomplete\Entity\Search;
 
 /**
@@ -56,13 +55,16 @@ class SearchApiAutocomplete extends Textfield {
     if (empty($element['#search_id'])) {
       throw new \InvalidArgumentException('Missing required "#search_id" parameter.');
     }
-    if (!($search = Search::load($element['#search_id']))) {
+    /** @var \Drupal\search_api_autocomplete\SearchInterface $search */
+    $search = Search::load($element['#search_id']);
+    if (!$search) {
       $search_id = $element['#search_id'];
       throw new \InvalidArgumentException("Search entity with ID \"$search_id\" not found.");
     }
 
-    $controller = new AutocompleteController(\Drupal::service('renderer'));
-    $access = $controller->access($search, \Drupal::currentUser());
+    $access = \Drupal::getContainer()
+      ->get('search_api_autocomplete.helper')
+      ->access($search, \Drupal::currentUser());
 
     $metadata = BubbleableMetadata::createFromRenderArray($element);
     $metadata->merge(BubbleableMetadata::createFromObject($access))

@@ -6,11 +6,10 @@ use Drupal\Core\Access\AccessResultReasonInterface;
 use Drupal\Core\Cache\CacheableDependencyInterface;
 use Drupal\Core\Cache\Context\CacheContextsManager;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
-use Drupal\Core\Render\RendererInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\search_api\IndexInterface;
-use Drupal\search_api_autocomplete\Controller\AutocompleteController;
 use Drupal\search_api_autocomplete\SearchInterface;
+use Drupal\search_api_autocomplete\Utility\AutocompleteHelper;
 use Drupal\Tests\UnitTestCase;
 
 /**
@@ -18,23 +17,16 @@ use Drupal\Tests\UnitTestCase;
  *
  * @group search_api_autocomplete
  *
- * @coversDefaultClass \Drupal\search_api_autocomplete\Controller\AutocompleteController
+ * @coversDefaultClass \Drupal\search_api_autocomplete\Utility\AutocompleteHelper
  */
 class AccessTest extends UnitTestCase {
 
   /**
-   * The controller object used for the test.
+   * The autocomplete helper object used for the test.
    *
-   * @var \Drupal\search_api_autocomplete\Controller\AutocompleteController
+   * @var \Drupal\search_api_autocomplete\Utility\AutocompleteHelperInterface
    */
-  protected $controller;
-
-  /**
-   * The renderer used for the test.
-   *
-   * @var \Drupal\Core\Render\RendererInterface|\PHPUnit_Framework_MockObject_MockObject
-   */
-  protected $renderer;
+  protected $autocompleteHelper;
 
   /**
    * The search entity used in this test.
@@ -49,8 +41,7 @@ class AccessTest extends UnitTestCase {
   protected function setUp() {
     parent::setUp();
 
-    $this->renderer = $this->getMock(RendererInterface::class);
-    $this->controller = new AutocompleteController($this->renderer);
+    $this->autocompleteHelper = new AutocompleteHelper();
     $this->search = $this->getMock(SearchInterface::class);
     $this->search->method('id')->willReturn('test');
     $this->search->method('getCacheContexts')->willReturn(['test']);
@@ -114,7 +105,7 @@ class AccessTest extends UnitTestCase {
     // Needn't really be AccessResultNeutral, of course, but this is the easiest
     // way to get all the possible interfaces.
     /** @var \Drupal\Core\Access\AccessResultNeutral $result */
-    $result = $this->controller->access($this->search, $account);
+    $result = $this->autocompleteHelper->access($this->search, $account);
     $this->assertEquals($should_be_allowed, $result->isAllowed());
     $this->assertEquals(FALSE, $result->isForbidden());
     $this->assertEquals(!$should_be_allowed, $result->isNeutral());
