@@ -80,6 +80,7 @@ class IntegrationTest extends JavascriptTestBase {
     $this->configureSearch();
     $this->checkEntityDependencies();
     $this->checkSearchAutocomplete();
+    $this->checkCustomAutocompleteScript();
     $this->checkHooks();
     $this->checkAutocompleteAccess();
     $this->checkAdminAccess();
@@ -139,6 +140,7 @@ class IntegrationTest extends JavascriptTestBase {
     // The "Server" suggester shouldn't be available at that point.
     $assert_session->elementExists('css', 'input[name="suggesters[enabled][search_api_autocomplete_test]"]');
     $assert_session->elementNotExists('css', 'input[name="suggesters[enabled][server]"]');
+    $assert_session->elementNotExists('css', 'input[name="suggesters[enabled][custom_script]"]');
 
     // Make the test backend support autocomplete so that the "Server" suggester
     // becomes available.
@@ -154,6 +156,7 @@ class IntegrationTest extends JavascriptTestBase {
     $this->logPageChange();
     $assert_session->checkboxChecked('suggesters[enabled][search_api_autocomplete_test]');
     $assert_session->checkboxNotChecked('suggesters[enabled][server]');
+    $assert_session->elementNotExists('css', 'input[name="suggesters[enabled][custom_script]"]');
 
     // The "Server" suggester's config form is hidden by default, but displayed
     // once we check its "Enabled" checkbox.
@@ -287,10 +290,60 @@ class IntegrationTest extends JavascriptTestBase {
     $this->assertTrue($element && $element->isVisible());
     $this->logPageChange();
 
-    $locator = '.ui-autocomplete .search-api-autocomplete-suggestion';
     // Contrary to documentation, this can also return NULL. Therefore, we need
     // to make sure to return an array even in this case.
-    return $page->findAll('css', $locator) ?: [];
+    return $page->findAll('css', '.ui-autocomplete .ui-menu-item') ?: [];
+  }
+
+  /**
+   * Tests whether using a custom autocomplete script is properly supported.
+   *
+   * @see \Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\suggester\CustomScript
+   */
+  protected function checkCustomAutocompleteScript() {
+    $assert_session = $this->assertSession();
+
+    \Drupal::configFactory()
+      ->getEditable('search_api_autocomplete.settings')
+      ->set('enable_custom_scripts', TRUE)
+      ->save();
+
+    $this->drupalGet($this->getAdminPath('edit'));
+    $path = '/' . drupal_get_path('module', 'search_api_autocomplete_test');
+    $path .= '/core/custom_autocomplete_script.php';
+    $edit = [
+      'suggesters[enabled][custom_script]' => TRUE,
+      'suggesters[settings][custom_script][path]' => $path,
+    ];
+    $this->submitForm($edit, 'Save');
+    $assert_session->statusCodeEquals(200);
+
+    $this->drupalGet('search-api-autocomplete-test');
+    $assert_session->statusCodeEquals(200);
+
+    $assert_session->elementAttributeContains('css', 'input[data-drupal-selector="edit-keys"]', 'data-search-api-autocomplete-search', $this->searchId);
+
+    $elements = $this->getAutocompleteSuggestions();
+    $this->assertCount(4, $elements);
+    $suggestions = [];
+    foreach ($elements as $element) {
+      $suggestions[] = $element->getText();
+    }
+    sort($suggestions);
+    $expected = [
+      'display: page',
+      'filter: keys',
+      'q: test',
+      "search_api_autocomplete_search: {$this->searchId}",
+    ];
+    $this->assertEquals($expected, $suggestions, 'Unexpected suggestions returned by custom script.');
+
+    $this->drupalGet($this->getAdminPath('edit'));
+    $edit = [
+      'suggesters[enabled][custom_script]' => FALSE,
+      'suggesters[settings][custom_script][path]' => '',
+    ];
+    $this->submitForm($edit, 'Save');
   }
 
   /**

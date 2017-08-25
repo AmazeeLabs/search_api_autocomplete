@@ -1,3 +1,11 @@
+search_api_autocomplete.settings:
+  type: config_object
+  label: 'Search API Autocomplete settings'
+  mapping:
+    enable_custom_scripts:
+      type: boolean
+      label: 'Enable the use of custom scripts as autocomplete callbacks'
+
 search_api_autocomplete.search.*:
   type: config_entity
   label: 'Autocomplete search'
@@ -60,6 +68,13 @@ search_api_autocomplete.search.*:
 
 plugin.plugin_configuration.search_api_autocomplete_suggester.*:
   type: mapping
+
+plugin.plugin_configuration.search_api_autocomplete_suggester.custom_script:
+  type: mapping
+  mapping:
+    path:
+      type: string
+      label: 'The path or URI of the custom autocomplete script'
 
 plugin.plugin_configuration.search_api_autocomplete_suggester.server:
   type: mapping

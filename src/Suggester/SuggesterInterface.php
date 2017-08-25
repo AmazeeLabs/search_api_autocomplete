@@ -28,6 +28,18 @@ interface SuggesterInterface extends SearchPluginInterface {
   public static function supportsSearch(SearchInterface $search);
 
   /**
+   * Alters an autocomplete element that should use this suggester.
+   *
+   * This method is usually not needed by suggester plugins, but can be
+   * implemented when necessary to, for example, pass additional information to
+   * the autocomplete AJAX callback.
+   *
+   * @param array $element
+   *   The render array of the autocomplete element.
+   */
+  public function alterAutocompleteElement(array &$element);
+
+  /**
    * Retrieves autocompletion suggestions for some user input.
    *
    * For example, when given the user input "teach us", with "us" being

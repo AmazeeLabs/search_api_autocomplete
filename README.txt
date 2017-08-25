@@ -37,7 +37,7 @@ permissions.
 
 - Supported searches
 
-Currently, only search forms built by search pages or search views are
+Currently, only search forms built by the Search API Pages or Views modules are
 supported directly. However, other modules can easily also use this
 functionality. See the "Information for developers" below for details.
 
@@ -54,29 +54,13 @@ functionality. See the "Information for developers" below for details.
 
 - Hidden settings
 
-search_api_autocomplete.settings:delay:
-  Change the delay before the autocomplete request is sent when a user is typing
-  into an autocomplete field. The setting is only effective on pages with Search
-  API Autocomplete forms, not on other pages with autocomplete fields. The unit
-  of the value is milliseconds, the default is 300.
-
-search_api_autocomplete.settings:scripts:
-  Allows you to override the autocomplete URL used by the module on a per-search
-  basis. The value should be an associative array mapping autocomplete search
-  machine names to their custom URLs. The script will receive the user input as
-  the "search" GET parameter and should respond with a JSON dictionary mapping
-  suggestions to an HTML string that should be displayed for them.
-  As the URL you can either use a relative path on the site or an absolute URL.
-  Use absolute URLs to avoid problems with things like language-specific path
-  prefixes. Note, though, that external URLs might not work due to security
-  restrictions in browsers.
-  Instead of a URL you can also set an associative array. This should have a
-  valid callback in its "#callback" key, as described by
-  callback_search_api_autocomplete_script_url() in
-  search_api_autocomplete.api.php.
-  See [2] for more information.
-
-[2] https://www.drupal.org/node/2559699
+search_api_autocomplete.settings:enable_custom_scripts:
+  Enables the "Use custom script" suggester which lets you redirect the
+  autocomplete AJAX request to a path or URL of your choosing. Since this is
+  mostly interesting for developers, who want to write their own autocomplete
+  code (possibly bypassing Drupal for performance reasons), this suggester is
+  not available otherwise by default. (Setting defaults to FALSE, set to TRUE to
+  make the suggester available.)
 
 
 Information for developers

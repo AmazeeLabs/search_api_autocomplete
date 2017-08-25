@@ -39,6 +39,11 @@ abstract class SuggesterPluginBase extends SearchPluginBase implements Suggester
   /**
    * {@inheritdoc}
    */
+  public function alterAutocompleteElement(array &$element) {}
+
+  /**
+   * {@inheritdoc}
+   */
   public static function supportsSearch(SearchInterface $search) {
     return TRUE;
   }

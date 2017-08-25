@@ -109,6 +109,10 @@ class SearchApiAutocomplete extends Textfield {
     }
     $element['#attributes']['data-search-api-autocomplete-search'] = $search->id();
 
+    foreach ($search->getSuggesters() as $suggester) {
+      $suggester->alterAutocompleteElement($element);
+    }
+
     return $element;
   }
 
