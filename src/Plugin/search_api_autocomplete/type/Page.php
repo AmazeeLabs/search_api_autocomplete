@@ -5,10 +5,8 @@ namespace Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\type;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\search_api\Utility\QueryHelperInterface;
-use Drupal\search_api_autocomplete\SearchApiAutocompleteException;
 use Drupal\search_api_autocomplete\SearchInterface;
 use Drupal\search_api_autocomplete\Type\TypePluginBase;
-use Drupal\search_api_page\SearchApiPageInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
