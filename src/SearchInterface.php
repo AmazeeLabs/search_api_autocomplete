@@ -141,31 +141,31 @@ interface SearchInterface extends ConfigEntityInterface {
   public function getSuggesterLimits();
 
   /**
-   * Determines whether the type set for this search is valid.
+   * Determines whether the search plugin set for this search is valid.
    *
    * @return bool
-   *   TRUE if the type is valid, FALSE otherwise.
+   *   TRUE if the search plugin is valid, FALSE otherwise.
    */
-  public function hasValidType();
+  public function hasValidSearchPlugin();
 
   /**
-   * Retrieves the type plugin's ID.
+   * Retrieves the search plugin's ID.
    *
    * @return string
-   *   The ID of the type plugin used by this search.
+   *   The ID of the search plugin used by this search.
    */
-  public function getTypeId();
+  public function getSearchPluginId();
 
   /**
-   * Retrieves the type plugin.
+   * Retrieves the search plugin.
    *
-   * @return \Drupal\search_api_autocomplete\Type\TypeInterface
-   *   The search's type plugin.
+   * @return \Drupal\search_api_autocomplete\Search\SearchPluginInterface
+   *   The search's search plugin.
    *
    * @throws \Drupal\search_api_autocomplete\SearchApiAutocompleteException
-   *   Thrown if the type couldn't be instantiated.
+   *   Thrown if the search plugin couldn't be instantiated.
    */
-  public function getTypeInstance();
+  public function getSearchPlugin();
 
   /**
    * Gets a specific option's value.

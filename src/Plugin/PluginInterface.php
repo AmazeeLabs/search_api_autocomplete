@@ -8,7 +8,7 @@ use Drupal\search_api_autocomplete\SearchInterface;
 /**
  * Provides a common interface for autocomplete search plugins.
  */
-interface SearchPluginInterface extends ConfigurablePluginInterface {
+interface PluginInterface extends ConfigurablePluginInterface {
 
   /**
    * Retrieves the search this plugin is configured for.

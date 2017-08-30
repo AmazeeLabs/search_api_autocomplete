@@ -7,8 +7,8 @@ services:
     class: \Drupal\search_api_autocomplete\Suggester\SuggesterManager
     parent: default_plugin_manager
 
-  plugin.manager.search_api_autocomplete.type:
-    class: \Drupal\search_api_autocomplete\Type\TypeManager
+  plugin.manager.search_api_autocomplete.search:
+    class: \Drupal\search_api_autocomplete\Search\SearchPluginManager
     parent: default_plugin_manager
 
   search_api_autocomplete.helper:
@@ -19,4 +19,4 @@ services:
 
   search_api_autocomplete.plugin_helper:
     class: \Drupal\search_api_autocomplete\Utility\PluginHelper
-    arguments: ['@plugin.manager.search_api_autocomplete.suggester', '@plugin.manager.search_api_autocomplete.type']
+    arguments: ['@plugin.manager.search_api_autocomplete.suggester', '@plugin.manager.search_api_autocomplete.search']

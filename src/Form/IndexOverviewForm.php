@@ -11,9 +11,8 @@ use Drupal\Core\Routing\RedirectDestinationInterface;
 use Drupal\Core\Url;
 use Drupal\search_api\IndexInterface;
 use Drupal\search_api_autocomplete\Entity\Search;
-use Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\type\Page;
-use Drupal\search_api_autocomplete\Type\TypeInterface;
-use Drupal\search_api_autocomplete\Type\TypeManager;
+use Drupal\search_api_autocomplete\Search\SearchPluginInterface;
+use Drupal\search_api_autocomplete\Search\SearchPluginManager;
 use Drupal\search_api_autocomplete\Utility\PluginHelperInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -30,11 +29,11 @@ class IndexOverviewForm extends FormBase {
   protected $suggesterManager;
 
   /**
-   * The autocomplete type manager.
+   * The search plugin manager.
    *
-   * @var \Drupal\search_api_autocomplete\Type\TypeManager
+   * @var \Drupal\search_api_autocomplete\Search\SearchPluginManager
    */
-  protected $typeManager;
+  protected $searchPluginManager;
 
   /**
    * The plugin helper.
@@ -62,8 +61,8 @@ class IndexOverviewForm extends FormBase {
    *
    * @param \Drupal\Component\Plugin\PluginManagerInterface $suggester_manager
    *   The suggester manager.
-   * @param \Drupal\search_api_autocomplete\Type\TypeManager $autocomplete_type_manager
-   *   The autocomplete type manager.
+   * @param \Drupal\search_api_autocomplete\Search\SearchPluginManager $search_plugin_manager
+   *   The search plugin manager.
    * @param \Drupal\search_api_autocomplete\Utility\PluginHelperInterface $plugin_helper
    *   The plugin helper.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
@@ -71,9 +70,9 @@ class IndexOverviewForm extends FormBase {
    * @param \Drupal\Core\Routing\RedirectDestinationInterface $redirect_destination
    *   The redirect destination.
    */
-  public function __construct(PluginManagerInterface $suggester_manager, TypeManager $autocomplete_type_manager, PluginHelperInterface $plugin_helper, EntityTypeManagerInterface $entity_type_manager, RedirectDestinationInterface $redirect_destination) {
+  public function __construct(PluginManagerInterface $suggester_manager, SearchPluginManager $search_plugin_manager, PluginHelperInterface $plugin_helper, EntityTypeManagerInterface $entity_type_manager, RedirectDestinationInterface $redirect_destination) {
     $this->suggesterManager = $suggester_manager;
-    $this->typeManager = $autocomplete_type_manager;
+    $this->searchPluginManager = $search_plugin_manager;
     $this->pluginHelper = $plugin_helper;
     $this->entityTypeManager = $entity_type_manager;
     $this->redirectDestination = $redirect_destination;
@@ -85,7 +84,7 @@ class IndexOverviewForm extends FormBase {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('plugin.manager.search_api_autocomplete.suggester'),
-      $container->get('plugin.manager.search_api_autocomplete.type'),
+      $container->get('plugin.manager.search_api_autocomplete.search'),
       $container->get('search_api_autocomplete.plugin_helper'),
       $container->get('entity_type.manager'),
       $container->get('redirect.destination')
@@ -108,23 +107,23 @@ class IndexOverviewForm extends FormBase {
 
     $form['#tree'] = TRUE;
 
-    /** @var \Drupal\search_api_autocomplete\SearchInterface[] $searches_by_type */
-    $searches_by_type = [];
+    /** @var \Drupal\search_api_autocomplete\SearchInterface[] $searches_by_plugin */
+    $searches_by_plugin = [];
     foreach ($this->loadAutocompleteSearchByIndex($index_id) as $search) {
-      $searches_by_type[$search->getTypeId()] = $search;
+      $searches_by_plugin[$search->getSearchPluginId()] = $search;
     }
     $any_suggester = FALSE;
     $used_ids = [];
 
-    $types = $this->pluginHelper->createTypePluginsForIndex($index_id);
-    foreach ($types as $type_id => $type) {
-      $group_label = (string) $type->getGroupLabel();
+    $plugins = $this->pluginHelper->createSearchPluginsForIndex($index_id);
+    foreach ($plugins as $plugin_id => $plugin) {
+      $group_label = (string) $plugin->getGroupLabel();
       if (empty($form[$group_label])) {
         $form[$group_label] = [
           '#type' => 'fieldset',
-          '#title' => $type->getGroupLabel(),
+          '#title' => $plugin->getGroupLabel(),
         ];
-        if ($description = $type->getGroupDescription()) {
+        if ($description = $plugin->getGroupDescription()) {
           $form[$group_label]['#description'] = '<p>' . $description . '</p>';
         }
         $form[$group_label]['searches']['#type'] = 'tableselect';
@@ -137,11 +136,11 @@ class IndexOverviewForm extends FormBase {
       }
 
       $suggesters_available = TRUE;
-      if (isset($searches_by_type[$type_id])) {
-        $search = $searches_by_type[$type_id];
+      if (isset($searches_by_plugin[$plugin_id])) {
+        $search = $searches_by_plugin[$plugin_id];
       }
       else {
-        $search = $this->createSearchForType($type, $used_ids);
+        $search = $this->createSearchForPlugin($plugin, $used_ids);
         $used_ids[$search->id()] = TRUE;
         // Determine whether there were any suggesters available for that
         // search.
@@ -217,10 +216,10 @@ class IndexOverviewForm extends FormBase {
   }
 
   /**
-   * Creates a new search entity for the given type.
+   * Creates a new search entity for the given search plugin.
    *
-   * @param \Drupal\search_api_autocomplete\Type\TypeInterface $type
-   *   The type plugin for which to create a search.
+   * @param \Drupal\search_api_autocomplete\Search\SearchPluginInterface $plugin
+   *   The search plugin for which to create a search entity.
    * @param true[] $used_ids
    *   The IDs of the searches created so far for this form (to avoid
    *   duplicates). IDs are used as array keys, mapping to TRUE.
@@ -228,11 +227,11 @@ class IndexOverviewForm extends FormBase {
    * @return \Drupal\search_api_autocomplete\SearchInterface
    *   The new search entity.
    */
-  protected function createSearchForType(TypeInterface $type, array $used_ids) {
-    $type_id = $type->getPluginId();
-    $index_id = $type->getIndexId();
+  protected function createSearchForPlugin(SearchPluginInterface $plugin, array $used_ids) {
+    $plugin_id = $plugin->getPluginId();
+    $index_id = $plugin->getIndexId();
 
-    $id = $base_id = $type->getDerivativeId() ?: $type_id;
+    $id = $base_id = $plugin->getDerivativeId() ?: $plugin_id;
     $search_storage = $this->entityTypeManager
       ->getStorage('search_api_autocomplete_search');
     $i = 0;
@@ -243,10 +242,10 @@ class IndexOverviewForm extends FormBase {
     $search = Search::create([
       'id' => $id,
       'status' => FALSE,
-      'label' => $type->label(),
+      'label' => $plugin->label(),
       'index_id' => $index_id,
-      'type_settings' => [
-        $type_id => [],
+      'search_settings' => [
+        $plugin_id => [],
       ],
       'options' => [],
     ]);

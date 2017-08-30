@@ -83,7 +83,7 @@ class SearchCrudTest extends KernelTestBase {
    * Tests whether saving a new search entity works correctly.
    */
   public function testCreate() {
-    $this->setMethodOverride('type', 'calculateDependencies', function () {
+    $this->setMethodOverride('search', 'calculateDependencies', function () {
       return [
         'config' => ['search_api.server.server'],
         'module' => ['user'],
@@ -108,9 +108,9 @@ class SearchCrudTest extends KernelTestBase {
     $this->assertEquals($values['suggester_weights'], $actual);
     $actual = $search->getSuggesterLimits();
     $this->assertEquals($values['suggester_limits'], $actual);
-    $this->assertEquals('search_api_autocomplete_test', $search->getTypeId());
-    $actual = $search->getTypeInstance()->getConfiguration();
-    $this->assertEquals($values['type_settings']['search_api_autocomplete_test'], $actual);
+    $this->assertEquals('search_api_autocomplete_test', $search->getSearchPluginId());
+    $actual = $search->getSearchPlugin()->getConfiguration();
+    $this->assertEquals($values['search_settings']['search_api_autocomplete_test'], $actual);
     $this->assertEquals($values['options'], $search->getOptions());
 
     $expected = [
@@ -191,7 +191,7 @@ class SearchCrudTest extends KernelTestBase {
       ],
       'suggester_weights' => ['server' => -10],
       'suggester_limits' => ['server' => 5],
-      'type_settings' => [
+      'search_settings' => [
         'search_api_autocomplete_test' => [
           'foo' => 'bar',
         ],

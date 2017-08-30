@@ -1,16 +1,16 @@
 <?php
 
-namespace Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\type;
+namespace Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\search;
 
 use Drupal\Component\Plugin\Exception\PluginException;
-use Drupal\search_api_autocomplete\Type\TypeDeriverBase;
+use Drupal\search_api_autocomplete\Search\SearchPluginDeriverBase;
 
 /**
- * Derives a type plugin definition for every view.
+ * Derives a search plugin definition for every view.
  *
- * @see \Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\type\Page
+ * @see \Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\search\Page
  */
-class PageDeriver extends TypeDeriverBase {
+class PageDeriver extends SearchPluginDeriverBase {
 
   /**
    * {@inheritdoc}

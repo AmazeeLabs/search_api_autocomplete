@@ -2,7 +2,7 @@
 
 namespace Drupal\search_api_autocomplete\Suggester;
 
-use Drupal\search_api_autocomplete\Plugin\SearchPluginBase;
+use Drupal\search_api_autocomplete\Plugin\PluginBase;
 use Drupal\search_api_autocomplete\SearchInterface;
 
 /**
@@ -32,9 +32,9 @@ use Drupal\search_api_autocomplete\SearchInterface;
  * @see \Drupal\search_api_autocomplete\Suggester\SuggesterInterface
  * @see \Drupal\search_api_autocomplete\Suggester\SuggesterManager
  * @see plugin_api
- * @see hook_search_api_autocomplete_suggester_alter()
+ * @see hook_search_api_autocomplete_suggester_info_alter()
  */
-abstract class SuggesterPluginBase extends SearchPluginBase implements SuggesterInterface {
+abstract class SuggesterPluginBase extends PluginBase implements SuggesterInterface {
 
   /**
    * {@inheritdoc}

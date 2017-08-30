@@ -54,7 +54,7 @@ use Drupal\search_api_autocomplete\Suggester\SuggesterInterface;
  *     "suggester_settings",
  *     "suggester_weights",
  *     "suggester_limits",
- *     "type_settings",
+ *     "search_settings",
  *     "options",
  *   }
  * )
@@ -131,13 +131,13 @@ class Search extends ConfigEntityBase implements SearchInterface {
   protected $suggesterInstances;
 
   /**
-   * The settings for the type plugin.
+   * The settings for the search plugin.
    *
    * The array has the following structure:
    *
    * @code
    * [
-   *   'TYPE_ID' => [
+   *   'SEARCH_ID' => [
    *     // Settings …
    *   ]
    * ]
@@ -147,14 +147,14 @@ class Search extends ConfigEntityBase implements SearchInterface {
    *
    * @var array
    */
-  protected $type_settings = [];
+  protected $search_settings = [];
 
   /**
-   * The type plugin.
+   * The search plugin.
    *
-   * @var \Drupal\search_api_autocomplete\Type\TypeInterface|null
+   * @var \Drupal\search_api_autocomplete\Search\SearchPluginInterface|null
    */
-  protected $typeInstance;
+  protected $searchPlugin;
 
   /**
    * An array of general options for this search.
@@ -321,41 +321,41 @@ class Search extends ConfigEntityBase implements SearchInterface {
   /**
    * {@inheritdoc}
    */
-  public function hasValidType() {
+  public function hasValidSearchPlugin() {
     return (bool) \Drupal::getContainer()
-      ->get('plugin.manager.search_api_autocomplete.type')
-      ->getDefinition($this->getTypeId(), FALSE);
+      ->get('plugin.manager.search_api_autocomplete.search')
+      ->getDefinition($this->getSearchPluginId(), FALSE);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getTypeId() {
-    if ($this->typeInstance) {
-      return $this->typeInstance->getPluginId();
+  public function getSearchPluginId() {
+    if ($this->searchPlugin) {
+      return $this->searchPlugin->getPluginId();
     }
-    reset($this->type_settings);
-    return key($this->type_settings);
+    reset($this->search_settings);
+    return key($this->search_settings);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getTypeInstance() {
-    if (!$this->typeInstance) {
-      $type_id = $this->getTypeId();
+  public function getSearchPlugin() {
+    if (!$this->searchPlugin) {
+      $plugin_id = $this->getSearchPluginId();
 
       $configuration = [];
-      if (!empty($this->type_settings[$type_id])) {
-        $configuration = $this->type_settings[$type_id];
+      if (!empty($this->search_settings[$plugin_id])) {
+        $configuration = $this->search_settings[$plugin_id];
       }
 
-      $this->typeInstance = \Drupal::getContainer()
+      $this->searchPlugin = \Drupal::getContainer()
         ->get('search_api_autocomplete.plugin_helper')
-        ->createTypePlugin($this, $type_id, $configuration);
+        ->createSearchPlugin($this, $plugin_id, $configuration);
     }
 
-    return $this->typeInstance;
+    return $this->searchPlugin;
   }
 
   /**
@@ -393,8 +393,8 @@ class Search extends ConfigEntityBase implements SearchInterface {
    * {@inheritdoc}
    */
   public function createQuery($keys, array $data = []) {
-    $type = $this->getTypeInstance();
-    $query = $type->createQuery($this, $keys, $data);
+    $search = $this->getSearchPlugin();
+    $query = $search->createQuery($this, $keys, $data);
     return $query;
   }
 
@@ -404,17 +404,18 @@ class Search extends ConfigEntityBase implements SearchInterface {
   public function preSave(EntityStorageInterface $storage) {
     parent::preSave($storage);
 
-    // Make sure the type plugin's index matches this entity's index.
-    $type_index_id = $this->getTypeInstance()->getIndexId();
-    if ($this->getIndexId() !== $type_index_id) {
-      throw new SearchApiAutocompleteException("Attempt to save autocomplete search '{$this->id()}' with type '{$this->getTypeId()}' of index '$type_index_id' while the autocomplete search points to index '{$this->getIndexId()}'");
+    // Make sure the search plugin's index matches this entity's index.
+    $plugin_index_id = $this->getSearchPlugin()->getIndexId();
+    if ($this->getIndexId() !== $plugin_index_id) {
+      throw new SearchApiAutocompleteException("Attempt to save autocomplete search '{$this->id()}' with search plugin '{$this->getSearchPluginId()}' of index '$plugin_index_id' while the autocomplete search points to index '{$this->getIndexId()}'");
     }
 
-    // Make sure only one search entity is ever saved for a certain type plugin.
+    // Make sure only one search entity is ever saved for a certain search
+    // plugin.
     /** @var \Drupal\search_api_autocomplete\Entity\SearchStorage $storage */
-    $search = $storage->loadByType($this->getTypeId());
+    $search = $storage->loadBySearchPlugin($this->getSearchPluginId());
     if ($search && $search->id() !== $this->id()) {
-      throw new SearchApiAutocompleteException("Attempt to save autocomplete search '{$this->id()}' with type '{$this->getTypeId()}' when this type is already used for '{$search->id()}'");
+      throw new SearchApiAutocompleteException("Attempt to save autocomplete search '{$this->id()}' with search plugin '{$this->getSearchPluginId()}' when this plugin is already used for '{$search->id()}'");
     }
 
     // If we are in the process of syncing, we shouldn't change any entity
@@ -453,11 +454,11 @@ class Search extends ConfigEntityBase implements SearchInterface {
       }
     }
 
-    // Write the type configuration to the settings property.
-    if ($this->typeInstance !== NULL) {
-      $type_id = $this->typeInstance->getPluginId();
-      $this->type_settings = [
-        $type_id => $this->typeInstance->getConfiguration(),
+    // Write the search plugin configuration to the settings property.
+    if ($this->searchPlugin !== NULL) {
+      $plugin_id = $this->searchPlugin->getPluginId();
+      $this->search_settings = [
+        $plugin_id => $this->searchPlugin->getConfiguration(),
       ];
     }
 
@@ -473,8 +474,8 @@ class Search extends ConfigEntityBase implements SearchInterface {
     $name = $this->getIndex()->getConfigDependencyName();
     $this->addDependency('config', $name);
 
-    if ($this->hasValidType()) {
-      $this->calculatePluginDependencies($this->getTypeInstance());
+    if ($this->hasValidSearchPlugin()) {
+      $this->calculatePluginDependencies($this->getSearchPlugin());
     }
 
     foreach ($this->getSuggesters() as $suggester) {

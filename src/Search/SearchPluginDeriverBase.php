@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\search_api_autocomplete\Type;
+namespace Drupal\search_api_autocomplete\Search;
 
 use Drupal\Component\Plugin\Derivative\DeriverBase;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -9,9 +9,9 @@ use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Provides a base class for type derivers.
+ * Provides a base class for search plugin derivers.
  */
-abstract class TypeDeriverBase extends DeriverBase implements ContainerDeriverInterface {
+abstract class SearchPluginDeriverBase extends DeriverBase implements ContainerDeriverInterface {
 
   use StringTranslationTrait;
 

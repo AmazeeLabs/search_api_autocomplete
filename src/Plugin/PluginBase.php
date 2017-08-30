@@ -8,7 +8,7 @@ use Drupal\search_api_autocomplete\SearchInterface;
 /**
  * Provides a common base class for autocomplete search plugins.
  */
-abstract class SearchPluginBase extends ConfigurablePluginBase implements SearchPluginInterface {
+abstract class PluginBase extends ConfigurablePluginBase implements PluginInterface {
 
   /**
    * The search this suggester is attached to.

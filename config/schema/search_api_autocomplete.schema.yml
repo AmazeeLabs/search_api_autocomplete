@@ -37,12 +37,12 @@ search_api_autocomplete.search.*:
       sequence:
         type: integer
         label: 'The limit for a single suggester'
-    type_settings:
+    search_settings:
       type: sequence
-      label: 'Type settings'
+      label: 'Search plugin settings'
       sequence:
-        type: plugin.plugin_configuration.search_api_autocomplete_type.[%key]
-        label: 'The configuration for the search''s type'
+        type: plugin.plugin_configuration.search_api_autocomplete_search.[%key]
+        label: 'The configuration for the search entity''s search plugin'
     options:
       type: mapping
       label: 'Options'
@@ -85,10 +85,10 @@ plugin.plugin_configuration.search_api_autocomplete_suggester.server:
       sequence:
         type: string
 
-plugin.plugin_configuration.search_api_autocomplete_type.*:
+plugin.plugin_configuration.search_api_autocomplete_search.*:
   type: mapping
 
-plugin.plugin_configuration.search_api_autocomplete_type.views:*:
+plugin.plugin_configuration.search_api_autocomplete_search.views:*:
   type: mapping
   mapping:
     displays:

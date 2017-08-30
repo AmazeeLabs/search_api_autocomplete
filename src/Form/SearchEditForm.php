@@ -10,7 +10,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Form\SubformState;
 use Drupal\Core\Plugin\PluginFormInterface;
 use Drupal\search_api_autocomplete\Suggester\SuggesterInterface;
-use Drupal\search_api_autocomplete\Type\TypeManager;
+use Drupal\search_api_autocomplete\Search\SearchPluginManager;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -34,11 +34,11 @@ class SearchEditForm extends EntityForm {
   protected $suggesterManager;
 
   /**
-   * The autocomplete type manager.
+   * The autocomplete search plugin manager.
    *
-   * @var \Drupal\search_api_autocomplete\Type\TypeManager
+   * @var \Drupal\search_api_autocomplete\Search\SearchPluginManager
    */
-  protected $typeManager;
+  protected $searchPluginManager;
 
   /**
    * The logger to use.
@@ -52,14 +52,14 @@ class SearchEditForm extends EntityForm {
    *
    * @param \Drupal\Component\Plugin\PluginManagerInterface $suggester_manager
    *   The suggester manager.
-   * @param \Drupal\search_api_autocomplete\Type\TypeManager $autocomplete_type_manager
-   *   The autocomplete type manager.
+   * @param \Drupal\search_api_autocomplete\Search\SearchPluginManager $search_plugin_manager
+   *   The search plugin manager.
    * @param \Psr\Log\LoggerInterface $logger
    *   The logger.
    */
-  public function __construct(PluginManagerInterface $suggester_manager, TypeManager $autocomplete_type_manager, LoggerInterface $logger) {
+  public function __construct(PluginManagerInterface $suggester_manager, SearchPluginManager $search_plugin_manager, LoggerInterface $logger) {
     $this->suggesterManager = $suggester_manager;
-    $this->typeManager = $autocomplete_type_manager;
+    $this->searchPluginManager = $search_plugin_manager;
     $this->logger = $logger;
   }
 
@@ -71,7 +71,7 @@ class SearchEditForm extends EntityForm {
     $logger = $container->get('logger.channel.search_api_autocomplete');
     return new static(
       $container->get('plugin.manager.search_api_autocomplete.suggester'),
-      $container->get('plugin.manager.search_api_autocomplete.type'),
+      $container->get('plugin.manager.search_api_autocomplete.search'),
       $logger
     );
   }
@@ -95,15 +95,15 @@ class SearchEditForm extends EntityForm {
 
     $form['suggesters'] = $this->buildSuggestersForm($form_state);
 
-    if (!$search->hasValidType()) {
-      drupal_set_message($this->t('No information about the type of this search could be found. Unless this is a temporary problem for some reason, you are advised to delete this search configuration.'), 'error');
+    if (!$search->hasValidSearchPlugin()) {
+      drupal_set_message($this->t('No information about this search could be found. Unless this is a temporary problem for some reason, you are advised to delete this search configuration.'), 'error');
     }
     else {
-      $type = $search->getTypeInstance();
-      if ($type instanceof PluginFormInterface) {
-        $form['type_settings'] = [];
-        $type_form_state = SubFormState::createForSubform($form['type_settings'], $form, $form_state);
-        $form['type_settings'] = $type->buildConfigurationForm($form['type_settings'], $type_form_state);
+      $search_plugin = $search->getSearchPlugin();
+      if ($search_plugin instanceof PluginFormInterface) {
+        $form['search_settings'] = [];
+        $plugin_form_state = SubFormState::createForSubform($form['search_settings'], $form, $form_state);
+        $form['search_settings'] = $search_plugin->buildConfigurationForm($form['search_settings'], $plugin_form_state);
       }
     }
 
@@ -312,10 +312,10 @@ class SearchEditForm extends EntityForm {
       }
     }
 
-    $type = $this->entity->getTypeInstance();
-    if ($type instanceof PluginFormInterface) {
-      $type_form_state = SubFormState::createForSubform($form['type_settings'], $form, $form_state);
-      $type->validateConfigurationForm($form['type_settings'], $type_form_state);
+    $search_plugin = $this->entity->getSearchPlugin();
+    if ($search_plugin instanceof PluginFormInterface) {
+      $plugin_form_state = SubFormState::createForSubform($form['search_settings'], $form, $form_state);
+      $search_plugin->validateConfigurationForm($form['search_settings'], $plugin_form_state);
     }
   }
 
@@ -350,12 +350,12 @@ class SearchEditForm extends EntityForm {
     $search->set('suggester_weights', $suggester_weights);
     $search->set('suggester_limits', $suggester_limits);
 
-    $type = $this->entity->getTypeInstance();
-    if ($type instanceof PluginFormInterface) {
-      $type_form = empty($form['type_settings']) ? [] : $form['type_settings'];
-      $type_form_state = SubFormState::createForSubform($form['type_settings'], $form, $form_state);
-      $type->submitConfigurationForm($type_form, $type_form_state);
-      $search->set('type_settings', $type->getConfiguration());
+    $search_plugin = $this->entity->getSearchPlugin();
+    if ($search_plugin instanceof PluginFormInterface) {
+      $plugin_form = empty($form['search_settings']) ? [] : $form['search_settings'];
+      $plugin_form_state = SubFormState::createForSubform($form['search_settings'], $form, $form_state);
+      $search_plugin->submitConfigurationForm($plugin_form, $plugin_form_state);
+      $search->set('search_settings', $search_plugin->getConfiguration());
     }
 
     $form_state->setRedirect('search_api_autocomplete.admin_overview', ['search_api_index' => $search->getIndexId()]);

@@ -3,7 +3,7 @@
 namespace Drupal\search_api_autocomplete\Suggester;
 
 use Drupal\search_api\Query\QueryInterface;
-use Drupal\search_api_autocomplete\Plugin\SearchPluginInterface;
+use Drupal\search_api_autocomplete\Plugin\PluginInterface;
 use Drupal\search_api_autocomplete\SearchInterface;
 
 /**
@@ -14,7 +14,7 @@ use Drupal\search_api_autocomplete\SearchInterface;
  * @see \Drupal\search_api_autocomplete\Suggester\SuggesterPluginBase
  * @see plugin_api
  */
-interface SuggesterInterface extends SearchPluginInterface {
+interface SuggesterInterface extends PluginInterface {
 
   /**
    * Determines whether this plugin supports the given search.

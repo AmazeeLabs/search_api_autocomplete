@@ -1,26 +1,26 @@
 <?php
 
-namespace Drupal\search_api_autocomplete_test\Plugin\search_api_autocomplete\type;
+namespace Drupal\search_api_autocomplete_test\Plugin\search_api_autocomplete\search;
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\PluginFormInterface;
 use Drupal\search_api_autocomplete\SearchInterface;
-use Drupal\search_api_autocomplete\Type\TypePluginBase;
+use Drupal\search_api_autocomplete\Search\SearchPluginBase;
 use Drupal\search_api_test\TestPluginTrait;
 
 /**
- * Defines a test type class.
+ * Defines a test search plugin class.
  *
- * @SearchApiAutocompleteType(
+ * @SearchApiAutocompleteSearch(
  *   id = "search_api_autocomplete_test",
  *   label = @Translation("Autocomplete test module search"),
- *   description = @Translation("Test autocomplete search type"),
- *   group_label = @Translation("Test type"),
- *   group_description = @Translation("Type used for tests."),
+ *   description = @Translation("Test autocomplete search"),
+ *   group_label = @Translation("Test search"),
+ *   group_description = @Translation("Search used for tests."),
  *   index = "autocomplete_search_index",
  * )
  */
-class TestType extends TypePluginBase implements PluginFormInterface {
+class TestSearch extends SearchPluginBase implements PluginFormInterface {
 
   use TestPluginTrait;
 

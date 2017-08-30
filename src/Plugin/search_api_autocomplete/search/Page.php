@@ -1,26 +1,26 @@
 <?php
 
-namespace Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\type;
+namespace Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\search;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\search_api\Utility\QueryHelperInterface;
 use Drupal\search_api_autocomplete\SearchInterface;
-use Drupal\search_api_autocomplete\Type\TypePluginBase;
+use Drupal\search_api_autocomplete\Search\SearchPluginBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Provides autocomplete support for the search_api_page module.
  *
- * @SearchApiAutocompleteType(
+ * @SearchApiAutocompleteSearch(
  *   id = "page",
  *   group_label = @Translation("Search pages"),
  *   group_description = @Translation("Searches provided by the <em>Search pages</em> module."),
  *   provider = "search_api_page",
- *   deriver = "Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\type\PageDeriver",
+ *   deriver = "Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\search\PageDeriver",
  * )
  */
-class Page extends TypePluginBase implements ContainerFactoryPluginInterface {
+class Page extends SearchPluginBase implements ContainerFactoryPluginInterface {
 
   /**
    * The entity type manager.

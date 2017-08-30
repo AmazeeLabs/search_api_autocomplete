@@ -50,29 +50,29 @@ function hook_search_api_autocomplete_suggestions_alter(array &$suggestions, arr
  *
  * @see \Drupal\search_api_autocomplete\Suggester\SuggesterPluginBase
  */
-function hook_search_api_autocomplete_suggester_alter(array &$suggesters) {
+function hook_search_api_autocomplete_suggester_info_alter(array &$suggesters) {
   if (!empty($suggesters['example_suggester'])) {
     $suggesters['example_suggester']['class'] = '\Drupal\my_module\MuchBetterSuggester';
   }
 }
 
 /**
- * Alter the available type plugins.
+ * Alter the available search plugins.
  *
  * Modules may implement this hook to alter the information that defines
- * types. All properties that are available in
- * \Drupal\search_api_autocomplete\Annotation\SearchApiAutocompleteType can
+ * searches. All properties that are available in
+ * \Drupal\search_api_autocomplete\Annotation\SearchApiAutocompleteSearch can
  * be altered here, with the addition of the "class" and "provider" keys, and
  * any custom keys used by specific plugins.
  *
- * @param array[] $types
- *   The definitions of all known type plugins, keyed by plugin ID.
+ * @param array[] $searches
+ *   The definitions of all known search plugins, keyed by plugin ID.
  *
- * @see \Drupal\search_api_autocomplete\Type\TypePluginBase
+ * @see \Drupal\search_api_autocomplete\Search\SearchPluginBase
  */
-function hook_search_api_autocomplete_type_alter(array &$types) {
-  if (!empty($types['example_type'])) {
-    $types['example_type']['class'] = '\Drupal\my_module\MuchBetterType';
+function hook_search_api_autocomplete_search_info_alter(array &$searches) {
+  if (!empty($searches['example_search'])) {
+    $searches['example_search']['class'] = '\Drupal\my_module\MuchBetterSearchPlugin';
   }
 }
 

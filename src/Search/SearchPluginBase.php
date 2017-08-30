@@ -1,39 +1,39 @@
 <?php
 
-namespace Drupal\search_api_autocomplete\Type;
+namespace Drupal\search_api_autocomplete\Search;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\search_api_autocomplete\Plugin\SearchPluginBase;
+use Drupal\search_api_autocomplete\Plugin\PluginBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Provides a base class for type plugins.
+ * Provides a base class for search plugins.
  *
  * Plugins extending this class need to define a plugin definition array through
  * annotation. The definition includes the following keys:
- * - id: The unique, system-wide identifier of the type plugin.
- * - label: The human-readable name of the type plugin, translated.
- * - description: A human-readable description for the type plugin,
+ * - id: The unique, system-wide identifier of the search plugin.
+ * - label: The human-readable name of the search plugin, translated.
+ * - description: A human-readable description for the search plugin,
  *   translated.
  *
  * A complete plugin definition should be written as in this example:
  *
  * @code
- * @SearchApiAutocompleteType(
- *   id = "my_type",
+ * @SearchApiAutocompleteSearch(
+ *   id = "my_search",
  *   label = @Translation("Custom Search"),
  *   description = @Translation("Custom-defined site-specific search."),
  *   index = "my_index",
  * )
  * @endcode
  *
- * @see \Drupal\search_api_autocomplete\Annotation\SearchApiAutocompleteType
- * @see \Drupal\search_api_autocomplete\Type\TypeInterface
- * @see \Drupal\search_api_autocomplete\Type\TypeManager
+ * @see \Drupal\search_api_autocomplete\Annotation\SearchApiAutocompleteSearch
+ * @see \Drupal\search_api_autocomplete\Search\SearchPluginInterface
+ * @see \Drupal\search_api_autocomplete\Search\SearchPluginManager
  * @see plugin_api
- * @see hook_search_api_autocomplete_type_alter()
+ * @see hook_search_api_autocomplete_search_info_alter()
  */
-abstract class TypePluginBase extends SearchPluginBase implements TypeInterface {
+abstract class SearchPluginBase extends PluginBase implements SearchPluginInterface {
 
   /**
    * The entity manager.
@@ -46,13 +46,13 @@ abstract class TypePluginBase extends SearchPluginBase implements TypeInterface 
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    /** @var static $type */
-    $type = parent::create($container, $configuration, $plugin_id, $plugin_definition);
+    /** @var static $plugin */
+    $plugin = parent::create($container, $configuration, $plugin_id, $plugin_definition);
 
-    $type->setEntityTypeManager($container->get('entity_type.manager'));
-    $type->setStringTranslation($container->get('string_translation'));
+    $plugin->setEntityTypeManager($container->get('entity_type.manager'));
+    $plugin->setStringTranslation($container->get('string_translation'));
 
-    return $type;
+    return $plugin;
   }
 
   /**

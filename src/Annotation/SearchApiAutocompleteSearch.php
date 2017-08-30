@@ -5,19 +5,19 @@ namespace Drupal\search_api_autocomplete\Annotation;
 use Drupal\Component\Annotation\Plugin;
 
 /**
- * Defines an autocompletion type.
+ * Defines an autocompletion search.
  *
- * @see \Drupal\search_api_autocomplete\Type\TypeInterface
- * @see \Drupal\search_api_autocomplete\Type\TypeManager
- * @see \Drupal\search_api_autocomplete\Type\TypePluginBase
+ * @see \Drupal\search_api_autocomplete\Search\SearchPluginInterface
+ * @see \Drupal\search_api_autocomplete\Search\SearchPluginManager
+ * @see \Drupal\search_api_autocomplete\Search\SearchPluginBase
  * @see plugin_api
  *
  * @Annotation
  */
-class SearchApiAutocompleteType extends Plugin {
+class SearchApiAutocompleteSearch extends Plugin {
 
   /**
-   * The type label.
+   * The search label.
    *
    * @var string
    *
@@ -26,7 +26,7 @@ class SearchApiAutocompleteType extends Plugin {
   public $label;
 
   /**
-   * The type description.
+   * The search description.
    *
    * @var string
    *
@@ -35,7 +35,7 @@ class SearchApiAutocompleteType extends Plugin {
   public $description;
 
   /**
-   * The type's group label.
+   * The search's group label.
    *
    * @var string
    *
@@ -44,7 +44,7 @@ class SearchApiAutocompleteType extends Plugin {
   public $group_label = NULL;
 
   /**
-   * The type's group's description.
+   * The search's group's description.
    *
    * @var string
    *
@@ -53,7 +53,7 @@ class SearchApiAutocompleteType extends Plugin {
   public $group_description = NULL;
 
   /**
-   * The type's index ID.
+   * The search's index ID.
    *
    * @var string
    */

@@ -17,19 +17,19 @@ function search_api_autocomplete_test_hooks_search_api_autocomplete_suggestions_
 }
 
 /**
- * Implements hook_search_api_autocomplete_suggester_alter().
+ * Implements hook_search_api_autocomplete_suggester_info_alter().
  */
-function search_api_autocomplete_test_hooks_search_api_autocomplete_suggester_alter(array &$suggesters) {
+function search_api_autocomplete_test_hooks_search_api_autocomplete_suggester_info_alter(array &$suggesters) {
   $suggesters['search_api_autocomplete_test']['label'] = 'Wish I Had an Angel';
 }
 
 /**
- * Implements hook_search_api_autocomplete_type_alter().
+ * Implements hook_search_api_autocomplete_search_info_alter().
  */
-function search_api_autocomplete_test_hooks_search_api_autocomplete_type_alter(array &$types) {
-  foreach (array_keys($types) as $type_id) {
-    $types[$type_id]['group_label'] = 'The Siren';
-    $types[$type_id]['group_description'] = 'Planet Hell';
+function search_api_autocomplete_test_hooks_search_api_autocomplete_search_info_alter(array &$searches) {
+  foreach (array_keys($searches) as $search_id) {
+    $searches[$search_id]['group_label'] = 'The Siren';
+    $searches[$search_id]['group_description'] = 'Planet Hell';
   }
 }
 

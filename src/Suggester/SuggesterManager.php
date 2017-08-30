@@ -32,7 +32,7 @@ class SuggesterManager extends DefaultPluginManager {
     parent::__construct('Plugin/search_api_autocomplete/suggester', $namespaces, $module_handler, SuggesterInterface::class, SearchApiAutocompleteSuggester::class);
 
     $this->setCacheBackend($cache_backend, 'search_api_autocomplete_suggester');
-    $this->alterInfo('search_api_autocomplete_suggester');
+    $this->alterInfo('search_api_autocomplete_suggester_info');
   }
 
 }

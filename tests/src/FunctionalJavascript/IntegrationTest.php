@@ -108,11 +108,11 @@ class IntegrationTest extends JavascriptTestBase {
     $this->logPageChange();
     $assert_session->statusCodeEquals(200);
 
-    // Check whether all expected types and searches are present.
+    // Check whether all expected groups and searches are present.
     $assert_session->pageTextContains('Search views');
     $assert_session->pageTextContains('Searches provided by Views');
     $assert_session->pageTextContains('Search API Autocomplete Test view');
-    $assert_session->pageTextContains('Test type');
+    $assert_session->pageTextContains('Test search');
     $assert_session->pageTextContains('Autocomplete test module search');
 
     // Enable all Views searches (just one).
@@ -172,7 +172,7 @@ class IntegrationTest extends JavascriptTestBase {
       'suggesters[weights][server][weight]' => '10',
       'suggesters[settings][server][fields][name]' => FALSE,
       'suggesters[settings][server][fields][body]' => TRUE,
-      'type_settings[displays][selected][default]' => FALSE,
+      'search_settings[displays][selected][default]' => FALSE,
       'options[limit]' => '5',
       'options[min_length]' => '2',
       'options[show_count]' => TRUE,
