@@ -3,6 +3,7 @@
 namespace Drupal\Tests\search_api_autocomplete\FunctionalJavascript;
 
 use Behat\Mink\Driver\GoutteDriver;
+use Behat\Mink\Element\NodeElement;
 use Drupal\FunctionalJavascriptTests\JavascriptTestBase;
 use Drupal\search_api_autocomplete\Entity\Search;
 use Drupal\search_api_autocomplete\Tests\TestsHelper;
@@ -80,6 +81,7 @@ class IntegrationTest extends JavascriptTestBase {
     $this->configureSearch();
     $this->checkEntityDependencies();
     $this->checkSearchAutocomplete();
+    $this->checkSearchAutocomplete(TRUE);
     $this->checkCustomAutocompleteScript();
     $this->checkHooks();
     $this->checkAutocompleteAccess();
@@ -202,8 +204,12 @@ class IntegrationTest extends JavascriptTestBase {
 
   /**
    * Tests autocompletion in the search form.
+   *
+   * @param bool $click_url_suggestion
+   *   (optional) TRUE to click the URL-based suggestion, FALSE to click one of
+   *   the "normal" search keys suggestions.
    */
-  protected function checkSearchAutocomplete() {
+  protected function checkSearchAutocomplete($click_url_suggestion = FALSE) {
     $assert_session = $this->assertSession();
 
     $this->drupalGet('search-api-autocomplete-test');
@@ -215,15 +221,14 @@ class IntegrationTest extends JavascriptTestBase {
     $suggestions = [];
     $suggestion_elements = [];
     foreach ($elements as $element) {
-      $user_input = $element->find('css', '.autocomplete-suggestion-user-input')
-        ->getText();
-      $suffix = $element->find('css', '.autocomplete-suggestion-suggestion-suffix')
-        ->getText();
-      $count = $element->find('css', '.autocomplete-suggestion-results-count');
-      $keys = $user_input . $suffix;
+      $label = $this->getElementText($element, '.autocomplete-suggestion-label');
+      $user_input = $this->getElementText($element, '.autocomplete-suggestion-user-input');
+      $suffix = $this->getElementText($element, '.autocomplete-suggestion-suggestion-suffix');
+      $count = $this->getElementText($element, '.autocomplete-suggestion-results-count');
+      $keys = $label . $user_input . $suffix;
       $suggestions[] = [
         'keys' => $keys,
-        'count' => $count ? $count->getText() : NULL,
+        'count' => $count,
       ];
       $suggestion_elements[$keys] = $element;
     }
@@ -237,8 +242,8 @@ class IntegrationTest extends JavascriptTestBase {
         'count' => 2,
       ],
       [
-        'keys' => 'test-suggester-3',
-        'count' => 3,
+        'keys' => 'test-suggester-url',
+        'count' => NULL,
       ],
       [
         'keys' => 'test-backend-1',
@@ -255,7 +260,16 @@ class IntegrationTest extends JavascriptTestBase {
     list($query) = $this->getMethodArguments('backend', 'getAutocompleteSuggestions');
     $this->assertEquals(['body'], $query->getFulltextFields());
 
-    // Click one of the suggestions. The form should now auto-submit.
+    if ($click_url_suggestion) {
+      // Click the URL suggestion and verify it correctly redirects the browser
+      // to that URL.
+      $suggestion_elements['test-suggester-url']->click();
+      $this->logPageChange();
+      $assert_session->addressEquals("/user/{$this->adminUser->id()}");
+      return;
+    }
+
+    // Click one of the search key suggestions. The form should now auto-submit.
     $suggestion_elements['test-suggester-1']->click();
     $this->logPageChange();
     $assert_session->addressEquals('/search-api-autocomplete-test');
@@ -293,6 +307,22 @@ class IntegrationTest extends JavascriptTestBase {
     // Contrary to documentation, this can also return NULL. Therefore, we need
     // to make sure to return an array even in this case.
     return $page->findAll('css', '.ui-autocomplete .ui-menu-item') ?: [];
+  }
+
+  /**
+   * Retrieves the text contents of a descendant of the given element.
+   *
+   * @param \Behat\Mink\Element\NodeElement $element
+   *   The element.
+   * @param string $css_selector
+   *   The CSS selector defining the descendant to look for.
+   *
+   * @return string|null
+   *   The text contents of the descendant, or NULL if it couldn't be found.
+   */
+  protected function getElementText(NodeElement $element, $css_selector) {
+    $element = $element->find('css', $css_selector);
+    return $element ? $element->getText() : NULL;
   }
 
   /**

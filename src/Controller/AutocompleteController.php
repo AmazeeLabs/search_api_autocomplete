@@ -122,18 +122,7 @@ class AutocompleteController extends ControllerBase implements ContainerInjectio
         $new_suggestions = $suggesters[$suggester_id]
           ->getAutocompleteSuggestions($tmp_query, $incomplete, $keys);
         foreach ($new_suggestions as $suggestion) {
-          // Decide what the action of the suggestion is – entering specific
-          // search terms or redirecting to a URL.
-          if ($suggestion->getUrl()) {
-            $key = ' ' . $suggestion->getUrl()->toString();
-          }
-          else {
-            $key = trim($suggestion->getSuggestedKeys());
-          }
-
-          if (!isset($suggestions[$key])) {
-            $suggestions[$key] = $suggestion;
-          }
+          $suggestions[] = $suggestion;
 
           if (--$limit == 0) {
             // If we've reached the limit, stop adding suggestions.
@@ -162,8 +151,18 @@ class AutocompleteController extends ControllerBase implements ContainerInjectio
           $suggestion->setResultsCount(NULL);
         }
         if ($build = $suggestion->toRenderable()) {
+          // Decide what the action of the suggestion is – entering specific
+          // search terms or redirecting to a URL.
+          if ($suggestion->getUrl()) {
+            // Our JavaScript code recognizes URLs by their leading space.
+            $value = ' ' . $suggestion->getUrl()->toString();
+          }
+          else {
+            $value = trim($suggestion->getSuggestedKeys());
+          }
+
           $matches[] = [
-            'value' => $suggestion->getSuggestedKeys(),
+            'value' => $value,
             'label' => $this->renderer->render($build),
           ];
         }

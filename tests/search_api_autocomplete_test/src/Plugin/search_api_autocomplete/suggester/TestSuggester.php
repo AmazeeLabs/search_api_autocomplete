@@ -2,8 +2,10 @@
 
 namespace Drupal\search_api_autocomplete_test\Plugin\search_api_autocomplete\suggester;
 
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\PluginFormInterface;
+use Drupal\Core\Url;
 use Drupal\search_api\Query\QueryInterface;
 use Drupal\search_api_autocomplete\SearchInterface;
 use Drupal\search_api_autocomplete\Suggester\SuggesterPluginBase;
@@ -79,9 +81,21 @@ class TestSuggester extends SuggesterPluginBase implements PluginFormInterface {
 
     $suggestions = [];
     $factory = new SuggestionFactory($user_input);
-    for ($i = 1; $i <= $query->getOption('limit', 10); ++$i) {
+
+    // Add some suffix-based suggestions and one URL-based suggestion.
+    for ($i = 1; $i < $query->getOption('limit', 10); ++$i) {
       $suggestions[] = $factory->createFromSuggestionSuffix("-suggester-$i", $i);
     }
+
+    $account = \Drupal::currentUser()->getAccount();
+    if ($uid = $account->id()) {
+      $url = Url::fromRoute('entity.user.canonical', ['user' => $uid]);
+    }
+    else {
+      $url = Url::fromRoute('user.login');
+    }
+    $suggestions[] = $factory->createUrlSuggestion($url, "$user_input-suggester-url");
+
     return $suggestions;
   }
 

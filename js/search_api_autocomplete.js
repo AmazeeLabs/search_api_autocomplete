@@ -72,15 +72,25 @@
           if (elementSettings['min_length']) {
             uiAutocomplete.options['minLength'] = elementSettings['min_length'];
           }
-          if (elementSettings['auto_submit'] && elementSettings['selector']) {
-            // Override the "select" option of the jQuery UI autocomplete to
-            // submit the form when a suggestion is selected.
-            var oldSelect = uiAutocomplete.options.select;
-            uiAutocomplete.options.select = function (event, ui) {
-              oldSelect.apply(this, arguments);
+          // Override the "select" callback of the jQuery UI autocomplete.
+          var oldSelect = uiAutocomplete.options.select;
+          uiAutocomplete.options.select = function (event, ui) {
+            // If this is a URL suggestion (recognized by its leading space),
+            // instead of autocompleting we redirect the user to that URL.
+            if (ui.item.value.charAt(0) === ' ') {
+              location.href = ui.item.value.substr(1);
+              return false;
+            }
+
+            var ret = oldSelect.apply(this, arguments);
+
+            // If auto-submit is enabled, submit the form.
+            if (elementSettings['auto_submit'] && elementSettings['selector']) {
               $(elementSettings['selector'], this.form).trigger('click');
-            };
-          }
+            }
+
+            return ret;
+          };
         });
     }
   };
