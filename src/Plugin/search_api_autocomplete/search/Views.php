@@ -153,11 +153,18 @@ class Views extends SearchPluginBase implements PluginFormInterface {
     $view->setDisplay($data['display']);
     $view->setArguments($data['arguments']);
 
-    // If we know the filter's identifier, use that to get the correct keys
-    // placed on the query.
+    // Set the keys via the exposed input, to get the correct handling for the
+    // filter in question.
+    $single_field_filter = !empty($data['field']);
     if (!empty($data['filter'])) {
+      $input = $keys;
+      // The Views filter for individual fulltext fields uses a nested "value"
+      // field for the real input, due to Views internals.
+      if ($single_field_filter) {
+        $input = ['value' => $keys];
+      }
       $view->setExposedInput([
-        $data['filter'] => $keys,
+        $data['filter'] => $input,
       ]);
     }
 
@@ -175,8 +182,8 @@ class Views extends SearchPluginBase implements PluginFormInterface {
       throw new SearchApiAutocompleteException("Could not create search query for view '$views_label'.");
     }
 
-    if (!empty($data['fields'])) {
-      $query->setFulltextFields($data['fields']);
+    if ($single_field_filter) {
+      $query->setFulltextFields([$data['field']]);
     }
 
     return $query;

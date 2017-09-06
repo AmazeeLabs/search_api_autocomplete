@@ -8,7 +8,10 @@
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
+use Drupal\search_api\Plugin\views\query\SearchApiQuery;
 use Drupal\search_api_autocomplete\Entity\Search;
+use Drupal\search_api_page\SearchApiPageInterface;
+use Drupal\views\ViewEntityInterface;
 
 /**
  * Implements hook_theme().
@@ -124,10 +127,9 @@ function search_api_autocomplete_form_views_exposed_form_alter(array &$form, For
     // field for the real input, due to Views internals.
     if (!empty($element['value'])) {
       $element = &$element['value'];
-      $key .= '[value]';
       // In this case, we also need to manually pass the fulltext fields, so
       // they will be applied properly.
-      $data['fields'] = [$filter->realField];
+      $data['field'] = $filter->realField;
     }
 
     if (isset($element['#type']) && $element['#type'] === 'textfield') {
@@ -159,4 +161,56 @@ function search_api_autocomplete_form_search_api_page_block_form_alter(array &$f
       ->get('search_api_autocomplete.helper')
       ->alterElement($form['keys'], $search);
   }
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_insert() for type "view".
+ *
+ * Clear the search plugin definitions cache when new search views are created.
+ * Could use better support from the Plugin API – see #2633878.
+ */
+function search_api_autocomplete_view_insert(ViewEntityInterface $view) {
+  if (SearchApiQuery::getIndexFromTable($view->get('base_table'))) {
+    \Drupal::getContainer()
+      ->get('plugin.manager.search_api_autocomplete.search')
+      ->clearCachedDefinitions();
+  }
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_delete() for type "view".
+ *
+ * Clear the search plugin definitions cache when search views are deleted.
+ * Could use better support from the Plugin API – see #2633878.
+ */
+function search_api_autocomplete_view_delete(ViewEntityInterface $view) {
+  if (SearchApiQuery::getIndexFromTable($view->get('base_table'))) {
+    \Drupal::getContainer()
+      ->get('plugin.manager.search_api_autocomplete.search')
+      ->clearCachedDefinitions();
+  }
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_insert() for type "search_api_page".
+ *
+ * Clear the search plugin definitions cache when search pages are created.
+ * Could use better support from the Plugin API – see #2633878.
+ */
+function search_api_autocomplete_search_api_page_insert(SearchApiPageInterface $page) {
+  \Drupal::getContainer()
+    ->get('plugin.manager.search_api_autocomplete.search')
+    ->clearCachedDefinitions();
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_delete() for type "search_api_page".
+ *
+ * Clear the search plugin definitions cache when search pages are deleted.
+ * Could use better support from the Plugin API – see #2633878.
+ */
+function search_api_autocomplete_search_api_page_delete(SearchApiPageInterface $page) {
+  \Drupal::getContainer()
+    ->get('plugin.manager.search_api_autocomplete.search')
+    ->clearCachedDefinitions();
 }

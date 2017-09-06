@@ -9,6 +9,7 @@ use Drupal\search_api_autocomplete\Entity\Search;
 use Drupal\search_api_autocomplete\Tests\TestsHelper;
 use Drupal\search_api_test\PluginTestTrait;
 use Drupal\user\Entity\Role;
+use Drupal\views\Entity\View;
 
 /**
  * Tests the functionality of the whole module from a user's perspective.
@@ -84,6 +85,7 @@ class IntegrationTest extends JavascriptTestBase {
     $this->checkSearchAutocomplete(TRUE);
     $this->checkCustomAutocompleteScript();
     $this->checkHooks();
+    $this->checkPluginCacheClear();
     $this->checkAutocompleteAccess();
     $this->checkAdminAccess();
   }
@@ -407,6 +409,33 @@ class IntegrationTest extends JavascriptTestBase {
     \Drupal::getContainer()->get('module_installer')->uninstall([
       'search_api_autocomplete_test_hooks',
     ]);
+  }
+
+  /**
+   * Verifies that creating or deleting a view clears the search plugin cache.
+   */
+  protected function checkPluginCacheClear() {
+    $assert_session = $this->assertSession();
+    $new_view_label = 'Search plugin cache test';
+
+    $this->drupalGet($this->getAdminPath());
+    $assert_session->pageTextNotContains($new_view_label);
+
+    $view = View::load('search_api_autocomplete_test_view')->createDuplicate();
+    $view->set('id', 'search_plugin_cache_test');
+    $view->set('label', $new_view_label);
+    $display = $view->get('display');
+    $display['page']['display_options']['path'] = 'some/new/path';
+    $view->set('display', $display);
+    $view->save();
+
+    $this->drupalGet($this->getAdminPath());
+    $assert_session->pageTextContains($new_view_label);
+
+    $view->delete();
+
+    $this->drupalGet($this->getAdminPath());
+    $assert_session->pageTextNotContains($new_view_label);
   }
 
   /**

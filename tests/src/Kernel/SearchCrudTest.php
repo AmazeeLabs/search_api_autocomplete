@@ -36,6 +36,7 @@ class SearchCrudTest extends KernelTestBase {
     parent::setUp();
 
     $this->installSchema('search_api', ['search_api_item']);
+    $this->installConfig('search_api');
     $this->installEntitySchema('search_api_task');
     $this->installEntitySchema('user');
 
@@ -45,12 +46,6 @@ class SearchCrudTest extends KernelTestBase {
     if (php_sapi_name() != 'cli') {
       \Drupal::state()->set('search_api_use_tracking_batch', FALSE);
     }
-
-    // Set tracking page size so tracking will work properly.
-    \Drupal::configFactory()
-      ->getEditable('search_api.settings')
-      ->set('tracking_page_size', 100)
-      ->save();
 
     $server = Server::create([
       'id' => 'server',
