@@ -2,7 +2,6 @@
 
 namespace Drupal\search_api_autocomplete\Search;
 
-use Drupal\search_api_autocomplete\SearchInterface;
 use Drupal\search_api_autocomplete\Plugin\PluginInterface;
 
 /**
@@ -55,8 +54,6 @@ interface SearchPluginInterface extends PluginInterface {
   /**
    * Creates a search query based on this search.
    *
-   * @param \Drupal\search_api_autocomplete\SearchInterface $search
-   *   The autocomplete search configuration.
    * @param string $keys
    *   The keywords to set on the query, if possible. Otherwise, this parameter
    *   can also be ignored.
@@ -69,6 +66,6 @@ interface SearchPluginInterface extends PluginInterface {
    * @throws \Drupal\search_api_autocomplete\SearchApiAutocompleteException
    *   Thrown if the query couldn't be created.
    */
-  public function createQuery(SearchInterface $search, $keys, array $data = []);
+  public function createQuery($keys, array $data = []);
 
 }

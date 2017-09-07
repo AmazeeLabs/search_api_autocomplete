@@ -5,7 +5,6 @@ namespace Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\search;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\search_api\Utility\QueryHelperInterface;
-use Drupal\search_api_autocomplete\SearchInterface;
 use Drupal\search_api_autocomplete\Search\SearchPluginBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -95,7 +94,7 @@ class Page extends SearchPluginBase implements ContainerFactoryPluginInterface {
   /**
    * {@inheritdoc}
    */
-  public function createQuery(SearchInterface $search, $keys, array $data = []) {
+  public function createQuery($keys, array $data = []) {
     $query = $this->getQueryHelper()->createQuery($this->getIndex());
     $query->keys($keys);
     $page = $this->getPage();

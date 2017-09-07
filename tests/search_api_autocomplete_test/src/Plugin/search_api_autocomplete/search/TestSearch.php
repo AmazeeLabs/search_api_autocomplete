@@ -4,7 +4,6 @@ namespace Drupal\search_api_autocomplete_test\Plugin\search_api_autocomplete\sea
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\PluginFormInterface;
-use Drupal\search_api_autocomplete\SearchInterface;
 use Drupal\search_api_autocomplete\Search\SearchPluginBase;
 use Drupal\search_api_test\TestPluginTrait;
 
@@ -60,12 +59,12 @@ class TestSearch extends SearchPluginBase implements PluginFormInterface {
   /**
    * {@inheritdoc}
    */
-  public function createQuery(SearchInterface $search, $keys, array $data = []) {
+  public function createQuery($keys, array $data = []) {
     $this->logMethodCall(__FUNCTION__, func_get_args());
     if ($override = $this->getMethodOverride(__FUNCTION__)) {
-      return call_user_func($override, $this, $search, $keys);
+      return call_user_func($override, $this, $keys, $data);
     }
-    return $search->getIndex()->query()->keys($keys);
+    return $this->search->getIndex()->query()->keys($keys);
   }
 
   /**

@@ -393,9 +393,7 @@ class Search extends ConfigEntityBase implements SearchInterface {
    * {@inheritdoc}
    */
   public function createQuery($keys, array $data = []) {
-    $search = $this->getSearchPlugin();
-    $query = $search->createQuery($this, $keys, $data);
-    return $query;
+    return $this->getSearchPlugin()->createQuery($keys, $data);
   }
 
   /**

@@ -7,7 +7,6 @@ use Drupal\Core\Plugin\PluginFormInterface;
 use Drupal\search_api\Plugin\PluginFormTrait;
 use Drupal\search_api\Plugin\views\query\SearchApiQuery;
 use Drupal\search_api_autocomplete\SearchApiAutocompleteException;
-use Drupal\search_api_autocomplete\SearchInterface;
 use Drupal\search_api_autocomplete\Search\SearchPluginBase;
 use Drupal\views\ViewEntityInterface;
 use Drupal\views\ViewExecutableFactory;
@@ -135,7 +134,7 @@ class Views extends SearchPluginBase implements PluginFormInterface {
   /**
    * {@inheritdoc}
    */
-  public function createQuery(SearchInterface $search, $keys, array $data = []) {
+  public function createQuery($keys, array $data = []) {
     $views_id = $this->getDerivativeId();
     $view = $this->getEntityTypeManager()->getStorage('view')->load($views_id);
     if ($view instanceof ViewEntityInterface) {
