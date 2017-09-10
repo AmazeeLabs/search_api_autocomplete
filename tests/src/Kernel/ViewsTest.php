@@ -4,7 +4,6 @@ namespace Drupal\Tests\search_api_autocomplete\Kernel;
 
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\search_api\Query\ConditionInterface;
-use Drupal\search_api_autocomplete\SearchInterface;
 
 /**
  * Tests Views integration of the Autocomplete module.
@@ -79,15 +78,11 @@ class ViewsTest extends KernelTestBase {
     $this->assertEquals('Search views', $plugin->getGroupLabel());
     $this->assertEquals('Searches provided by Views', $plugin->getGroupDescription());
 
-    // Since the Views search plugin doesn't need the search entity for creating
-    // the query, we can get away with a simple mock object.
-    /** @var \Drupal\search_api_autocomplete\SearchInterface $search */
-    $search = $this->getMock(SearchInterface::class);
     $data = [
       'display' => 'page',
       'filter' => 'keys',
     ];
-    $query = $plugin->createQuery($search, 'foobar', $data);
+    $query = $plugin->createQuery('foobar', $data);
     $this->assertEquals('foobar', $query->getOriginalKeys());
     $index = $query->getIndex();
     $this->assertEquals($index_id, $index->id());
@@ -96,7 +91,7 @@ class ViewsTest extends KernelTestBase {
     $fields = isset($fields) ? $fields : $all_fulltext_fields;
     $this->assertEquals($all_fulltext_fields, $fields);
 
-    $query = $plugin->createQuery($search, '', $data);
+    $query = $plugin->createQuery('', $data);
     $this->assertNull($query->getOriginalKeys());
 
     $data = [
@@ -104,7 +99,7 @@ class ViewsTest extends KernelTestBase {
       'filter' => 'name',
       'field' => 'name',
     ];
-    $query = $plugin->createQuery($search, 'foobar', $data);
+    $query = $plugin->createQuery('foobar', $data);
     $this->assertNull($query->getOriginalKeys());
     $this->assertContains('foobar', (string) $query);
     $conditions = $query->getConditionGroup()->getConditions();
