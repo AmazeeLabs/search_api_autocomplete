@@ -106,6 +106,7 @@ class IndexOverviewForm extends FormBase {
     $index_id = $search_api_index->id();
 
     $form['#tree'] = TRUE;
+    $form['#title'] = $this->t('Manage autocomplete for search index %label', ['%label' => $search_api_index->label()]);
 
     /** @var \Drupal\search_api_autocomplete\SearchInterface[] $searches_by_plugin */
     $searches_by_plugin = [];
