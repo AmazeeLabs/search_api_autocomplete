@@ -7,7 +7,7 @@ use Drupal\Core\Session\AccountInterface;
 use Drupal\search_api_autocomplete\SearchInterface;
 
 /**
- *
+ * Provides an interface for the autocomplete helper service.
  */
 interface AutocompleteHelperInterface extends AccessInterface {
 

@@ -517,13 +517,14 @@ class IntegrationTest extends JavascriptTestBase {
    * Returns the path of an admin page.
    *
    * @param string|null $page
-   *   (optional) "edit" or "delete" to get the path of the respective search
-   *   form, or NULL for the index's "Autocomplete" tab.
+   *   (optional) Either "edit" or "delete" to get the path of the respective
+   *   search form, or NULL for the index's "Autocomplete" tab.
    * @param string|null $search_id
    *   (optional) The ID of the search to link to, if a page is specified. NULL
    *   to use the default search used by this test.
    *
    * @return string
+   *   The internal path to the specified page.
    */
   protected function getAdminPath($page = NULL, $search_id = NULL) {
     $path = 'admin/config/search/search-api/index/autocomplete_search_index/autocomplete';

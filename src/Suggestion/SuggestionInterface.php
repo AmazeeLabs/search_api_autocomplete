@@ -49,7 +49,7 @@ interface SuggestionInterface extends RenderableInterface {
    * prefix/suffix and user input) are empty.
    *
    * @return string
-   *  The suggestion's label.
+   *   The suggestion's label.
    */
   public function getLabel();
 

@@ -2,6 +2,7 @@
 
 namespace Drupal\search_api_autocomplete\Tests;
 
+use Drupal\search_api\Backend\BackendInterface;
 use Drupal\search_api\Query\QueryInterface;
 use Drupal\search_api_autocomplete\SearchInterface;
 use Drupal\search_api_autocomplete\Suggestion\SuggestionFactory;
@@ -62,7 +63,7 @@ class TestsHelper {
    *
    * @see \Drupal\search_api_autocomplete\AutocompleteBackendInterface::getAutocompleteSuggestions()
    */
-  public static function getAutocompleteSuggestions($backend, QueryInterface $query, SearchInterface $search, $incomplete_key, $user_input) {
+  public static function getAutocompleteSuggestions(BackendInterface $backend, QueryInterface $query, SearchInterface $search, $incomplete_key, $user_input) {
     $args = array_slice(func_get_args(), 1);
     static::logMethodCall('backend', __FUNCTION__, $args);
 

@@ -20,9 +20,9 @@ class SearchStorage extends ConfigEntityStorage {
    */
   public function loadBySearchPlugin($plugin_id) {
     // @todo Change to the following once #2899014 gets fixed.
-//    $matching_entities = $this->getQuery()
-//      ->exists("search_settings.$plugin_id")
-//      ->execute();
+    // $matching_entities = $this->getQuery()
+    //   ->exists("search_settings.$plugin_id")
+    //   ->execute();
     /** @var \Drupal\search_api_autocomplete\SearchInterface $search */
     foreach ($this->loadMultiple() as $search) {
       if ($search->getSearchPluginId() === $plugin_id) {

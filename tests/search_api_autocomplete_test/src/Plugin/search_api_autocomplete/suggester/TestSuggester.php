@@ -2,7 +2,6 @@
 
 namespace Drupal\search_api_autocomplete_test\Plugin\search_api_autocomplete\suggester;
 
-use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\PluginFormInterface;
 use Drupal\Core\Url;
