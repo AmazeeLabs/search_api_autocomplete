@@ -4,6 +4,8 @@ namespace Drupal\Tests\search_api_autocomplete\Kernel;
 
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\search_api\Query\ConditionInterface;
+use Drupal\search_api_autocomplete\Search\SearchPluginManager;
+use Drupal\search_api_autocomplete\Utility\PluginHelper;
 
 /**
  * Tests Views integration of the Autocomplete module.
@@ -61,14 +63,18 @@ class ViewsTest extends KernelTestBase {
 
     $this->installConfig('search_api_autocomplete_test');
 
-    // Unfortunately, we need to rebuild the container here (or, at least the
-    // search plugin manager, but this is the simplest way), because otherwise
-    // the deriver's internal static cache will ruin the test.
-    /** @var \Drupal\Core\DrupalKernelInterface $kernel */
-    $kernel = $this->container->get('kernel');
-    $kernel->rebuildContainer();
-    $plugin_helper = $this->container
-      ->get('search_api_autocomplete.plugin_helper');
+    // To avoid getting the cached derivatives from the Views search plugin
+    // deriver, we unfortunately need to rebuild the search plugin manager. This
+    // is probably the simplest way to do it, without too many side effects.
+    $search_plugin_manager = new SearchPluginManager(
+      $this->container->get('container.namespaces'),
+      $this->container->get('cache.discovery'),
+      $this->container->get('module_handler')
+    );
+    $plugin_helper = new PluginHelper(
+      $this->container->get('plugin.manager.search_api_autocomplete.suggester'),
+      $search_plugin_manager
+    );
 
     $plugins = $plugin_helper->createSearchPluginsForIndex($index_id);
     $this->assertArrayHasKey($view_id, $plugins);
