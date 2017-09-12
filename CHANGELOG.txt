@@ -1,3 +1,6 @@
+Search API Autocomplete 1.x, dev (xxxx-xx-xx):
+----------------------------------------------
+
 Search API Autocomplete 1.0, Beta 1 (2017-09-12):
 -------------------------------------------------
 First Beta release of the project's Drupal 8 version. The API can be considered
