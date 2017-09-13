@@ -59,10 +59,8 @@ interface PluginHelperInterface {
    *   if they are present there, or default to an empty array.
    *
    * @return \Drupal\search_api_autocomplete\Suggester\SuggesterInterface[]
-   *   The created suggester plugin objects.
-   *
-   * @throws \Drupal\search_api_autocomplete\SearchApiAutocompleteException
-   *   Thrown if an unknown plugin ID is given.
+   *   The created suggester plugin objects, keyed by plugin ID. If a plugin
+   *   could not be created, it will be missing in the return array.
    */
   public function createSuggesterPlugins(SearchInterface $search, array $plugin_ids = NULL, array $configurations = []);
 

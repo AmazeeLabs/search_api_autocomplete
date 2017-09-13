@@ -4,10 +4,8 @@ namespace Drupal\Tests\search_api_autocomplete\FunctionalJavascript;
 
 use Behat\Mink\Driver\GoutteDriver;
 use Behat\Mink\Element\NodeElement;
-use Drupal\FunctionalJavascriptTests\JavascriptTestBase;
 use Drupal\search_api_autocomplete\Entity\Search;
 use Drupal\search_api_autocomplete\Tests\TestsHelper;
-use Drupal\search_api_test\PluginTestTrait;
 use Drupal\user\Entity\Role;
 use Drupal\views\Entity\View;
 
@@ -16,9 +14,7 @@ use Drupal\views\Entity\View;
  *
  * @group search_api_autocomplete
  */
-class IntegrationTest extends JavascriptTestBase {
-
-  use PluginTestTrait;
+class IntegrationTest extends IntegrationTestBase {
 
   /**
    * {@inheritdoc}

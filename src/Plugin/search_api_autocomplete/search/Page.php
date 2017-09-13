@@ -14,7 +14,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @SearchApiAutocompleteSearch(
  *   id = "page",
  *   group_label = @Translation("Search pages"),
- *   group_description = @Translation("Searches provided by the <em>Search pages</em> module."),
+ *   group_description = @Translation("Searches provided by the <em>Search pages</em> module"),
  *   provider = "search_api_page",
  *   deriver = "Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\search\PageDeriver",
  * )
@@ -98,8 +98,8 @@ class Page extends SearchPluginBase implements ContainerFactoryPluginInterface {
     $query = $this->getQueryHelper()->createQuery($this->getIndex());
     $query->keys($keys);
     $page = $this->getPage();
-    if ($page && $page->getFulltextFields()) {
-      $query->setFulltextFields($page->getSearchedFields());
+    if ($page && $page->getSearchedFields()) {
+      $query->setFulltextFields(array_values($page->getSearchedFields()));
     }
     return $query;
   }

@@ -68,7 +68,7 @@ class PluginHelper implements PluginHelperInterface {
       return $this->{$type . "PluginManager"}->createInstance($plugin_id, $configuration);
     }
     catch (PluginException $e) {
-      throw new SearchApiAutocompleteException("Unknown $type plugin with ID '$plugin_id'");
+      throw new SearchApiAutocompleteException("Unknown $type plugin with ID '$plugin_id'", 0, $e);
     }
   }
 
@@ -91,7 +91,7 @@ class PluginHelper implements PluginHelperInterface {
    *   The created plugin objects.
    *
    * @throws \Drupal\search_api_autocomplete\SearchApiAutocompleteException
-   *   Thrown if an unknown $type or plugin ID is given.
+   *   Thrown if an unknown $type is given.
    */
   protected function createPlugins(SearchInterface $search, $type, array $plugin_ids = NULL, array $configurations = []) {
     if (!isset($this->{$type . "PluginManager"})) {
@@ -112,7 +112,12 @@ class PluginHelper implements PluginHelperInterface {
       elseif (isset($search_settings[$plugin_id])) {
         $configuration = $search_settings[$plugin_id];
       }
-      $plugins[$plugin_id] = $this->createPlugin($search, $type, $plugin_id, $configuration);
+      try {
+        $plugins[$plugin_id] = $this->createPlugin($search, $type, $plugin_id, $configuration);
+      }
+      catch (SearchApiAutocompleteException $e) {
+        // Ignore unknown plugins.
+      }
     }
 
     return $plugins;
