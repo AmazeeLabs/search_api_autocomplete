@@ -82,7 +82,7 @@ class Server extends SuggesterPluginBase implements PluginFormInterface {
    */
   public function getAutocompleteSuggestions(QueryInterface $query, $incomplete_key, $user_input) {
     if (!($backend = static::getBackend($this->getSearch()->getIndex()))) {
-      return NULL;
+      return [];
     }
 
     if ($this->configuration['fields']) {
