@@ -1,5 +1,7 @@
 Search API Autocomplete 1.x, dev (xxxx-xx-xx):
 ----------------------------------------------
+- #2906450 by ressa, sagesolutions, drunken monkey: Fixed CSS for autocomplete
+  suggestions.
 - #2901869 by drunken monkey: Added a test for the Pages integration.
 - #2907925 by drunken monkey: Fixed tests on PostgreSQL.
 
