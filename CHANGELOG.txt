@@ -1,5 +1,6 @@
 Search API Autocomplete 1.x, dev (xxxx-xx-xx):
 ----------------------------------------------
+- #2912596 by ceaucari, drunken monkey: Fixed notice in form alter hook.
 - #2915671 by drunken monkey, Johnny vd Laar: Fixed NULL return value of
   getAutocompleteSuggestions().
 - #2906450 by ressa, sagesolutions, drunken monkey: Fixed CSS for autocomplete
