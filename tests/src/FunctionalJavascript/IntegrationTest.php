@@ -3,7 +3,6 @@
 namespace Drupal\Tests\search_api_autocomplete\FunctionalJavascript;
 
 use Behat\Mink\Driver\GoutteDriver;
-use Behat\Mink\Element\NodeElement;
 use Drupal\search_api_autocomplete\Entity\Search;
 use Drupal\search_api_autocomplete\Tests\TestsHelper;
 use Drupal\user\Entity\Role;
@@ -305,22 +304,6 @@ class IntegrationTest extends IntegrationTestBase {
     // Contrary to documentation, this can also return NULL. Therefore, we need
     // to make sure to return an array even in this case.
     return $page->findAll('css', '.ui-autocomplete .ui-menu-item') ?: [];
-  }
-
-  /**
-   * Retrieves the text contents of a descendant of the given element.
-   *
-   * @param \Behat\Mink\Element\NodeElement $element
-   *   The element.
-   * @param string $css_selector
-   *   The CSS selector defining the descendant to look for.
-   *
-   * @return string|null
-   *   The text contents of the descendant, or NULL if it couldn't be found.
-   */
-  protected function getElementText(NodeElement $element, $css_selector) {
-    $element = $element->find('css', $css_selector);
-    return $element ? $element->getText() : NULL;
   }
 
   /**
