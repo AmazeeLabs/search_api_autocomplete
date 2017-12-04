@@ -1,5 +1,8 @@
 Search API Autocomplete 1.x, dev (xxxx-xx-xx):
 ----------------------------------------------
+- #2904510 by drunken monkey: Fixed caching of render element.
+- #2904510 by drunken monkey: Caching of render element doesn't seem to work
+  correctly
 
 Search API Autocomplete 1.0, Beta 2 (2017-11-05):
 -------------------------------------------------

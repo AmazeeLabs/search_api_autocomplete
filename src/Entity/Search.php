@@ -2,8 +2,10 @@
 
 namespace Drupal\search_api_autocomplete\Entity;
 
+use Drupal\Core\Cache\Cache;
 use Drupal\Core\Config\Entity\ConfigEntityBase;
 use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\search_api\Entity\Index;
 use Drupal\search_api_autocomplete\SearchApiAutocompleteException;
 use Drupal\search_api_autocomplete\SearchInterface;
@@ -428,6 +430,34 @@ class Search extends ConfigEntityBase implements SearchInterface {
     // If there are no suggesters set for the search, it can't be enabled.
     if (!$this->getSuggesters()) {
       $this->disable();
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function invalidateTagsOnSave($update) {
+    parent::invalidateTagsOnSave($update);
+
+    $plugin_id = $this->getSearchPluginId();
+    Cache::invalidateTags(["search_api_autocomplete_search_list:$plugin_id"]);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected static function invalidateTagsOnDelete(EntityTypeInterface $entity_type, array $entities) {
+    parent::invalidateTagsOnDelete($entity_type, $entities);
+
+    $tags = [];
+    foreach ($entities as $entity) {
+      if ($entity instanceof Search) {
+        $plugin_id = $entity->getSearchPluginId();
+        $tags[] = "search_api_autocomplete_search_list:$plugin_id";
+      }
+    }
+    if ($tags) {
+      Cache::invalidateTags(array_unique($tags));
     }
   }
 
