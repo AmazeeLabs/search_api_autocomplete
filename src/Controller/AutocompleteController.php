@@ -5,6 +5,7 @@ namespace Drupal\search_api_autocomplete\Controller;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Render\RendererInterface;
+use Drupal\search_api\SearchApiException;
 use Drupal\search_api_autocomplete\SearchApiAutocompleteException;
 use Drupal\search_api_autocomplete\SearchInterface;
 use Drupal\search_api_autocomplete\Utility\AutocompleteHelperInterface;
@@ -161,14 +162,23 @@ class AutocompleteController extends ControllerBase implements ContainerInjectio
             $value = trim($suggestion->getSuggestedKeys());
           }
 
-          $matches[] = [
-            'value' => $value,
-            'label' => $this->renderer->render($build),
-          ];
+          try {
+            $matches[] = [
+              'value' => $value,
+              'label' => $this->renderer->render($build),
+            ];
+          }
+          catch (\Exception $e) {
+            watchdog_exception('search_api_autocomplete', $e, '%type while rendering an autocomplete suggestion: !message in %function (line %line of %file).');
+          }
         }
       }
     }
+    // @todo Use a multi-catch once we can depend on PHP 7.1+.
     catch (SearchApiAutocompleteException $e) {
+      watchdog_exception('search_api_autocomplete', $e, '%type while retrieving autocomplete suggestions: !message in %function (line %line of %file).');
+    }
+    catch (SearchApiException $e) {
       watchdog_exception('search_api_autocomplete', $e, '%type while retrieving autocomplete suggestions: !message in %function (line %line of %file).');
     }
 
