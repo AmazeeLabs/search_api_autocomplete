@@ -1,5 +1,6 @@
 Search API Autocomplete 1.x, dev (xxxx-xx-xx):
 ----------------------------------------------
+- #2903889 by drunken monkey: Fixed handling of removed dependencies.
 - #2924122 by drunken monkey: Fixed the Javascript check for whether there is a
   "delay" setting.
 - #2904510 by drunken monkey: Fixed caching of render element.

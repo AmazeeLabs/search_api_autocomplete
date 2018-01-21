@@ -20,7 +20,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   id = "views",
  *   group_label = @Translation("Search views"),
  *   group_description = @Translation("Searches provided by Views"),
- *   provider = "search_api",
+ *   provider = "views",
  *   deriver = "Drupal\search_api_autocomplete\Plugin\search_api_autocomplete\search\ViewsDeriver"
  * )
  */

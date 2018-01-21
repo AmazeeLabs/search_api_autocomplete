@@ -192,11 +192,16 @@ class IntegrationTest extends IntegrationTestBase {
         "views.view.{$this->searchId}",
       ],
       'module' => [
-        'search_api',
+        'search_api_autocomplete',
         'search_api_autocomplete_test',
+        'views',
       ],
     ];
-    $this->assertEquals($expected, $search->getDependencies());
+    $dependencies = $search->getDependencies();
+    ksort($dependencies);
+    sort($dependencies['config']);
+    sort($dependencies['module']);
+    $this->assertEquals($expected, $dependencies);
   }
 
   /**
