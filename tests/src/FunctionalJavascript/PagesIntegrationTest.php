@@ -208,7 +208,6 @@ class PagesIntegrationTest extends IntegrationTestBase {
     list($query) = $this->getMethodArguments('backend', 'getAutocompleteSuggestions');
     $this->assertEquals(['name'], $query->getFulltextFields());
 
-
     $edit = [
       'suggesters[settings][server][fields][body]' => TRUE,
     ];

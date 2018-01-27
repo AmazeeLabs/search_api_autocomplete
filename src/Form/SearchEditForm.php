@@ -374,7 +374,7 @@ class SearchEditForm extends EntityForm {
       if (class_exists($definition['class'])) {
         $method = [$definition['class'], 'supportsSearch'];
         if (call_user_func($method, $this->entity)) {
-          /** @var $suggester \Drupal\search_api_autocomplete\Suggester\SuggesterInterface */
+          /** @var \Drupal\search_api_autocomplete\Suggester\SuggesterInterface $suggester */
           $suggester = $this->suggesterManager
             ->createInstance($plugin_id, $settings);
           $suggesters[$plugin_id] = $suggester;

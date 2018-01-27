@@ -1,4 +1,4 @@
-Search API autocomplete
+Search API Autocomplete
 -----------------------
 
 Adds autocomplete capabilities for Search API searches.

@@ -1,5 +1,6 @@
 Search API Autocomplete 1.x, dev (xxxx-xx-xx):
 ----------------------------------------------
+- #2938374 by drunken monkey: Improved the module's coding standards compliance.
 - #2431111 by nabiyllin, drunken monkey: Added support for transliteration.
 - #1567234 by dobe, edurenye, drunken monkey, heshanlk, dermario: Added a "Live
   results" suggester.
