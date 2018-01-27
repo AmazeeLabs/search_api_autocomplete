@@ -1,5 +1,6 @@
 Search API Autocomplete 1.x, dev (xxxx-xx-xx):
 ----------------------------------------------
+- #2431111 by nabiyllin, drunken monkey: Added support for transliteration.
 - #1567234 by dobe, edurenye, drunken monkey, heshanlk, dermario: Added a "Live
   results" suggester.
 - #2933802 by drunken monkey: Improved error handling in the autocomplete
