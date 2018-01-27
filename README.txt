@@ -13,8 +13,8 @@ The default "Retrieve from server" suggester provided by this module retrieves
 autocomplete suggestions from the server, based on the indexed data. For this to
 work, the server has to support the "search_api_autocomplete" feature. Having
 autocompletion for indexes on servers for which the backend doesn't support this
-feature is only possible if you use a different suggester (possibly provided by
-a separate module).
+feature is only possible if you use a different suggester (like "Display live
+results", or one provided by a separate module).
 Currently, the Solr backend [1] and the Database backend (included in the Search
 API project) are known to support this feature.
 
@@ -40,17 +40,6 @@ permissions.
 Currently, only search forms built by the Search API Pages or Views modules are
 supported directly. However, other modules can easily also use this
 functionality. See the "Information for developers" below for details.
-
-  - Caution! -
-  If your view uses contextual filters, those can generally not be inferred in
-  the autocompletion function which might lead to problems of different kinds,
-  including display of confidential information (if such information would be
-  available without contextual filters), wrong suggestions or complete absence
-  of suggestions.
-  Therefore, you should create another display without contextual filters, if
-  necessary, and make sure that this doesn't lead to any leaks.
-  If you want to fix this in a custom way for your site, take a look at
-  example_search_api_query_alter() for suggestions.
 
 - Hidden settings
 

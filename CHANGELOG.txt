@@ -1,5 +1,7 @@
 Search API Autocomplete 1.x, dev (xxxx-xx-xx):
 ----------------------------------------------
+- #1567234 by dobe, edurenye, drunken monkey, heshanlk, dermario: Added a "Live
+  results" suggester.
 - #2933802 by drunken monkey: Improved error handling in the autocomplete
   controller.
 - #2903889 by drunken monkey: Fixed handling of removed dependencies.
