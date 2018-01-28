@@ -171,7 +171,7 @@ class Search extends ConfigEntityBase implements SearchInterface {
   public static function getDefaultOptions() {
     return [
       'autosubmit' => TRUE,
-      'delay' => 0,
+      'delay' => NULL,
       'limit' => 10,
       'min_length' => 1,
       'submit_button_selector' => ':submit',

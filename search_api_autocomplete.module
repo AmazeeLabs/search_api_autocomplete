@@ -94,7 +94,7 @@ function search_api_autocomplete_form_views_exposed_form_alter(array &$form, For
   $search_storage = \Drupal::entityTypeManager()
     ->getStorage('search_api_autocomplete_search');
   $search = $search_storage->loadBySearchPlugin($plugin_id);
-  if (!$search) {
+  if (!$search || !$search->status()) {
     return;
   }
 
