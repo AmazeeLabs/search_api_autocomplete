@@ -1,5 +1,5 @@
-Search API Autocomplete 1.x, dev (xxxx-xx-xx):
-----------------------------------------------
+Search API Autocomplete 1.0, RC 1 (2018-01-28):
+-----------------------------------------------
 - #2924778 by drunken monkey: Fixed two small coding mistakes.
 - #2938374 by drunken monkey: Improved the module's coding standards compliance.
 - #2431111 by nabiyllin, drunken monkey: Added support for transliteration.
