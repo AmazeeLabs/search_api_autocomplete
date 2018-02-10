@@ -1,5 +1,7 @@
 Search API Autocomplete 1.x, dev (xxxx-xx-xx):
 ----------------------------------------------
+- #2941485 by seanB, drunken monkey: Fixed highlighting of suggestions being
+  case-sensitive.
 
 Search API Autocomplete 1.0, RC 1 (2018-01-28):
 -----------------------------------------------
