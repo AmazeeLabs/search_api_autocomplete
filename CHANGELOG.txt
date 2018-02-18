@@ -1,5 +1,7 @@
 Search API Autocomplete 1.x, dev (xxxx-xx-xx):
 ----------------------------------------------
+- #2919102 by drunken monkey, sagesolutions, ressa: Fixed highlighting of
+  options when selected with arrow keys.
 - #2941485 by seanB, drunken monkey: Fixed highlighting of suggestions being
   case-sensitive.
 
