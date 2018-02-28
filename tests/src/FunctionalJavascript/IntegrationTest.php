@@ -254,9 +254,12 @@ class IntegrationTest extends IntegrationTestBase {
     ];
     $this->assertEquals($expected, $suggestions);
 
+    // Make sure the query looks as it should.
     /** @var \Drupal\search_api\Query\QueryInterface $query */
     list($query) = $this->getMethodArguments('backend', 'getAutocompleteSuggestions');
+    $this->assertFalse($query->wasAborted());
     $this->assertEquals(['body'], $query->getFulltextFields());
+    $this->assertEquals(['en'], array_values($query->getLanguages()));
 
     if ($click_url_suggestion) {
       // Click the URL suggestion and verify it correctly redirects the browser
