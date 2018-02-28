@@ -1,3 +1,6 @@
+Search API Autocomplete 1.x, dev (xxxx-xx-xx):
+----------------------------------------------
+
 Search API Autocomplete 1.0, RC 2 (2018-02-28):
 -----------------------------------------------
 - #2912246 by drunken monkey, kekkis: Fixed validation problems for Views with
