@@ -1,5 +1,7 @@
 Search API Autocomplete 1.x, dev (xxxx-xx-xx):
 ----------------------------------------------
+- #2953545 by anavarre, drunken monkey: Added a hint to create a search view
+  when no searches are available.
 
 Search API Autocomplete 1.0, RC 2 (2018-02-28):
 -----------------------------------------------
