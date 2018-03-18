@@ -1,3 +1,6 @@
+Search API Autocomplete 1.x, dev (xxxx-xx-xx):
+----------------------------------------------
+
 Search API Autocomplete 1.0 (2018-03-18):
 -----------------------------------------
 - #2953269 by drunken monkey: Fixed the "enabled for Views display" check.
