@@ -1,5 +1,6 @@
 Search API Autocomplete 1.x, dev (xxxx-xx-xx):
 ----------------------------------------------
+- #2953269 by drunken monkey: Fixed the "enabled for Views display" check.
 - #2953545 by anavarre, drunken monkey: Added a hint to create a search view
   when no searches are available.
 
