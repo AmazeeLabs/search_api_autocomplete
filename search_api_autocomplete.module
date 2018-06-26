@@ -121,12 +121,12 @@ function search_api_autocomplete_form_views_exposed_form_alter(array &$form, For
   ];
 
   foreach ($view->filter as $filter_name => $filter) {
-    $key = $filter->options['expose']['identifier'];
     if (!in_array($filter->realField, $fields)
         || empty($filter->options['expose']['identifier'])
-        || !isset($form[$key])) {
+        || !isset($form[$filter->options['expose']['identifier']])) {
       continue;
     }
+    $key = $filter->options['expose']['identifier'];
 
     $element = &$form[$key];
     $data = $base_data;
