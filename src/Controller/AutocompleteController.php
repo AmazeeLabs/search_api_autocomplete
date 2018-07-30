@@ -105,6 +105,7 @@ class AutocompleteController extends ControllerBase implements ContainerInjectio
 
       // Prepare the query.
       $query->setSearchId('search_api_autocomplete:' . $search->id());
+      $query->addTag('search_api_autocomplete');
       $query->preExecute();
 
       // Get total limit and per-suggester limits.

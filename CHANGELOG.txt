@@ -1,5 +1,6 @@
 Search API Autocomplete 1.x, dev (xxxx-xx-xx):
 ----------------------------------------------
+- #2985727 by drunken monkey: Added a tag to the search query.
 - #2971710 by perryjanssen, drunken monkey: Fixed an "undefined index" bug.
 
 Search API Autocomplete 1.0 (2018-03-18):
