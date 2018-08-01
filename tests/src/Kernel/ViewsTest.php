@@ -21,12 +21,14 @@ class ViewsTest extends KernelTestBase {
    */
   public static $modules = [
     'entity_test',
+    'field',
     'search_api_autocomplete',
     'search_api_autocomplete_test',
     'search_api',
     'search_api_test',
     'search_api_test_example_content',
     'system',
+    'text',
     'user',
     'views',
   ];
@@ -39,6 +41,7 @@ class ViewsTest extends KernelTestBase {
 
     $this->installSchema('search_api', ['search_api_item']);
     $this->installConfig('search_api');
+    $this->installConfig('search_api_test_example_content');
     $this->installEntitySchema('entity_test_mulrev_changed');
     $this->installEntitySchema('search_api_task');
     $this->installEntitySchema('user');
