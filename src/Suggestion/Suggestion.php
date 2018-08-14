@@ -257,12 +257,12 @@ class Suggestion implements SuggestionInterface {
     return [
       '#theme' => 'search_api_autocomplete_suggestion',
       '#keys' => $this->getSuggestedKeys(),
+      '#url' => $this->getUrl(),
       '#prefix' => $this->getPrefix(),
       '#label' => $this->getLabel(),
       '#results_count' => $this->getResultsCount(),
       '#suggestion_prefix' => $this->getSuggestionPrefix(),
       '#suggestion_suffix' => $this->getSuggestionSuffix(),
-      '#url' => $this->getUrl(),
       '#user_input' => $this->getUserInput(),
     ];
   }

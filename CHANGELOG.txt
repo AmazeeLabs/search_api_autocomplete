@@ -1,5 +1,6 @@
 Search API Autocomplete 1.x, dev (xxxx-xx-xx):
 ----------------------------------------------
+- #2981783 by drunken monkey: Improved theme/template documentation.
 - #2989973 by drunken monkey: Fixed the current test fails.
 - #2985727 by drunken monkey: Added a tag to the search query.
 - #2971710 by perryjanssen, drunken monkey: Fixed an "undefined index" bug.

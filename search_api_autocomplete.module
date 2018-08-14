@@ -19,12 +19,13 @@ function search_api_autocomplete_theme() {
   $themes['search_api_autocomplete_suggestion'] = [
     'variables' => [
       'keys' => NULL,
-      'prefix' => NULL,
+      'url' => NULL,
       'label' => NULL,
-      'suggestion_prefix' => '',
-      'user_input' => '',
-      'suggestion_suffix' => '',
+      'prefix' => NULL,
       'results_count' => NULL,
+      'suggestion_prefix' => '',
+      'suggestion_suffix' => '',
+      'user_input' => '',
     ],
   ];
 
