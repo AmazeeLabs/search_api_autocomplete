@@ -6,7 +6,6 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\PluginFormInterface;
-use Drupal\search_api\LoggerTrait;
 use Drupal\search_api\Plugin\PluginFormTrait;
 use Drupal\search_api\Query\QueryInterface;
 use Drupal\search_api\SearchApiException;
@@ -25,7 +24,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class LiveResults extends SuggesterPluginBase implements PluginFormInterface {
 
-  use LoggerTrait;
   use PluginFormTrait;
 
   /**
@@ -43,7 +41,6 @@ class LiveResults extends SuggesterPluginBase implements PluginFormInterface {
     $plugin = parent::create($container, $configuration, $plugin_id, $plugin_definition);
 
     $plugin->setEntityTypeManager($container->get('entity_type.manager'));
-    $plugin->setLogger($container->get('logger.channel.search_api_autocomplete'));
 
     return $plugin;
   }
